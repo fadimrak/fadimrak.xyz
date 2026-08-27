@@ -189,33 +189,6 @@ class App {
     `).join('');
   }
 
-  // Real Visitor Counter for fadimrak.xyz
-  async initRealVisitorCounter() {
-    const viewEl = document.getElementById('stat-views');
-    let count = 1;
-
-    try {
-      const response = await fetch('https://api.counterapi.dev/v1/fadimrak_xyz/views/up');
-      if (response.ok) {
-        const data = await response.json();
-        if (data && typeof data.count === 'number') {
-          count = data.count;
-          localStorage.setItem('fadimrak_views_cache', count);
-          if (viewEl) viewEl.textContent = Number(count).toLocaleString('tr-TR');
-          return;
-        }
-      }
-    } catch (e) {
-      console.log('Online sayaç hatası, yerel önbellek:', e);
-    }
-
-    let localStored = parseInt(localStorage.getItem('fadimrak_views_cache') || '1', 10);
-    localStored += 1;
-    localStorage.setItem('fadimrak_views_cache', localStored);
-    if (viewEl) viewEl.textContent = localStored.toLocaleString('tr-TR');
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   new App();
 });
