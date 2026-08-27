@@ -150,23 +150,16 @@ class App {
     if (nameEl) nameEl.textContent = user.global_name || user.username || PROFILE_DATA.defaultUsername;
     if (handleEl) handleEl.textContent = `@${user.username || PROFILE_DATA.defaultUsername}`;
 
-    // 4. Official Discord Badges
+    // 4. Discord Profil Rozeti
     const badgeContainer = document.getElementById('discord-badges');
     if (badgeContainer) {
       badgeContainer.innerHTML = `
-        <div class="discord-badge-pill" title="Discord Nitro">
-          ${SVG_ICONS.nitroBadge}
-        </div>
-        <div class="discord-badge-pill" title="HypeSquad Brilliance">
-          ${SVG_ICONS.hypesquadBrilliance}
-        </div>
         <a href="${PROFILE_DATA.discordUrl}" target="_blank" rel="noopener noreferrer" class="discord-tag-pill" title="Discord Profilini Aç">
           ${SVG_ICONS.discord}
           <span>${user.username}</span>
         </a>
       `;
     }
-  }
 
   // Render Guns.lol Style Buttons
   renderButtons() {
