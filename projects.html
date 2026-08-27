@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projeler | fadimrak.xyz</title>
+  
+  <!-- SEO & Meta -->
+  <meta name="description" content="fadimrak projeleri, araçları ve doğrudan indirilebilir açık kaynak yazılımları.">
+  <meta name="author" content="fadimrak">
+  <meta name="theme-color" content="#070b14">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="projects.css">
+</head>
+<body>
+
+  <!-- WebGL Sakin Topoğrafi Arka Planı -->
+  <canvas id="topography-canvas"></canvas>
+  <div class="bg-ambient-overlay"></div>
+
+  <!-- Sayfa Kapsayıcısı -->
+  <div class="projects-page-wrapper">
+    
+    <!-- Üst Bar & Geri Dön Butonu -->
+    <header class="projects-navbar">
+      <a href="index.html" class="back-home-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <span>Ana Sayfa</span>
+      </a>
+
+      <div class="navbar-brand">
+        <span class="brand-handle">fadimrak.xyz</span>
+        <span class="brand-slash">/</span>
+        <span class="brand-page">projects</span>
+      </div>
+    </header>
+
+    <!-- Ana Başlık & Açıklama -->
+    <section class="projects-hero">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>Açık Kaynak & Yazılımlar</span>
+      </div>
+      <h1 class="hero-title">Geliştirdiğim Projeler</h1>
+      <p class="hero-desc">
+        Arayüz ekran görüntüleri (GUI), detaylı açıklamaları ve GitHub Raw üzerinden doğrudan tek tıkla indirilebilir hazır araçlar.
+      </p>
+
+      <!-- Arama & Filtre Çubuğu -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" x2="16.65"/></svg>
+          <input type="text" id="project-search" placeholder="Proje ara...">
+        </div>
+        <div class="category-pills" id="category-pills">
+          <!-- JS Render -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Proje Kartları Izgarası -->
+    <section class="projects-grid" id="projects-grid">
+      <!-- JS Render -->
+    </section>
+
+    <!-- Footer -->
+    <footer class="projects-footer">
+      <p>© 2026 fadimrak.xyz • Tüm projeler GitHub üzerinden sunulmaktadır.</p>
+    </footer>
+
+  </div>
+
+  <!-- Ekran Görüntüsü Büyütme Modalı (Lightbox) -->
+  <div class="lightbox-modal" id="image-lightbox" role="dialog" aria-modal="true">
+    <div class="lightbox-backdrop"></div>
+    <div class="lightbox-content">
+      <button class="lightbox-close" aria-label="Kapat">&times;</button>
+      <img src="" alt="Proje Ekran Görüntüsü" id="lightbox-img">
+      <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <!-- Toast Bildirimi -->
+  <div class="app-toast" id="app-toast"></div>
+
+  <!-- Scripts -->
+  <script src="topography.js"></script>
+  <script src="projects.js"></script>
+</body>
+</html>
