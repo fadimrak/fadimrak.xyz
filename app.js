@@ -18,10 +18,10 @@ const PROFILE_DATA = {
       icon: "github"
     },
     {
-      id: "steam",
-      title: "Steam",
-      url: "https://steamcommunity.com/profiles/76561199077362131/",
-      icon: "steam"
+      id: "mal",
+      title: "MyAnimeList",
+      url: "https://myanimelist.net/profile/fadimrak",
+      icon: "mal"
     }
   ]
 };
