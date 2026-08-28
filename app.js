@@ -22,18 +22,6 @@ const PROFILE_DATA = {
       title: "Steam",
       url: "https://steamcommunity.com/profiles/76561199077362131/",
       icon: "steam"
-    },
-    {
-      id: "roblox",
-      title: "Roblox",
-      url: "https://www.roblox.com/users/3366921991/profile",
-      icon: "roblox"
-    },
-    {
-      id: "mal",
-      title: "MyAnimeList",
-      url: "https://myanimelist.net/profile/fadimrak",
-      icon: "mal"
     }
   ]
 };
