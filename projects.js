@@ -1,6 +1,5 @@
 /**
  * Projects Showcase Engine - fadimrak.xyz/projects
- * Proje: LoL Otokabul - Otoban
  */
 
 // ==========================================
@@ -19,17 +18,10 @@ const PROJECTS_DATA = [
       "Otomatik DLC Açıcı (SmokeAPI, ScreamAPI, Koaloader) & Oyun/Manifest yönetimi",
       "Hızlı Steam hesap değiştirici ve Türkçe / İngilizce çift dil desteği"
     ],
-    screenshot: "", // Resim linki eklendiğinde tam ekran büyüteç (lightbox) ile açılır
+    screenshot: "https://github.com/user-attachments/assets/2d3e50a1-2943-4453-b370-419bba399cc3",
     githubUrl: "https://github.com/fadimrak/fadimraksteamtool",
-    tags: ["Steam", "Gaming", "SAM", "Idle Farmer", "DLC Unlocker", "Python", "PyWebView", "Tool"],
-    mockInfo: {
-      statusTitle: "Steamworks API: Connected",
-      statusValue: "Ready",
-      codeLines: [
-        "> Steam istemcisi bağlandı...",
-        "> Idle Farmer: AKTİF | SAM: Hazır"
-      ]
-    }
+    rawDownloadUrl: "https://github.com/fadimrak/fadimraksteamtool/releases/download/v1.0/FadimrakSteamTool_Setup_v1.0.exe",
+    downloadFilename: "FadimrakSteamTool_Setup_v1.0.exe"
   },
   {
     id: "animeria",
@@ -43,17 +35,8 @@ const PROJECTS_DATA = [
       "AniList GraphQL kataloğu, trendler, gelişmiş filtreleme ve anlık canlı arama",
       "İzleme listeleri (Watchlist), profil istatistikleri ve bölüm içi yorumlar"
     ],
-    screenshot: "",
-    githubUrl: "https://github.com/fadimrak/animeria",
-    tags: ["Anime", "Streaming", "Web App", "HLS", "AniList", "Node.js", "Express", "Open Source"],
-    mockInfo: {
-      statusTitle: "AniList GraphQL: Online",
-      statusValue: "Streaming",
-      codeLines: [
-        "> HLS Video Engine: Aktif",
-        "> Multi-Provider Scrapers: Hazır"
-      ]
-    }
+    screenshot: "https://github.com/user-attachments/assets/c1fd9549-0932-4476-a136-8e79f43302d3",
+    githubUrl: "https://github.com/fadimrak/animeria"
   },
   {
     id: "lol-kabul-ban",
@@ -67,19 +50,10 @@ const PROJECTS_DATA = [
       "Riot Client ile arka planda sorunsuz, güvenli ve minimum kaynak tüketimiyle çalışır",
       "Basit ve anlaşılır arayüz"
     ],
-    screenshot: "", // Resim linki eklendiğinde tam ekran büyüteç (lightbox) ile açılır
+    screenshot: "https://github.com/user-attachments/assets/10edb0fd-7ea3-4ae3-898d-2cb7ad2f74ca",
     githubUrl: "https://github.com/fadimrak/lolkabul",
     rawDownloadUrl: "https://github.com/fadimrak/lolkabul/raw/main/LoL%20Otokabul-Otoban.exe",
-    downloadFilename: "LoL Otokabul-Otoban.exe",
-    tags: ["League of Legends", "LoL", "Otokabul", "Otoban", "Tool", "Windows", "EXE"],
-    mockInfo: {
-      statusTitle: "Client: Connected",
-      statusValue: "Active",
-      codeLines: [
-        "> LoL Client dinleniyor...",
-        "> Otokabul: AÇIK | Otoban: AÇIK"
-      ]
-    }
+    downloadFilename: "LoL Otokabul-Otoban.exe"
   }
 ];
 
@@ -141,11 +115,13 @@ class ProjectsApp {
     const container = document.getElementById('projects-grid');
     if (!container) return;
 
+    const query = this.searchQuery.toLowerCase().trim();
     const filtered = this.projects.filter(p => {
       const matchCat = this.selectedCategory === "Tümü" || p.category === this.selectedCategory;
-      const matchSearch = p.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                          p.description.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                          p.tags.some(t => t.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      const matchSearch = !query ||
+                          p.title.toLowerCase().includes(query) ||
+                          p.description.toLowerCase().includes(query) ||
+                          (p.features && p.features.some(f => f.toLowerCase().includes(query)));
       return matchCat && matchSearch;
     });
 
@@ -161,15 +137,9 @@ class ProjectsApp {
     }
 
     container.innerHTML = filtered.map(project => {
-      const mock = project.mockInfo || {
-        statusTitle: "App Status: Active",
-        statusValue: "Running",
-        codeLines: ["> Sistem hazır...", "> Modüller aktif."]
-      };
-
       const screenshotHtml = project.screenshot ? `
         <div class="card-screenshot-wrap" data-img="${project.screenshot}" data-title="${project.title}">
-          <img src="${project.screenshot}" alt="${project.title} GUI" class="screenshot-img">
+          <img src="${project.screenshot}" alt="${project.title} Ekran Görüntüsü" class="screenshot-img" loading="lazy">
           <div class="screenshot-overlay">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" x2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
             <span>Ekran Görüntüsünü Büyüt</span>
@@ -181,7 +151,7 @@ class ProjectsApp {
             <span class="gui-dot dot-red"></span>
             <span class="gui-dot dot-yellow"></span>
             <span class="gui-dot dot-green"></span>
-            <span class="gui-window-title">${project.title} - GUI</span>
+            <span class="gui-window-title">${project.title}</span>
           </div>
           <div class="gui-preview-inner">
             <div class="gui-mock-sidebar">
@@ -191,11 +161,12 @@ class ProjectsApp {
             </div>
             <div class="gui-mock-main">
               <div class="mock-stat-box">
-                <span class="mock-box-title">${mock.statusTitle}</span>
-                <span class="mock-box-val">${mock.statusValue}</span>
+                <span class="mock-box-title">Modül Durumu</span>
+                <span class="mock-box-val">Aktif</span>
               </div>
               <div class="mock-code-box">
-                ${mock.codeLines.map(line => `<code>${line}</code>`).join('')}
+                <code>> Sistem hazır</code>
+                <code>> Servisler çalışıyor</code>
               </div>
             </div>
           </div>
@@ -204,23 +175,17 @@ class ProjectsApp {
 
       const featuresHtml = project.features && project.features.length ? `
         <div class="project-features-box">
-          <span class="features-heading">⚡ Ne İşe Yarar?</span>
+          <span class="features-heading">Özellikler</span>
           <ul class="features-list">
             ${project.features.map(f => `<li>${f}</li>`).join('')}
           </ul>
         </div>
       ` : '';
 
-      const tagsHtml = project.tags && project.tags.length ? `
-        <div class="project-tags">
-          ${project.tags.map(t => `<span class="p-tag">#${t}</span>`).join('')}
-        </div>
-      ` : '';
-
       let actionButtonsHtml = '';
       if (project.rawDownloadUrl) {
         actionButtonsHtml = `
-          <!-- Tek Tıkla GitHub Raw İndirme -->
+          <!-- Tek Tıkla İndirme -->
           <button class="btn-download" data-raw="${project.rawDownloadUrl}" data-filename="${project.downloadFilename}">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
             <span>Tek Tıkla İndir (.exe)</span>
@@ -232,8 +197,8 @@ class ProjectsApp {
             <span>GitHub</span>
           </a>
 
-          <!-- Raw Link Kopyala -->
-          <button class="btn-icon-copy" data-copy="${project.rawDownloadUrl}" title="GitHub Raw İndirme Linkini Kopyala">
+          <!-- İndirme Linkini Kopyala -->
+          <button class="btn-icon-copy" data-copy="${project.rawDownloadUrl}" title="İndirme Linkini Kopyala">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           </button>
         `;
@@ -242,7 +207,7 @@ class ProjectsApp {
           <!-- GitHub Repo (Primary) -->
           <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-download" style="text-decoration: none;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
-            <span>GitHub Deposuna Git</span>
+            <span>GitHub Deposu</span>
           </a>
 
           <!-- Git Clone Kopyala -->
@@ -272,7 +237,6 @@ class ProjectsApp {
             <p class="card-description">${project.description}</p>
 
             ${featuresHtml}
-            ${tagsHtml}
 
             <!-- İndirme & Aksiyon Butonları -->
             <div class="card-actions-strip">
@@ -320,8 +284,8 @@ class ProjectsApp {
       if (copyBtn) {
         const textToCopy = copyBtn.dataset.copy;
         const msg = textToCopy.startsWith('git clone')
-          ? '📋 "git clone" komutu panoya kopyalandı!'
-          : '🔗 İndirme linki panoya kopyalandı!';
+          ? 'git clone komutu panoya kopyalandı.'
+          : 'İndirme linki panoya kopyalandı.';
         this.copyToClipboard(textToCopy, msg);
         return;
       }
@@ -341,9 +305,9 @@ class ProjectsApp {
     });
   }
 
-  // GitHub Raw Dosyasını Tek Tıkla İndirme
+  // GitHub Raw / Release Dosyasını Tek Tıkla İndirme
   async triggerRawDownload(rawUrl, filename) {
-    this.showToast(`⬇️ ${filename} indiriliyor...`);
+    this.showToast(`${filename} indiriliyor...`);
 
     try {
       const res = await fetch(rawUrl);
@@ -359,7 +323,7 @@ class ProjectsApp {
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
 
-      this.showToast(`✅ ${filename} başarıyla indirildi!`);
+      this.showToast(`${filename} başarıyla indirildi.`);
     } catch (e) {
       console.log('Direct blob download error, triggering fallback direct URL', e);
       // Fallback: Doğrudan URL indirmesi
@@ -370,7 +334,7 @@ class ProjectsApp {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      this.showToast(`✅ ${filename} indirme başlatıldı!`);
+      this.showToast(`${filename} indirme başlatıldı.`);
     }
   }
 
@@ -422,3 +386,4 @@ class ProjectsApp {
 document.addEventListener('DOMContentLoaded', () => {
   new ProjectsApp();
 });
+
