@@ -550,6 +550,7 @@ html, body {
   border: 1px solid rgba(147, 197, 253, 0.35);
   border-radius: 12px;
   color: #ffffff;
+  text-decoration: none;
   font-size: 13px;
   font-weight: 700;
   display: flex;

@@ -8,6 +8,54 @@
 // ==========================================
 const PROJECTS_DATA = [
   {
+    id: "fadimrak-steam-tool",
+    title: "Fadimrak Steam Tool",
+    version: "v1.0.0",
+    category: "Steam & Gaming",
+    description: "Steam istemcisi için geliştirilmiş kütüphane, başarım (SAM), DLC, kart/saat kasma (Idle Farmer) ve çoklu hesap yönetim aracı.",
+    features: [
+      "Steamworks API ile doğrudan Başarım Yöneticisi (SAM - kilit açma / kilitleme)",
+      "Arka planda sessiz çalışan Kart ve Saat Kasma (Idle Farmer) & Sistem Tepsisi (Tray) desteği",
+      "Otomatik DLC Açıcı (SmokeAPI, ScreamAPI, Koaloader) & Oyun/Manifest yönetimi",
+      "Hızlı Steam hesap değiştirici ve Türkçe / İngilizce çift dil desteği"
+    ],
+    screenshot: "", // Resim linki eklendiğinde tam ekran büyüteç (lightbox) ile açılır
+    githubUrl: "https://github.com/fadimrak/fadimraksteamtool",
+    tags: ["Steam", "Gaming", "SAM", "Idle Farmer", "DLC Unlocker", "Python", "PyWebView", "Tool"],
+    mockInfo: {
+      statusTitle: "Steamworks API: Connected",
+      statusValue: "Ready",
+      codeLines: [
+        "> Steam istemcisi bağlandı...",
+        "> Idle Farmer: AKTİF | SAM: Hazır"
+      ]
+    }
+  },
+  {
+    id: "animeria",
+    title: "Animeria",
+    version: "v1.0.0",
+    category: "Web Application",
+    description: "Modern ve monokrom tasarımlı, çoklu anime video sağlayıcılı, AniList GraphQL entegrasyonlu ve gelişmiş güvenlik katmanlarına sahip açık kaynak anime izleme ve takip platformu.",
+    features: [
+      "HLS (.m3u8) adaptif video oynatıcı ve AniSkip (otomatik OP/ED atlama) entegrasyonu",
+      "Çoklu anime sağlayıcı desteği (MKissa, Reanime, AniZone vb.) ve Altyazı / Dublaj seçimi",
+      "AniList GraphQL kataloğu, trendler, gelişmiş filtreleme ve anlık canlı arama",
+      "İzleme listeleri (Watchlist), profil istatistikleri ve bölüm içi yorumlar"
+    ],
+    screenshot: "",
+    githubUrl: "https://github.com/fadimrak/animeria",
+    tags: ["Anime", "Streaming", "Web App", "HLS", "AniList", "Node.js", "Express", "Open Source"],
+    mockInfo: {
+      statusTitle: "AniList GraphQL: Online",
+      statusValue: "Streaming",
+      codeLines: [
+        "> HLS Video Engine: Aktif",
+        "> Multi-Provider Scrapers: Hazır"
+      ]
+    }
+  },
+  {
     id: "lol-kabul-ban",
     title: "LoL Otokabul - Otoban",
     version: "v1.0.0",
@@ -23,7 +71,15 @@ const PROJECTS_DATA = [
     githubUrl: "https://github.com/fadimrak/lolkabul",
     rawDownloadUrl: "https://github.com/fadimrak/lolkabul/raw/main/LoL%20Otokabul-Otoban.exe",
     downloadFilename: "LoL Otokabul-Otoban.exe",
-    tags: ["League of Legends", "LoL", "Otokabul", "Otoban", "Tool", "Windows", "EXE"]
+    tags: ["League of Legends", "LoL", "Otokabul", "Otoban", "Tool", "Windows", "EXE"],
+    mockInfo: {
+      statusTitle: "Client: Connected",
+      statusValue: "Active",
+      codeLines: [
+        "> LoL Client dinleniyor...",
+        "> Otokabul: AÇIK | Otoban: AÇIK"
+      ]
+    }
   }
 ];
 
@@ -105,6 +161,12 @@ class ProjectsApp {
     }
 
     container.innerHTML = filtered.map(project => {
+      const mock = project.mockInfo || {
+        statusTitle: "App Status: Active",
+        statusValue: "Running",
+        codeLines: ["> Sistem hazır...", "> Modüller aktif."]
+      };
+
       const screenshotHtml = project.screenshot ? `
         <div class="card-screenshot-wrap" data-img="${project.screenshot}" data-title="${project.title}">
           <img src="${project.screenshot}" alt="${project.title} GUI" class="screenshot-img">
@@ -129,12 +191,11 @@ class ProjectsApp {
             </div>
             <div class="gui-mock-main">
               <div class="mock-stat-box">
-                <span class="mock-box-title">Client: Connected</span>
-                <span class="mock-box-val">Active</span>
+                <span class="mock-box-title">${mock.statusTitle}</span>
+                <span class="mock-box-val">${mock.statusValue}</span>
               </div>
               <div class="mock-code-box">
-                <code>> LoL Client dinleniyor...</code>
-                <code>> Otokabul: AÇIK | Otoban: AÇIK</code>
+                ${mock.codeLines.map(line => `<code>${line}</code>`).join('')}
               </div>
             </div>
           </div>
@@ -155,6 +216,41 @@ class ProjectsApp {
           ${project.tags.map(t => `<span class="p-tag">#${t}</span>`).join('')}
         </div>
       ` : '';
+
+      let actionButtonsHtml = '';
+      if (project.rawDownloadUrl) {
+        actionButtonsHtml = `
+          <!-- Tek Tıkla GitHub Raw İndirme -->
+          <button class="btn-download" data-raw="${project.rawDownloadUrl}" data-filename="${project.downloadFilename}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <span>Tek Tıkla İndir (.exe)</span>
+          </button>
+
+          <!-- GitHub Repo -->
+          <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" title="GitHub Deposu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+            <span>GitHub</span>
+          </a>
+
+          <!-- Raw Link Kopyala -->
+          <button class="btn-icon-copy" data-copy="${project.rawDownloadUrl}" title="GitHub Raw İndirme Linkini Kopyala">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        `;
+      } else {
+        actionButtonsHtml = `
+          <!-- GitHub Repo (Primary) -->
+          <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-download" style="text-decoration: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+            <span>GitHub Deposuna Git</span>
+          </a>
+
+          <!-- Git Clone Kopyala -->
+          <button class="btn-icon-copy" data-copy="git clone ${project.githubUrl}.git" title="Git Clone Komutunu Kopyala">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        `;
+      }
 
       return `
         <article class="project-card" data-id="${project.id}">
@@ -180,24 +276,7 @@ class ProjectsApp {
 
             <!-- İndirme & Aksiyon Butonları -->
             <div class="card-actions-strip">
-              
-              <!-- Tek Tıkla GitHub Raw İndirme -->
-              <button class="btn-download" data-raw="${project.rawDownloadUrl}" data-filename="${project.downloadFilename}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                <span>Tek Tıkla İndir (.exe)</span>
-              </button>
-
-              <!-- GitHub Repo -->
-              <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer" class="btn-secondary" title="GitHub Deposu">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
-                <span>GitHub</span>
-              </a>
-
-              <!-- Raw Link Kopyala -->
-              <button class="btn-icon-copy" data-copy="${project.rawDownloadUrl}" title="GitHub Raw İndirme Linkini Kopyala">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-              </button>
-
+              ${actionButtonsHtml}
             </div>
 
           </div>
@@ -229,18 +308,21 @@ class ProjectsApp {
     document.getElementById('projects-grid')?.addEventListener('click', (e) => {
       // 1. Tek Tıkla İndir
       const dlBtn = e.target.closest('.btn-download');
-      if (dlBtn) {
+      if (dlBtn && dlBtn.dataset.raw) {
         const rawUrl = dlBtn.dataset.raw;
         const filename = dlBtn.dataset.filename || 'download.exe';
         this.triggerRawDownload(rawUrl, filename);
         return;
       }
 
-      // 2. Raw Link Kopyala
+      // 2. Link / Metin Kopyala
       const copyBtn = e.target.closest('.btn-icon-copy');
       if (copyBtn) {
-        const rawUrl = copyBtn.dataset.copy;
-        this.copyToClipboard(rawUrl, '🔗 GitHub Raw indirme linki kopyalandı!');
+        const textToCopy = copyBtn.dataset.copy;
+        const msg = textToCopy.startsWith('git clone')
+          ? '📋 "git clone" komutu panoya kopyalandı!'
+          : '🔗 İndirme linki panoya kopyalandı!';
+        this.copyToClipboard(textToCopy, msg);
         return;
       }
 
