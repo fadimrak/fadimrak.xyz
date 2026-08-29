@@ -12,6 +12,14 @@ const PROFILE_DATA = {
   discordUrl: `https://discord.com/users/${DISCORD_USER_ID}`,
   links: [
     {
+      id: "projects",
+      title: "Projeler",
+      url: "projects.html",
+      icon: "rocket",
+      isFeatured: true,
+      badgeText: "Açık Kaynak"
+    },
+    {
       id: "github",
       title: "GitHub",
       url: "https://github.com/fadimrak",
@@ -28,6 +36,8 @@ const PROFILE_DATA = {
 
 // Official Icons Registry
 const SVG_ICONS = {
+  rocket: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>`,
+
   github: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`,
 
   steam: `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.005.105.005.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 14.819C1.775 20.042 6.549 24 11.979 24c6.627 0 12-5.373 12-12s-5.373-12-12-12zM7.544 14.852l-.565-.234c-.451.691-1.229 1.144-2.112 1.144-.122 0-.24-.01-.357-.027l2.257.933c.435-.443.712-1.038.777-1.816zm8.4-9.358c-1.884 0-3.414 1.53-3.414 3.416 0 1.884 1.53 3.414 3.414 3.414 1.885 0 3.416-1.53 3.416-3.414 0-1.886-1.531-3.416-3.416-3.416zm0 1.111c1.272 0 2.305 1.033 2.305 2.305s-1.033 2.305-2.305 2.305-2.305-1.033-2.305-2.305 1.033-2.305 2.305-2.305zm-7.488 9.537c-.779 0-1.411.633-1.411 1.411 0 .78.632 1.414 1.411 1.414.78 0 1.414-.634 1.414-1.414 0-.778-.634-1.411-1.414-1.411z"/></svg>`,
@@ -155,20 +165,27 @@ class App {
     const container = document.getElementById('links-list');
     if (!container) return;
 
-    container.innerHTML = PROFILE_DATA.links.map(link => `
-      <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
-         class="gunslol-btn">
-        <div class="btn-content-left">
-          <div class="btn-icon">
-            ${SVG_ICONS[link.icon] || SVG_ICONS.github}
+    container.innerHTML = PROFILE_DATA.links.map(link => {
+      const isExternal = link.url.startsWith('http');
+      const targetAttr = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
+      const featuredClass = link.isFeatured ? 'featured-btn' : '';
+      const badgeHtml = link.badgeText ? `<span class="btn-pill-badge">${link.badgeText}</span>` : '';
+
+      return `
+        <a href="${link.url}" ${targetAttr} class="gunslol-btn ${featuredClass}">
+          <div class="btn-content-left">
+            <div class="btn-icon">
+              ${SVG_ICONS[link.icon] || SVG_ICONS.github}
+            </div>
+            <span class="btn-title">${link.title}</span>
+            ${badgeHtml}
           </div>
-          <span class="btn-title">${link.title}</span>
-        </div>
-        <div class="btn-arrow">
-          ${SVG_ICONS.arrow}
-        </div>
-      </a>
-    `).join('');
+          <div class="btn-arrow">
+            ${SVG_ICONS.arrow}
+          </div>
+        </a>
+      `;
+    }).join('');
   }
 
   // Real Visitor Counter for fadimrak.xyz

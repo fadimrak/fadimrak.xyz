@@ -381,6 +381,63 @@ html, body {
   transform: translateX(3px);
 }
 
+/* Featured / Highlighted Projects Button */
+.gunslol-btn.featured-btn {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(59, 130, 246, 0.35));
+  border: 1.5px solid rgba(147, 197, 253, 0.6);
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.35), 0 0 24px rgba(59, 130, 246, 0.25), inset 0 0 16px rgba(147, 197, 253, 0.12);
+  animation: featuredButtonPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes featuredButtonPulse {
+  0% {
+    border-color: rgba(147, 197, 253, 0.5);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3), 0 0 20px rgba(59, 130, 246, 0.2);
+  }
+  100% {
+    border-color: rgba(191, 219, 254, 0.9);
+    box-shadow: 0 8px 28px rgba(59, 130, 246, 0.5), 0 0 32px rgba(147, 197, 253, 0.4);
+  }
+}
+
+.gunslol-btn.featured-btn .btn-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-mid), var(--color-low));
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+}
+
+.gunslol-btn.featured-btn .btn-title {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.btn-pill-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(147, 197, 253, 0.4);
+  color: var(--color-high);
+  letter-spacing: 0.02em;
+  margin-left: 2px;
+}
+
+.gunslol-btn.featured-btn:hover {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.8), rgba(96, 165, 250, 0.55));
+  border-color: #ffffff;
+  box-shadow: 0 10px 32px rgba(59, 130, 246, 0.65), 0 0 40px rgba(147, 197, 253, 0.55);
+  transform: translateY(-3px) scale(1.02);
+}
+
+.gunslol-btn.featured-btn:hover .btn-icon {
+  transform: scale(1.15) rotate(8deg);
+}
+
 /* Card Footer / View Counter */
 .card-footer {
   width: 100%;
