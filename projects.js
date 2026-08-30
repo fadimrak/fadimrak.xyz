@@ -18,9 +18,9 @@ const PROJECTS_DATA = [
       "Otomatik DLC Açıcı (SmokeAPI, ScreamAPI, Koaloader) & Oyun/Manifest yönetimi",
       "Hızlı Steam hesap değiştirici ve Türkçe / İngilizce çift dil desteği"
     ],
-    screenshot: "https://github.com/user-attachments/assets/2d3e50a1-2943-4453-b370-419bba399cc3",
+    screenshot: "https://i.imgur.com/GkN2CJv.png",
     githubUrl: "https://github.com/fadimrak/fadimraksteamtool",
-    rawDownloadUrl: "https://github.com/fadimrak/fadimraksteamtool/releases/download/v1.0/FadimrakSteamTool_Setup_v1.0.exe",
+    rawDownloadUrl: "https://gofile.io/d/hVcFKl7F",
     downloadFilename: "FadimrakSteamTool_Setup_v1.0.exe"
   },
   {
@@ -305,8 +305,14 @@ class ProjectsApp {
     });
   }
 
-  // GitHub Raw / Release Dosyasını Tek Tıkla İndirme
+  // GitHub Raw / Release / Dış Bağlantı İndirme
   async triggerRawDownload(rawUrl, filename) {
+    if (rawUrl.includes('gofile.io') || rawUrl.includes('drive.google.com') || rawUrl.includes('mega.nz')) {
+      window.open(rawUrl, '_blank', 'noopener,noreferrer');
+      this.showToast('İndirme sayfası açılıyor...');
+      return;
+    }
+
     this.showToast(`${filename} indiriliyor...`);
 
     try {
