@@ -1,0 +1,58 @@
+{
+  "projects": [
+    {
+      "category": "Steam & Gaming",
+      "description": "Steam istemcisi için geliştirilmiş kütüphane, başarım (SAM), DLC, kart/saat kasma (Idle Farmer) ve çoklu hesap yönetim aracı.",
+      "downloadFilename": "FadimrakSteamTool_Setup_v1.0.exe",
+      "features": [
+        "Steamworks API ile doğrudan Başarım Yöneticisi (SAM - kilit açma / kilitleme)",
+        "Arka planda sessiz çalışan Kart ve Saat Kasma (Idle Farmer) & Sistem Tepsisi (Tray) desteği",
+        "Otomatik DLC Açıcı (SmokeAPI, ScreamAPI, Koaloader) & Oyun/Manifest yönetimi",
+        "Hızlı Steam hesap değiştirici ve Türkçe / İngilizce çift dil desteği"
+      ],
+      "githubUrl": "https://github.com/fadimrak/fadimraksteamtool",
+      "id": "fadimrak-steam-tool",
+      "order": 0,
+      "rawDownloadUrl": "https://gofile.io/d/hVcFKl7F",
+      "screenshot": "https://i.imgur.com/GkN2CJv.png",
+      "title": "Fadimrak Steam Tool",
+      "version": "v1.0.0"
+    },
+    {
+      "category": "Web Application",
+      "description": "Modern ve monokrom tasarımlı, çoklu anime video sağlayıcılı, AniList GraphQL entegrasyonlu ve gelişmiş güvenlik katmanlarına sahip açık kaynak anime izleme ve takip platformu.",
+      "features": [
+        "HLS (.m3u8) adaptif video oynatıcı ve AniSkip (otomatik OP/ED atlama) entegrasyonu",
+        "Çoklu anime sağlayıcı desteği (MKissa, Reanime, AniZone vb.) ve Altyazı / Dublaj seçimi",
+        "AniList GraphQL kataloğu, trendler, gelişmiş filtreleme ve anlık canlı arama",
+        "İzleme listeleri (Watchlist), profil istatistikleri ve bölüm içi yorumlar"
+      ],
+      "githubUrl": "https://github.com/fadimrak/animeria",
+      "id": "animeria",
+      "order": 1,
+      "screenshot": "https://github.com/user-attachments/assets/c1fd9549-0932-4476-a136-8e79f43302d3",
+      "title": "Animeria",
+      "version": "v1.0.0"
+    },
+    {
+      "category": "League of Legends",
+      "description": "League of Legends maçlarını otomatik olarak kabul eden ve belirlediğiniz şampiyonu seçim aşamasında otomatik banlayan pratik masaüstü aracı.",
+      "downloadFilename": "LoL Otokabul-Otoban.exe",
+      "features": [
+        "Sıraya girdiğinizde maçı milisaniyeler içinde otomatik kabul eder",
+        "Belirlediğiniz şampiyonu banlama aşamasında anında otomatik banlar",
+        "Riot Client ile arka planda sorunsuz, güvenli ve minimum kaynak tüketimiyle çalışır",
+        "Basit ve anlaşılır arayüz"
+      ],
+      "githubUrl": "https://github.com/fadimrak/lolkabul",
+      "id": "lol-kabul-ban",
+      "order": 2,
+      "rawDownloadUrl": "https://github.com/fadimrak/lolkabul/raw/main/LoL%20Otokabul-Otoban.exe",
+      "screenshot": "https://github.com/user-attachments/assets/10edb0fd-7ea3-4ae3-898d-2cb7ad2f74ca",
+      "title": "LoL Otokabul - Otoban",
+      "version": "v1.0.0"
+    }
+  ],
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-27T12:00:00.000Z"
+}
