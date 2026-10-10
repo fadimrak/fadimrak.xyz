@@ -1,91 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>fadimrak</title>
-  
-  <!-- SEO & Meta -->
-  <meta name="description" content="fadimrak - Bio & Profiles">
-  <meta name="author" content="fadimrak">
-  <meta name="theme-color" content="#070b14">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://fadimrak.xyz">
-  <meta property="og:title" content="fadimrak">
-  <meta property="og:description" content="fadimrak - Bio & Profiles">
-
-  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fadimrak</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; background: #000; color: #fff; font-family: system-ui, sans-serif; }
+  h1 { margin: 0; font-size: 3rem; }
+  p { margin: 0; opacity: .6; }
+</style>
 </head>
 <body>
-
-  <!-- WebGL Topography Canvas -->
-  <canvas id="topography-canvas"></canvas>
-  <div class="bg-ambient-overlay"></div>
-
-  <!-- Guns.lol Centered Bio Hub (No Scroll) -->
-  <main class="page-container">
-    <div class="gunslol-card">
-      
-      <!-- Discord Animated Banner -->
-      <div class="card-banner" id="profile-banner"></div>
-
-      <!-- Profile Body -->
-      <div class="card-body">
-        
-        <!-- Discord Animated Avatar -->
-        <div class="avatar-container">
-          <div class="avatar-wrapper" id="profile-avatar">
-            <div class="avatar-fallback"><span class="avatar-letters">F</span></div>
-          </div>
-        </div>
-
-        <!-- Name & Badges -->
-        <div class="profile-info">
-          <div class="profile-name-row">
-            <h1 class="profile-name" id="profile-name">fadimrak</h1>
-            <div class="verified-badge" title="Verified">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-
-          <div class="profile-handle" id="profile-handle">@fadimrak</div>
-
-          <!-- Discord Badges Strip (Nitro & HypeSquad Brilliance) -->
-          <div class="discord-badges-row" id="discord-badges">
-            <!-- JS Rendered -->
-          </div>
-        </div>
-
-        <!-- Guns.lol Style Buttons Directly Under Profile -->
-        <nav class="links-container" id="links-list" aria-label="Social Links">
-          <!-- JS Rendered -->
-        </nav>
-
-        <!-- Footer / Views Counter -->
-        <footer class="card-footer">
-          <div class="views-counter-pill">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            <span id="stat-views">...</span>
-          </div>
-          <span class="domain-tag">fadimrak.xyz</span>
-        </footer>
-
-      </div>
-    </div>
-  </main>
-
-  <!-- Scripts -->
-  <script src="topography.js"></script>
-  <script src="app.js"></script>
+<h1>fadimrak</h1>
+<p>07.2027</p>
 </body>
 </html>
