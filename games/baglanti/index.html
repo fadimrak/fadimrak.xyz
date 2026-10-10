@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>bağlantı · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 520px; }
+  .w { aspect-ratio: 1.6; padding: 4px; font-size: clamp(.6rem, 2.6vw, .85rem); word-break: break-word; border-radius: 8px; user-select: none; }
+  .w.sel { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .solved { grid-column: 1 / -1; padding: .9rem; border-radius: 8px; text-align: center; animation: in .4s; }
+  .solved b { display: block; font-weight: 400; letter-spacing: .1em; margin-bottom: .25rem; }
+  .solved span { font-size: .8rem; }
+  .l0 { background: #e6e6e6; color: #0a0a0a; } .l1 { background: #a8a8a8; color: #0a0a0a; }
+  .l2 { background: #5c5c5c; color: #f0f0f0; } .l3 { background: #2c2c2c; color: #f0f0f0; border: 1px solid #3a3a3a; }
+  .lives { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: .8rem; }
+  .lives i { width: 10px; height: 10px; border-radius: 50%; background: var(--fg); transition: opacity .3s; }
+  .lives i.off { opacity: .15; }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>bağlantı</h1><span class="hint" id="no"></span></header>
+<main>
+  <p class="hint">16 kelimeyi ortak noktası olan 4'lü gruplara ayır.</p>
+  <div class="board" id="board"></div>
+  <div class="lives" id="lives"></div>
+  <div class="row" id="controls">
+    <button id="shuffle">karıştır</button>
+    <button id="clear">seçimi kaldır</button>
+    <button class="primary" id="submit" disabled>gönder</button>
+  </div>
+  <button class="primary" id="share" hidden>sonucu paylaş</button>
+</main>
+<script src="../common.js"></script>
+<script>
+// Her bulmaca: 4 grup, kolaydan zora. ponytail: 14 bulmaca döngüde, liste uzadıkça tekrar seyrekleşir
+const PUZZLES = [
+  [['Renkler', 'KIRMIZI MAVİ YEŞİL SARI'], ['Gezegenler', 'MARS VENÜS SATÜRN JÜPİTER'], ['Takım maskotları', 'KARTAL ASLAN KANARYA FIRTINA'], ['___ çayı', 'ADA KUŞBURNU IHLAMUR ELMA']],
+  [['Mutfak eşyaları', 'TENCERE TAVA KEPÇE SÜZGEÇ'], ['Müzik aletleri', 'BAĞLAMA KEMAN DAVUL ZURNA'], ['Satranç taşları', 'PİYON FİL AT KALE'], ['GÖZ ile başlar', 'GÖZLÜK GÖZLEME GÖZCÜ GÖZYAŞI']],
+  [['Mevsimler', 'İLKBAHAR YAZ SONBAHAR KIŞ'], ['Yönler', 'KUZEY GÜNEY DOĞU BATI'], ['Yazar soyadları', 'PAMUK KEMAL ŞAFAK NESİN'], ['Kahve çeşitleri', 'TÜRK FİLTRE ESPRESSO LATTE']],
+  [['Okul eşyaları', 'KALEM SİLGİ DEFTER CETVEL'], ['Hava olayları', 'YAĞMUR KAR DOLU SİS'], ['Hayvan yavruları', 'KUZU BUZAĞI OĞLAK SIPA'], ['Tavla terimleri', 'PUL ZAR MARS ŞEŞBEŞ']],
+  [['Organlar', 'KALP AKCİĞER BÖBREK KARACİĞER'], ['Denizlerimiz', 'KARADENİZ EGE AKDENİZ MARMARA'], ['Şarkıcı adları', 'TARKAN SEZEN AJDA BARIŞ'], ['Hamamda bulunur', 'KESE PEŞTAMAL KURNA NALIN']],
+  [['Sporlar', 'FUTBOL BASKETBOL VOLEYBOL TENİS'], ['Baklagiller', 'NOHUT MERCİMEK FASULYE BAKLA'], ['Yeşilçam soyadları', 'SUNAL ŞEN ARKIN İNANIR'], ['Deniz ürünleri', 'KARİDES MİDYE AHTAPOT KALAMAR']],
+  [['Giysiler', 'GÖMLEK PANTOLON ETEK CEKET'], ['Ağaçlar', 'ÇAM MEŞE ÇINAR SÖĞÜT'], ['Kuşlar', 'SERÇE MARTI LEYLEK BAYKUŞ'], ['Tatlılar', 'BAKLAVA KÜNEFE SÜTLAÇ AŞURE']],
+  [['Mobilya', 'MASA SANDALYE DOLAP KOLTUK'], ['Dağlar', 'AĞRI ERCİYES ULUDAĞ PALANDÖKEN'], ['Göller', 'VAN TUZ EĞİRDİR BEYŞEHİR'], ['Peynirler', 'KAŞAR TULUM LOR ÇEÇİL']],
+  [['Duygular', 'MUTLULUK ÜZÜNTÜ ÖFKE KORKU'], ['Toplu taşıma', 'OTOBÜS TRAMVAY VAPUR METRO'], ['Kahvaltılık', 'ZEYTİN BAL KAYMAK REÇEL'], ['Kağıt oyunları', 'PİŞTİ BATAK KING POKER']],
+  [['Meslekler', 'DOKTOR ÖĞRETMEN AVUKAT MÜHENDİS'], ['Baharatlar', 'KİMYON NANE SUMAK KEKİK'], ['Kıtalar', 'ASYA AVRUPA AFRİKA ANTARKTİKA'], ['Halk oyunları', 'HORON ZEYBEK HALAY BAR']],
+  [['İçecekler', 'ÇAY AYRAN ŞALGAM LİMONATA'], ['Hamur işleri', 'SİMİT POĞAÇA BÖREK PİDE'], ['Antik yerler', 'EFES TRUVA NEMRUT GÖBEKLİTEPE'], ['Burçlar', 'KOÇ BOĞA İKİZLER YENGEÇ']],
+  [['Vücut', 'KOL BACAK BOYUN OMUZ'], ['Vahşi hayvanlar', 'ZEBRA ZÜRAFA GERGEDAN TİMSAH'], ['Padişah lakapları', 'FATİH YAVUZ KANUNİ YILDIRIM'], ['Mezeler', 'HAYDARİ FAVA ŞAKŞUKA CACIK']],
+  [['Teknoloji', 'TELEFON BİLGİSAYAR TABLET KULAKLIK'], ['Metaller', 'ALTIN GÜMÜŞ BAKIR DEMİR'], ['Başkentler', 'PARİS ROMA BERLİN MADRİD'], ['Masal kahramanları', 'KELOĞLAN KÜLKEDİSİ PİNOKYO ALADDİN']],
+  [['Sebzeler', 'DOMATES PATLICAN KABAK BİBER'], ['Ölçü birimleri', 'METRE LİTRE GRAM SANİYE'], ['Ressamlar', 'PİCASSO DALİ MONET REMBRANDT'], ['Tiyatro terimleri', 'SAHNE PERDE KULİS SUFLÖR']],
+].map(p => p.map(([name, words], level) => ({ name, level, words: words.split(' ') })));
+
+const day = dayIndex(), puzzle = PUZZLES[((day % PUZZLES.length) + PUZZLES.length) % PUZZLES.length];
+document.getElementById('no').textContent = '#' + (day + 1);
+const groupOf = w => puzzle.find(g => g.words.includes(w));
+
+let st = store.get('baglanti', {});
+if (st.day !== day) st = { day, solved: [], tries: [], order: shuffle(puzzle.flatMap(g => g.words)) };
+let sel = [];
+const board = document.getElementById('board'), MAX = 4;
+const mistakes = () => st.tries.filter(t => new Set(t.map(w => groupOf(w).level)).size > 1).length;
+const over = () => st.solved.length === 4 || mistakes() >= MAX;
+
+function render() {
+  board.innerHTML = '';
+  st.solved.forEach(l => {
+    const g = puzzle[l];
+    board.insertAdjacentHTML('beforeend', `<div class="solved l${l}"><b>${g.name}</b><span>${g.words.join(', ')}</span></div>`);
+  });
+  st.order.filter(w => !st.solved.includes(groupOf(w).level)).forEach(w => {
+    const b = document.createElement('button');
+    b.className = 'w' + (sel.includes(w) ? ' sel' : '');
+    b.textContent = w;
+    b.onclick = () => {
+      if (over()) return;
+      sel = sel.includes(w) ? sel.filter(x => x !== w) : sel.length < 4 ? [...sel, w] : sel;
+      render();
+    };
+    board.append(b);
+  });
+  document.getElementById('lives').innerHTML = 'kalan hata ' + Array.from({ length: MAX }, (_, i) => `<i class="${i < MAX - mistakes() ? '' : 'off'}"></i>`).join('');
+  document.getElementById('submit').disabled = sel.length !== 4;
+  document.getElementById('controls').hidden = over();
+  document.getElementById('share').hidden = !over();
+  store.set('baglanti', st);
+}
+
+document.getElementById('submit').onclick = () => {
+  const key = sel.slice().sort().join();
+  if (st.tries.some(t => t.slice().sort().join() === key)) return toast('bunu zaten denedin');
+  st.tries.push(sel);
+  const counts = {};
+  sel.forEach(w => { const l = groupOf(w).level; counts[l] = (counts[l] || 0) + 1; });
+  const best = Math.max(...Object.values(counts));
+  if (best === 4) {
+    st.solved.push(groupOf(sel[0]).level);
+    sel = [];
+    if (st.solved.length === 4) toast(['kusursuz!', 'harika', 'iyi iş', 'son anda!'][mistakes()], 2500);
+  } else {
+    shake(board);
+    toast(best === 3 ? 'bir kaldı...' : 'olmadı');
+    if (mistakes() >= MAX) {
+      sel = [];
+      puzzle.forEach(g => st.solved.includes(g.level) || st.solved.push(g.level));
+      toast('bitti — cevaplar açıldı', 2500);
+    }
+  }
+  render();
+};
+document.getElementById('shuffle').onclick = () => { st.order = shuffle(st.order); render(); };
+document.getElementById('clear').onclick = () => { sel = []; render(); };
+document.getElementById('share').onclick = () => {
+  const rows = st.tries.map(t => t.map(w => ['🟨', '🟩', '🟦', '🟪'][groupOf(w).level]).join('')).join('\n');
+  share(`bağlantı #${day + 1}\n${rows}\nfadimrak.xyz/games/baglanti`);
+};
+render();
+</script>
+</body>
+</html>

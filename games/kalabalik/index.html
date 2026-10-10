@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>hangisi daha kalabalık · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  main { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+  .score { display: flex; gap: 2rem; color: var(--muted); font-size: .8rem; text-align: center; }
+  .score b { display: block; color: var(--fg); font-size: 1.6rem; font-weight: 400; }
+  .duel { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; width: 100%; }
+  .side { padding: 2rem 1rem; min-height: 220px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; text-align: center; animation: in .4s; }
+  .side h2 { margin: 0; font-size: 1.5rem; font-weight: 400; letter-spacing: .05em; }
+  .num { font-size: 1.15rem; color: var(--muted); min-height: 1.5em; }
+  .num.big { color: var(--fg); }
+  .vs { color: var(--dim); }
+  .choice { display: flex; flex-direction: column; gap: .5rem; width: 100%; }
+  .side.ok { border-color: var(--fg); }
+  .side.bad { border-color: #555; opacity: .6; }
+  @media (max-width: 520px) { .duel { grid-template-columns: 1fr; } .vs { text-align: center; } .side { min-height: 160px; padding: 1.25rem; } }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>daha kalabalık</h1><span></span></header>
+<main>
+  <p class="hint">Sağdaki il, soldakinden daha mı kalabalık, daha mı az? (TÜİK 2023, yaklaşık)</p>
+  <div class="score"><div><b id="s">0</b>seri</div><div><b id="b">0</b>rekor</div></div>
+  <div class="duel" id="duel"></div>
+</main>
+<script src="../common.js"></script>
+<script>
+// ponytail: nüfuslar TÜİK 2023 ADNKS'den yuvarlanmış; aradaki farkı %8'den az olan çiftler hiç sorulmaz
+const IL = Object.entries({
+  'İstanbul': 15656000, 'Ankara': 5803000, 'İzmir': 4480000, 'Bursa': 3215000, 'Antalya': 2696000, 'Konya': 2320000, 'Adana': 2270000,
+  'Şanlıurfa': 2214000, 'Gaziantep': 2164000, 'Kocaeli': 2103000, 'Mersin': 1916000, 'Diyarbakır': 1818000, 'Hatay': 1545000, 'Manisa': 1476000,
+  'Kayseri': 1446000, 'Samsun': 1378000, 'Balıkesir': 1274000, 'Tekirdağ': 1167000, 'Aydın': 1162000, 'Van': 1128000, 'Kahramanmaraş': 1117000,
+  'Sakarya': 1098000, 'Muğla': 1067000, 'Denizli': 1059000, 'Eskişehir': 915000, 'Mardin': 889000, 'Trabzon': 824000, 'Ordu': 776000,
+  'Erzurum': 750000, 'Malatya': 743000, 'Sivas': 635000, 'Elazığ': 604000, 'Tokat': 596000, 'Zonguldak': 589000, 'Çanakkale': 563000,
+  'Çorum': 528000, 'Isparta': 445000, 'Edirne': 414000, 'Rize': 345000, 'Nevşehir': 310000, 'Yalova': 296000, 'Karaman': 260000,
+  'Bilecik': 228000, 'Sinop': 221000, 'Artvin': 169000, 'Kilis': 155000, 'Ardahan': 91000, 'Tunceli': 89000, 'Bayburt': 86000,
+});
+const fmt = n => n.toLocaleString('tr-TR');
+let best = store.get('kalabalik-best', 0), streak = 0, left, right, busy = false;
+document.getElementById('b').textContent = best;
+
+function pickOther(a) {
+  let b;
+  do b = IL[Math.floor(Math.random() * IL.length)]; while (b === a || Math.max(a[1], b[1]) / Math.min(a[1], b[1]) < 1.08);
+  return b;
+}
+
+function render(reveal) {
+  document.getElementById('duel').innerHTML = `
+    <div class="side"><h2>${left[0]}</h2><div class="num big">${fmt(left[1])}</div><span class="hint">kişi</span></div>
+    <div class="vs">vs</div>
+    <div class="side" id="r"><h2>${right[0]}</h2>
+      ${reveal ? `<div class="num big" id="n">0</div><span class="hint">kişi</span>` : `<div class="choice"><button class="primary" data-c="1">▲ daha kalabalık</button><button data-c="0">▼ daha az</button></div>`}
+    </div>`;
+  document.querySelectorAll('[data-c]').forEach(b => b.onclick = () => answer(b.dataset.c === '1'));
+}
+
+function answer(more) {
+  if (busy) return;
+  busy = true;
+  const ok = (right[1] > left[1]) === more;
+  render(true);
+  const n = document.getElementById('n'), t0 = performance.now();
+  (function count() {
+    const f = Math.min(1, (performance.now() - t0) / 700);
+    n.textContent = fmt(Math.round(right[1] * (1 - (1 - f) ** 3)));
+    if (f < 1) return requestAnimationFrame(count);
+    document.getElementById('r').classList.add(ok ? 'ok' : 'bad');
+    if (ok) {
+      streak++;
+      if (streak > best) { best = streak; store.set('kalabalik-best', best); }
+      setTimeout(() => { left = right; right = pickOther(left); busy = false; render(false); }, 900);
+    } else {
+      toast(`seri bitti: ${streak}`, 2200);
+      const final = streak;
+      setTimeout(() => {
+        document.getElementById('duel').insertAdjacentHTML('afterend', `<div class="row" id="again"><button class="primary" id="p">tekrar oyna</button><button id="sh">paylaş</button></div>`);
+        document.getElementById('p').onclick = () => { document.getElementById('again').remove(); start(); };
+        document.getElementById('sh').onclick = () => share(`daha kalabalık: ${final} doğru üst üste 🏙️\nfadimrak.xyz/games/kalabalik`);
+      }, 700);
+    }
+    document.getElementById('s').textContent = streak;
+    document.getElementById('b').textContent = best;
+  })();
+}
+
+function start() {
+  streak = 0; busy = false;
+  document.getElementById('s').textContent = 0;
+  left = IL[Math.floor(Math.random() * IL.length)];
+  right = pickOther(left);
+  render(false);
+}
+start();
+</script>
+</body>
+</html>

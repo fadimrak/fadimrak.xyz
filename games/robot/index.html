@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ben robot değilim · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .bar { display: flex; justify-content: space-between; width: 100%; max-width: 400px; color: var(--muted); font-size: .8rem; }
+  .cap { position: relative; width: 100%; max-width: 400px; min-height: 300px; padding: 1.25rem; background: #0e0e0e; border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; gap: 1rem; animation: in .35s; }
+  .cap h2 { margin: 0; font-size: 1rem; font-weight: 400; line-height: 1.5; }
+  .cap .sub { color: var(--muted); font-size: .8rem; margin-top: -.6rem; }
+  .check { display: flex; align-items: center; gap: .9rem; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; user-select: none; }
+  .box { width: 26px; height: 26px; border: 2px solid var(--dim); border-radius: 4px; display: grid; place-items: center; flex: none; transition: all .2s; }
+  .box.on { border-color: var(--fg); background: var(--fg); }
+  .box.on::after { content: '✓'; color: var(--bg); font-size: 1rem; }
+  .box.load { border-color: transparent; border-top-color: var(--fg); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .tiles { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 4px; }
+  .tiles button { aspect-ratio: 1; padding: 0; border-radius: 4px; font-size: 1.4rem; }
+  .tiles button.on { outline: 3px solid var(--fg); outline-offset: -3px; }
+  .cap input[type=text] { width: 100%; }
+  .cap input[type=range] { width: 100%; accent-color: var(--fg); }
+  .prog { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--fg); }
+  .runner { position: absolute; transition: left .15s, top .15s; }
+  .win { text-align: center; line-height: 1.8; }
+  .win b { display: block; font-size: 2.2rem; font-weight: 400; }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>ben robot değilim</h1><span></span></header>
+<main>
+  <div class="bar"><span id="lvl"></span><span id="time">0.0 sn</span></div>
+  <div class="cap" id="cap"></div>
+  <p class="hint">Her seviyeyi geçerek insan olduğunu kanıtla.</p>
+</main>
+<script src="../common.js"></script>
+<script>
+const cap = document.getElementById('cap');
+let level = 0, t0 = 0, timer, cleanup = null;
+const h = html => { cap.innerHTML = html; cap.style.animation = 'none'; void cap.offsetWidth; cap.style.animation = ''; };
+const q = s => cap.querySelector(s);
+const nope = msg => { shake(cap); toast(msg || 'robot tespit edildi 🤖'); };
+const verifyBtn = (check) => { q('#ok').onclick = () => check() ? next() : nope(); };
+
+const LEVELS = [
+  // 1: klasik
+  () => {
+    h(`<h2>Başlamak için kutuyu işaretle.</h2><div class="check" id="c"><div class="box" id="b"></div>Ben robot değilim</div>`);
+    q('#c').onclick = () => { if (q('#b').className !== 'box') return; if (!t0) { t0 = performance.now(); tick(); } q('#b').className = 'box load'; setTimeout(() => { q('#b').className = 'box on'; setTimeout(next, 500); }, 900); };
+  },
+  // 2: tüm kareler
+  () => {
+    h(`<h2>İçinde kare olan tüm kareleri seç.</h2><div class="tiles" id="t"></div><button class="primary" id="ok">doğrula</button>`);
+    for (let i = 0; i < 9; i++) { const b = document.createElement('button'); b.onclick = () => b.classList.toggle('on'); q('#t').append(b); }
+    verifyBtn(() => cap.querySelectorAll('.tiles .on').length === 9);
+  },
+  // 3: tersten yaz
+  () => {
+    h(`<h2>Bunu tersten yaz:</h2><div style="font-size:1.4rem;letter-spacing:.1em">robot değilim</div><input type="text" id="i" autocomplete="off" placeholder="..."><button class="primary" id="ok">doğrula</button>`);
+    verifyBtn(() => q('#i').value.trim().toLocaleLowerCase('tr-TR') === 'milğed tobor');
+  },
+  // 4: işlem önceliği
+  () => {
+    h(`<h2>2 + 2 × 2 = ?</h2><div class="sub">robotlar bunu hep yanlış yapar (aslında insanlar)</div><input type="text" id="i" inputmode="numeric" autocomplete="off"><button class="primary" id="ok">doğrula</button>`);
+    verifyBtn(() => q('#i').value.trim() === '6');
+  },
+  // 5: gülümseyeni bul
+  () => {
+    const n = 36, k = Math.floor(Math.random() * n);
+    h(`<h2>Gülümseyen yüzü bul.</h2><div class="tiles" id="t" style="--n:6"></div>`);
+    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.textContent = i === k ? '🙂' : '😐'; b.style.fontSize = '1.1rem'; b.onclick = () => i === k ? next() : nope('o gülümsemiyor'); q('#t').append(b); }
+  },
+  // 6: en koyu kare
+  () => {
+    const n = 16, k = Math.floor(Math.random() * n);
+    h(`<h2>En koyu kareyi seç.</h2><div class="tiles" id="t" style="--n:4"></div>`);
+    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.style.background = i === k ? '#5a5a5a' : '#646464'; b.style.borderColor = 'transparent'; b.onclick = () => i === k ? next() : nope('daha koyusu var'); q('#t').append(b); }
+  },
+  // 7: dokunma
+  () => {
+    h(`<h2>Hiçbir şeye dokunma.</h2><div class="sub">5 saniye bekle. tıklarsan ya da tuşa basarsan baştan başlar.</div><div class="prog"><i id="p"></i></div>`);
+    let start = performance.now(), raf;
+    const reset = () => { start = performance.now(); nope('dokundun!'); };
+    const loop = () => { const f = (performance.now() - start) / 5000; q('#p').style.width = Math.min(100, f * 100) + '%'; f >= 1 ? next() : raf = requestAnimationFrame(loop); };
+    setTimeout(() => { addEventListener('pointerdown', reset); addEventListener('keydown', reset); }, 50);
+    raf = requestAnimationFrame(loop);
+    cleanup = () => { cancelAnimationFrame(raf); removeEventListener('pointerdown', reset); removeEventListener('keydown', reset); };
+  },
+  // 8: saat
+  () => {
+    h(`<h2>Şu an saat kaç? (SS:DD)</h2><div class="sub">telefonuna bakmak serbest</div><input type="text" id="i" inputmode="numeric" placeholder="14:05" autocomplete="off"><button class="primary" id="ok">doğrula</button>`);
+    verifyBtn(() => {
+      const m = q('#i').value.trim().match(/^(\d{1,2})[:.](\d{2})$/);
+      if (!m) return false;
+      const now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), g = +m[1] * 60 + +m[2];
+      return Math.abs(mins - g) <= 1 || Math.abs(mins - g) >= 1439;
+    });
+  },
+  // 9: kaydırıcı
+  () => {
+    h(`<h2>Kaydırıcıyı tam olarak 73'e getir.</h2><input type="range" id="r" min="0" max="1000" value="0"><div style="text-align:center;font-size:1.5rem" id="v">0.0</div><button class="primary" id="ok">doğrula</button>`);
+    q('#r').oninput = () => q('#v').textContent = (q('#r').value / 10).toFixed(1);
+    verifyBtn(() => q('#r').value === '730');
+  },
+  // 10: kaçan kutu
+  () => {
+    h(`<h2>Kutuyu işaretle.</h2><div class="sub">kolay, değil mi?</div><div class="check runner" id="c" style="left:20px;top:110px"><div class="box"></div>işaretle</div>`);
+    let runs = 0;
+    const run = e => {
+      if (runs >= 6) return;
+      e.preventDefault(); runs++;
+      const c = q('#c'), W = cap.clientWidth - c.offsetWidth - 20, H = cap.clientHeight - c.offsetHeight - 20;
+      c.style.left = 10 + Math.random() * W + 'px'; c.style.top = 60 + Math.random() * (H - 50) + 'px';
+    };
+    q('#c').addEventListener('pointerenter', run);
+    q('#c').addEventListener('pointerdown', e => runs < 6 ? run(e) : null);
+    q('#c').onclick = () => { if (runs >= 6) { q('.box').classList.add('on'); setTimeout(next, 400); } };
+  },
+  // 11: büyük harf
+  () => {
+    h(`<h2>"insan" kelimesini BÜYÜK harflerle yaz.</h2><input type="text" id="i" autocomplete="off" autocapitalize="off"><button class="primary" id="ok">doğrula</button>`);
+    verifyBtn(() => {
+      const v = q('#i').value.trim();
+      if (v === 'INSAN') { toast('noktalı İ, Türkçe bu 😉'); return false; }
+      return v === 'İNSAN';
+    });
+  },
+  // 12: son soru
+  () => {
+    h(`<h2>Son soru: robot musun?</h2><div class="row" id="r" style="position:relative;min-height:120px"><button id="y">evet, robotum</button><button class="primary" id="n">hayır</button></div>`);
+    let swaps = 0;
+    q('#n').onclick = () => {
+      if (swaps++ < 2) { const r = q('#r'); r.append(r.firstElementChild); q('#n').textContent = ['hayır', 'gerçekten hayır', 'yemin ederim hayır'][swaps]; return toast('emin misin?'); }
+      next();
+    };
+    q('#y').onclick = () => { toast('dürüstlüğün için teşekkürler 🤖'); clearInterval(timer); document.getElementById('time').textContent = '0.0 sn'; level = -1; t0 = 0; next(); };
+  },
+];
+
+function tick() { clearInterval(timer); timer = setInterval(() => document.getElementById('time').textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' sn', 100); }
+
+function next() {
+  if (cleanup) { cleanup(); cleanup = null; }
+  level++;
+  if (level >= LEVELS.length) return win();
+  document.getElementById('lvl').textContent = `seviye ${level + 1} / ${LEVELS.length}`;
+  LEVELS[level]();
+}
+
+function win() {
+  clearInterval(timer);
+  const secs = (performance.now() - t0) / 1000, best = store.get('robot-best', null);
+  if (!best || secs < best) store.set('robot-best', secs);
+  h(`<div class="win"><b>%${Math.floor(90 + Math.random() * 10)} insansın</b>${secs.toFixed(1)} saniyede tamamladın<br><span class="hint">en iyi: ${Math.min(secs, best || secs).toFixed(1)} sn</span></div><button class="primary" id="s">paylaş</button><button id="a">tekrar oyna</button>`);
+  q('#s').onclick = () => share(`ben robot değilim 🤖 ${LEVELS.length} seviyeyi ${secs.toFixed(1)} saniyede geçtim\nfadimrak.xyz/games/robot`);
+  q('#a').onclick = () => { level = -1; t0 = 0; document.getElementById('time').textContent = '0.0 sn'; next(); };
+}
+
+level = -1;
+next();
+</script>
+</body>
+</html>

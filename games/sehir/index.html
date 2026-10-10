@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>şehir · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  svg.shape { width: min(80vw, 300px); height: min(80vw, 300px); }
+  svg.shape path { fill: var(--fg); }
+  svg.map { width: 100%; max-width: 600px; animation: in .6s; }
+  svg.map path { fill: #1a1a1a; stroke: #333; stroke-width: .02; }
+  svg.map path.g { fill: #555; }
+  svg.map path.t { fill: var(--fg); }
+  form { display: flex; gap: .5rem; width: 100%; max-width: 420px; }
+  form input { flex: 1; min-width: 0; }
+  .guesses { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 420px; }
+  .g { display: grid; grid-template-columns: 1fr auto auto auto; gap: .75rem; align-items: center; padding: .55rem .8rem; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; font-size: .85rem; animation: in .3s; }
+  .g .d { color: var(--muted); }
+  .g .a { font-size: 1.1rem; width: 1.2rem; text-align: center; }
+  .g.win { background: var(--fg); color: var(--bg); }
+  .g.win .d { color: #555; }
+  .g.empty { background: none; border-style: dashed; height: 2.3rem; }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>şehir</h1><span class="hint" id="no"></span></header>
+<main>
+  <p class="hint">Bu hangi il? 6 hakkın var. Her tahminde uzaklık ve yön gösterilir.</p>
+  <svg class="shape" id="shape"></svg>
+  <form id="form" autocomplete="off">
+    <input id="inp" list="iller" placeholder="il adı yaz..." aria-label="il adı">
+    <button class="primary">tahmin</button>
+  </form>
+  <datalist id="iller"></datalist>
+  <div class="guesses" id="guesses"></div>
+  <button class="primary" id="share" hidden>sonucu paylaş</button>
+  <svg class="map" id="map" hidden></svg>
+</main>
+<script src="../common.js"></script>
+<script>
+(async () => {
+  const iller = await (await fetch('iller.json')).json();
+  const day = dayIndex(), target = iller[shuffle(iller.map((_, i) => i), rng(4242))[((day % 81) + 81) % 81]];
+  document.getElementById('no').textContent = '#' + (day + 1);
+  const norm = s => s.toLocaleLowerCase('tr-TR').trim();
+  const byName = Object.fromEntries(iller.map(il => [norm(il.n), il]));
+  document.getElementById('iller').innerHTML = iller.map(il => `<option value="${il.n}">`).join('');
+
+  // Basit eşdikdörtgen izdüşüm (Türkiye için yeterli)
+  const K = Math.cos(39 * Math.PI / 180);
+  const pathOf = il => il.r.map(r => 'M' + r.map(([x, y]) => `${(x * K).toFixed(3)},${(-y).toFixed(3)}`).join('L') + 'Z').join('');
+  function fit(svg, list) {
+    const xs = [], ys = [];
+    list.forEach(il => il.r.forEach(r => r.forEach(([x, y]) => { xs.push(x * K); ys.push(-y); })));
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), pad = (x1 - x0) * .05;
+    svg.setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`);
+    svg.style.aspectRatio = `${x1 - x0 + 2 * pad} / ${y1 - y0 + 2 * pad}`;
+  }
+  const shape = document.getElementById('shape');
+  fit(shape, [target]);
+  shape.innerHTML = `<path d="${pathOf(target)}"/>`;
+
+  const rad = d => d * Math.PI / 180;
+  function dist(a, b) {
+    const [lo1, la1] = a.c, [lo2, la2] = b.c;
+    const h = Math.sin(rad(la2 - la1) / 2) ** 2 + Math.cos(rad(la1)) * Math.cos(rad(la2)) * Math.sin(rad(lo2 - lo1) / 2) ** 2;
+    return Math.round(12742 * Math.asin(Math.sqrt(h)));
+  }
+  function arrow(a, b) {
+    const y = Math.sin(rad(b.c[0] - a.c[0])) * Math.cos(rad(b.c[1]));
+    const x = Math.cos(rad(a.c[1])) * Math.sin(rad(b.c[1])) - Math.sin(rad(a.c[1])) * Math.cos(rad(b.c[1])) * Math.cos(rad(b.c[0] - a.c[0]));
+    const deg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    return Math.round(deg / 45) % 8;
+  }
+  const EMOJI = ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️'];
+  const MAXD = 1600; // Türkiye'de iki il arası en uzak mesafe ~1600 km
+  const pct = d => Math.max(0, Math.round(100 - d / MAXD * 100));
+
+  let st = store.get('sehir', {});
+  if (st.day !== day) st = { day, guesses: [] };
+  const won = () => st.guesses.at(-1) === target.n, over = () => won() || st.guesses.length >= 6;
+
+  function render() {
+    const box = document.getElementById('guesses');
+    box.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+      const n = st.guesses[i];
+      if (!n) { box.insertAdjacentHTML('beforeend', '<div class="g empty"></div>'); continue; }
+      const il = byName[norm(n)], d = dist(il, target), hit = n === target.n;
+      box.insertAdjacentHTML('beforeend', `<div class="g${hit ? ' win' : ''}"><span>${n}</span><span class="d">${d} km</span><span class="a">${hit ? '✓' : `<span style="display:inline-block;transform:rotate(${arrow(il, target) * 45}deg)">↑︎</span>`}</span><span class="d">${pct(d)}%</span></div>`);
+    }
+    if (over()) {
+      document.getElementById('form').hidden = true;
+      document.getElementById('share').hidden = false;
+      const map = document.getElementById('map');
+      map.removeAttribute('hidden'); // SVG'de .hidden özelliği yok
+      fit(map, iller);
+      map.innerHTML = iller.map(il => `<path class="${il === target ? 't' : st.guesses.includes(il.n) ? 'g' : ''}" d="${pathOf(il)}"><title>${il.n}</title></path>`).join('');
+      if (!document.body.dataset.done) { document.body.dataset.done = 1; toast(won() ? 'bildin!' : 'cevap: ' + target.n, 2500); }
+    }
+  }
+
+  document.getElementById('form').onsubmit = e => {
+    e.preventDefault();
+    const inp = document.getElementById('inp'), il = byName[norm(inp.value)];
+    if (!il) { shake(inp); return toast('böyle bir il yok'); }
+    if (st.guesses.includes(il.n)) return toast('bunu zaten denedin');
+    st.guesses.push(il.n);
+    store.set('sehir', st);
+    inp.value = '';
+    render();
+  };
+  document.getElementById('share').onclick = () => {
+    const rows = st.guesses.map(n => {
+      const il = byName[norm(n)], d = dist(il, target), p = pct(d);
+      return n === target.n ? '🟩🟩🟩🟩🟩🎉' : '🟩'.repeat(Math.floor(p / 20)) + '⬜'.repeat(5 - Math.floor(p / 20)) + EMOJI[arrow(il, target)];
+    }).join('\n');
+    share(`şehir #${day + 1} ${won() ? st.guesses.length : 'X'}/6\n${rows}\nfadimrak.xyz/games/sehir`);
+  };
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>derinlik · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  body { transition: background-color .3s; }
+  header { position: relative; z-index: 2; }
+  .meter { position: fixed; top: 50%; right: 16px; transform: translateY(-50%); text-align: right; z-index: 3; pointer-events: none; }
+  .meter b { display: block; font-size: clamp(1.4rem, 5vw, 2.4rem); font-weight: 400; }
+  .meter span { color: var(--muted); font-size: .75rem; }
+  .ocean { position: relative; max-width: 640px; margin: 0 auto; }
+  .item { position: absolute; left: 16px; right: 130px; padding-left: 1rem; border-left: 1px solid var(--dim); opacity: 0; transform: translateY(10px); transition: opacity .6s, transform .6s; }
+  .item.seen { opacity: 1; transform: none; }
+  .item small { color: var(--muted); }
+  .item h3 { margin: .2rem 0; font-weight: 400; font-size: 1rem; }
+  .item p { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+  .item.zone { left: 0; right: 0; border: 0; border-top: 1px dashed var(--dim); padding: .6rem 16px 0; }
+  .item.zone h3 { letter-spacing: .15em; font-size: .8rem; color: var(--muted); }
+  .surface { text-align: center; padding: 3rem 16px 0; }
+  .surface .hint { animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(6px); } }
+  .bottom { position: absolute; left: 0; right: 0; text-align: center; padding: 2rem 16px; }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>derinlik</h1><span></span></header>
+<div class="surface"><p class="hint">okyanusun en dibine in ↓</p></div>
+<div class="meter"><b id="m">0 m</b><span id="z">yüzey</span></div>
+<div class="ocean" id="ocean"></div>
+<script src="../common.js"></script>
+<script>
+const PX = 3, BOTTOM = 10935, TOP = 120;
+const ZONES = [[0, 'GÜNEŞ IŞIKLI BÖLGE'], [200, 'ALACAKARANLIK BÖLGESİ'], [1000, 'GECE YARISI BÖLGESİ'], [4000, 'ABİSAL BÖLGE'], [6000, 'HADAL BÖLGE']];
+const ITEMS = [
+  [10, 'Basınç ikiye katlandı', 'Her 10 metrede basınç 1 atmosfer artar. Kırmızı renk ilk birkaç metrede kaybolur.'],
+  [40, 'Rekreasyonel dalış sınırı', 'Eğlence amaçlı tüplü dalışta inilen en fazla derinlik. Başlangıç sertifikası ise 18 m\'ye kadar izin verir.'],
+  [150, 'Karadeniz\'in nefessiz suları', 'Karadeniz\'de yaklaşık 150–200 m\'den sonra su oksijensizdir; hayat neredeyse durur.'],
+  [214, 'Serbest dalış rekoru', 'Herbert Nitsch tek nefeste 214 m\'ye indi (2007).'],
+  [332, 'Tüplü dalış rekoru', 'Ahmed Gabr 2014\'te 332 m\'ye daldı.'],
+  [443, 'Empire State Binası', 'Anteniyle birlikte binanın boyu burada biterdi.'],
+  [560, 'İmparator penguen', 'Kaydedilen en derin penguen dalışlarından biri.'],
+  [600, 'Dev mürekkep balığı', 'Genellikle 300–1000 m arasında yaşadığı düşünülür.'],
+  [828, 'Burj Khalifa', 'Dünyanın en yüksek binasını ters çevirsen ucu buraya değerdi.'],
+  [1280, 'Deri sırtlı kaplumbağa', 'En derine dalan kaplumbağa türü.'],
+  [1500, 'Fener balığı', 'Kendi ışığıyla av çeken bu balık yaklaşık 1000–4000 m arasında yaşar.'],
+  [2212, 'Karadeniz\'in dibi', 'Karadeniz\'in en derin noktası.'],
+  [2250, 'Kaşalot (ispermeçet balinası)', 'Dev mürekkep balığı avlamak için bu derinliklere iner.'],
+  [2992, 'Cuvier gagalı balinası', 'En derine dalan memeli. Saatlerce nefes tutabilir.'],
+  [3800, 'Titanic', 'Titanic\'in enkazı bu derinlikte yatıyor.'],
+  [4791, 'Bismarck', 'Alman savaş gemisinin enkazı.'],
+  [5267, 'Akdeniz\'in dibi', 'Akdeniz\'in en derin noktası, Calypso Çukuru.'],
+  [8336, 'En derindeki balık', 'Bir salyangoz balığı 2022\'de 8336 m\'de görüntülendi.'],
+  [8849, 'Everest', 'Dünyanın en yüksek dağı ters çevrilse zirvesi burada olurdu. Ve hâlâ dibe 2 km var.'],
+  [10908, 'James Cameron', '2012\'de tek kişilik denizaltıyla buraya kadar indi.'],
+];
+const ocean = document.getElementById('ocean');
+ocean.style.height = (BOTTOM * PX + TOP + 500) + 'px';
+const y = d => TOP + d * PX;
+ZONES.forEach(([d, n]) => ocean.insertAdjacentHTML('beforeend', `<div class="item zone" style="top:${y(d)}px"><h3>${n}</h3><small>${d.toLocaleString('tr-TR')} m</small></div>`));
+ITEMS.forEach(([d, t, p]) => ocean.insertAdjacentHTML('beforeend', `<div class="item" style="top:${y(d) + 40}px"><small>${d.toLocaleString('tr-TR')} m</small><h3>${t}</h3><p>${p}</p></div>`));
+ocean.insertAdjacentHTML('beforeend', `<div class="bottom" style="top:${y(BOTTOM)}px"><h2 style="font-weight:400">Challenger Çukuru · 10.935 m</h2><p class="hint">Okyanusun en dibi. Buraya kadar kaydırdın, tebrikler.<br>Burada basınç yüzeyin 1000 katından fazla.</p><button onclick="scrollTo({top:0,behavior:'smooth'})">yüzeye çık ↑</button></div>`);
+
+// Üst üste binen kartları aşağı kaydır
+let floor = 0;
+document.querySelectorAll('.item:not(.zone)').forEach(el => {
+  const t = Math.max(parseFloat(el.style.top), floor);
+  el.style.top = t + 'px';
+  floor = t + el.offsetHeight + 16;
+});
+
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('seen')), { rootMargin: '0px 0px -15% 0px' });
+document.querySelectorAll('.item').forEach(el => io.observe(el));
+
+const m = document.getElementById('m'), z = document.getElementById('z');
+function update() {
+  const top = ocean.getBoundingClientRect().top + window.scrollY;
+  const d = Math.max(0, Math.min(BOTTOM, (scrollY + innerHeight / 2 - top - TOP) / PX));
+  m.textContent = Math.round(d).toLocaleString('tr-TR') + ' m';
+  z.textContent = d < 1 ? 'yüzey' : [...ZONES].reverse().find(([zd]) => d >= zd)[1].toLocaleLowerCase('tr-TR');
+  const light = Math.max(0, 20 * (1 - d / 1000)) + 2;
+  document.body.style.backgroundColor = `hsl(0 0% ${d >= 1000 ? Math.max(0, 2 - (d - 1000) / 3000) : light}%)`;
+}
+addEventListener('scroll', update, { passive: true });
+update();
+</script>
+</body>
+</html>

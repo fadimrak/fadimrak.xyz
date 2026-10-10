@@ -1,0 +1,24 @@
+:root { --bg: #0a0a0a; --fg: #e6e6e6; --muted: #777; --dim: #444; --line: #222; --panel: #111; --ok: #e6e6e6; --mid: #666; --bad: #2a2a2a; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: ui-monospace, Menlo, Consolas, monospace; -webkit-tap-highlight-color: transparent; }
+a { color: inherit; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 640px; margin: 0 auto; padding: 1.25rem 16px; }
+header a { color: var(--muted); text-decoration: none; font-size: .85rem; transition: color .2s; }
+header a:hover { color: var(--fg); }
+header h1 { margin: 0; font-size: 1.1rem; font-weight: 400; letter-spacing: .12em; }
+main { max-width: 640px; margin: 0 auto; padding: 0 16px 3rem; }
+.hint { color: var(--muted); font-size: .85rem; line-height: 1.6; text-align: center; }
+button, .btn { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .6rem 1rem; cursor: pointer; transition: border-color .2s, background .2s, opacity .2s; }
+button:hover:not(:disabled), .btn:hover { border-color: var(--dim); }
+button:disabled { opacity: .35; cursor: default; }
+button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+input { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; outline: none; }
+input:focus { border-color: var(--dim); }
+.row { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+.toast { position: fixed; top: 4.5rem; left: 50%; transform: translate(-50%, -6px); padding: .55rem 1rem; background: var(--fg); color: var(--bg); border-radius: 8px; font-size: .85rem; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 50; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

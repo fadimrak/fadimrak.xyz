@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>yıl · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  main { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; text-align: center; }
+  .round { color: var(--muted); font-size: .8rem; letter-spacing: .1em; }
+  .event { font-size: 1.35rem; line-height: 1.5; min-height: 4.5em; display: grid; place-items: center; max-width: 520px; animation: in .4s; }
+  .year { font-size: 3rem; letter-spacing: .1em; }
+  input[type=range] { width: 100%; max-width: 480px; accent-color: var(--fg); padding: 0; border: 0; background: none; }
+  .steps { display: flex; gap: .4rem; }
+  .steps button { padding: .4rem .7rem; font-size: .8rem; }
+  .result { font-size: .95rem; line-height: 1.7; animation: in .3s; }
+  .result b { font-weight: 400; font-size: 1.4rem; }
+  .total { font-size: 2.5rem; }
+  .sum { display: flex; flex-direction: column; gap: 4px; width: 100%; max-width: 480px; font-size: .8rem; }
+  .sum div { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem .7rem; background: var(--panel); border-radius: 6px; text-align: left; }
+  .sum span:last-child { color: var(--muted); white-space: nowrap; }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>yıl</h1><span class="hint" id="no"></span></header>
+<main id="main"></main>
+<script src="../common.js"></script>
+<script>
+const EVENTS = [
+  ['Türkiye Cumhuriyeti ilan edildi', 1923], ['TBMM açıldı', 1920], ['Harf Devrimi yapıldı', 1928], ['Kadınlara milletvekili seçme ve seçilme hakkı verildi', 1934],
+  ['Soyadı Kanunu çıkarıldı', 1934], ['Atatürk vefat etti', 1938], ['Titanic battı', 1912], ['I. Dünya Savaşı başladı', 1914], ['II. Dünya Savaşı başladı', 1939],
+  ['II. Dünya Savaşı sona erdi', 1945], ['Ay\'a ilk insan ayak bastı', 1969], ['Berlin Duvarı yıkıldı', 1989], ['Sovyetler Birliği dağıldı', 1991],
+  ['İlk iPhone tanıtıldı', 2007], ['Facebook kuruldu', 2004], ['YouTube kuruldu', 2005], ['Google kuruldu', 1998], ['Wikipedia kuruldu', 2001],
+  ['Euro banknotları tedavüle girdi', 2002], ['Türkiye Dünya Kupası\'nda üçüncü oldu', 2002], ['Galatasaray UEFA Kupası\'nı kazandı', 2000],
+  ['Sertab Erener Eurovision\'u kazandı', 2003], ['Boğaziçi Köprüsü açıldı', 1973], ['Marmaray açıldı', 2013], ['Gölcük merkezli Marmara depremi oldu', 1999],
+  ['Kahramanmaraş merkezli depremler oldu', 2023], ['DSÖ COVID-19\'u pandemi ilan etti', 2020], ['Türkiye NATO\'ya katıldı', 1952], ['Kıbrıs Barış Harekâtı yapıldı', 1974],
+  ['TRT ilk deneme televizyon yayınını yaptı', 1968], ['İlk Türk astronot Alper Gezeravcı uzaya gitti', 2024], ['Orhan Pamuk Nobel Edebiyat Ödülü\'nü aldı', 2006],
+  ['Aziz Sancar Nobel Kimya Ödülü\'nü aldı', 2015], ['Çernobil faciası yaşandı', 1986], ['Sputnik 1 uzaya fırlatıldı', 1957], ['Wright kardeşler ilk motorlu uçuşu yaptı', 1903],
+  ['Einstein özel görelilik kuramını yayımladı', 1905], ['Fleming penisilini keşfetti', 1928], ['İlk Star Wars filmi vizyona girdi', 1977], ['Michael Jackson Thriller albümünü çıkardı', 1982],
+  ['Tetris oyunu yaratıldı', 1984], ['İlk Harry Potter kitabı yayımlandı', 1997], ['Bitcoin\'in ilk bloğu oluşturuldu', 2009], ['Instagram kuruldu', 2010],
+  ['ChatGPT yayınlandı', 2022], ['Türk lirasından altı sıfır atıldı', 2005], ['Tanzimat Fermanı ilan edildi', 1839], ['I. Meşrutiyet ilan edildi', 1876],
+  ['Eyfel Kulesi tamamlandı', 1889], ['Graham Bell telefonun patentini aldı', 1876], ['Amerikan İç Savaşı başladı', 1861], ['Galatasaray kuruldu', 1905],
+  ['Fenerbahçe kuruldu', 1907], ['Beşiktaş kuruldu', 1903], ['Çanakkale Deniz Zaferi kazanıldı', 1915], ['Lozan Antlaşması imzalandı', 1923],
+  ['Türkiye\'de ilk çok partili genel seçim yapıldı', 1946], ['Türkiye\'nin ilk internet bağlantısı kuruldu (ODTÜ)', 1993], ['Türkiye AB adaylık statüsü aldı', 1999],
+  ['Türkiye Euro 2008\'de yarı finale çıktı', 2008], ['İlk PlayStation çıktı', 1994], ['World Wide Web icat edildi', 1989], ['İlk Toy Story filmi vizyona girdi', 1995],
+];
+const MIN = 1800, MAX = 2025, ROUNDS = 5;
+const day = dayIndex(), picks = shuffle(EVENTS, rng(day * 7 + 1)).slice(0, ROUNDS);
+document.getElementById('no').textContent = '#' + (day + 1);
+const points = (g, y) => Math.max(0, 1000 - Math.abs(g - y) * 25);
+
+let st = store.get('yil', {});
+if (st.day !== day) st = { day, answers: [] };
+const main = document.getElementById('main');
+
+function play() {
+  const i = st.answers.length;
+  if (i >= ROUNDS) return summary();
+  const [text] = picks[i];
+  let g = 1960;
+  main.innerHTML = `
+    <div class="round">TUR ${i + 1} / ${ROUNDS}</div>
+    <div class="event">${text}</div>
+    <div class="year" id="y">${g}</div>
+    <input type="range" id="r" min="${MIN}" max="${MAX}" value="${g}" aria-label="yıl">
+    <div class="steps"><button data-d="-10">-10</button><button data-d="-1">-1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>
+    <button class="primary" id="go">tahmin et</button>`;
+  const r = main.querySelector('#r'), y = main.querySelector('#y');
+  const set = v => { g = Math.min(MAX, Math.max(MIN, v)); r.value = g; y.textContent = g; };
+  r.oninput = () => set(+r.value);
+  main.querySelectorAll('[data-d]').forEach(b => b.onclick = () => set(g + +b.dataset.d));
+  main.querySelector('#go').onclick = () => reveal(g);
+}
+
+function reveal(g) {
+  const [text, year] = picks[st.answers.length];
+  st.answers.push(g);
+  store.set('yil', st);
+  const p = points(g, year), diff = Math.abs(g - year);
+  main.innerHTML = `
+    <div class="round">TUR ${st.answers.length} / ${ROUNDS}</div>
+    <div class="event">${text}</div>
+    <div class="result">doğru cevap <b>${year}</b><br>senin tahminin ${g} · ${diff ? diff + ' yıl fark' : 'tam isabet!'}<br><b>+${p}</b> puan</div>
+    <button class="primary" id="next">${st.answers.length < ROUNDS ? 'sonraki' : 'sonuç'}</button>`;
+  main.querySelector('#next').onclick = play;
+}
+
+function summary() {
+  const total = picks.reduce((s, [, y], i) => s + points(st.answers[i], y), 0);
+  main.innerHTML = `
+    <div class="round">BUGÜNKÜ PUANIN</div>
+    <div class="total">${total} <span class="hint">/ ${ROUNDS * 1000}</span></div>
+    <div class="sum">${picks.map(([t, y], i) => `<div><span>${t}</span><span>${st.answers[i]} → ${y}</span></div>`).join('')}</div>
+    <button class="primary" id="share">sonucu paylaş</button>
+    <span class="hint">yeni olaylar yarın</span>`;
+  main.querySelector('#share').onclick = () => {
+    const rows = picks.map(([, y], i) => { const p = points(st.answers[i], y); return p === 1000 ? '🎯' : p >= 750 ? '🟩' : p >= 400 ? '🟨' : p > 0 ? '🟧' : '⬛'; }).join('');
+    share(`yıl #${day + 1}: ${total}/${ROUNDS * 1000}\n${rows}\nfadimrak.xyz/games/yil`);
+  };
+}
+play();
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>oyunlar · fadimrak</title>
+<meta name="description" content="fadimrak oyunları">
+<meta property="og:title" content="oyunlar · fadimrak">
+<meta property="og:description" content="günlük bulmacalar, küçük deneyler ve bir şehir">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<style>
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .list a { display: flex; flex-direction: column; gap: .4rem; padding: 1.1rem 1.2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; transition: border-color .2s, transform .2s; opacity: 0; animation: in .5s forwards; }
+  .list a:hover { border-color: var(--dim); transform: translateY(-2px); }
+  .list h2 { margin: 0; display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: 1rem; font-weight: 400; }
+  .list h2 span { font-size: .65rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: .15rem .5rem; letter-spacing: .05em; }
+  .list p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+  h3 { font-weight: 400; font-size: .75rem; letter-spacing: .15em; color: var(--muted); margin: 2rem 0 .75rem; }
+</style>
+</head>
+<body>
+<header><a href="/">← fadimrak</a><h1>oyunlar</h1><span></span></header>
+<main id="main"></main>
+<script>
+const GROUPS = [
+  ['GÜNLÜK BULMACALAR', [
+    ['kelime', 'kelime', '5 harfli kelimeyi 6 denemede bul.', 'günlük'],
+    ['baglanti', 'bağlantı', '16 kelimeyi 4\'lü gruplara ayır.', 'günlük'],
+    ['sehir', 'şehir', 'Silüetinden ili tahmin et.', 'günlük'],
+    ['yil', 'yıl', 'Olayların hangi yıl olduğunu tahmin et.', 'günlük'],
+  ]],
+  ['DENEYLER', [
+    ['hafta', 'hayatın haftaları', 'Hayatın, kare kare.'],
+    ['robot', 'ben robot değilim', 'Giderek saçmalaşan 12 test.'],
+    ['kalabalik', 'daha kalabalık', 'Hangi il daha kalabalık? Seriyi bozma.'],
+    ['derinlik', 'derinlik', 'Okyanusun en dibine kaydır.'],
+  ]],
+  ['OYUNLAR', [
+    ['sehir-3d', 'tel kafes şehir', 'Çizgilerden bir şehirde araba sür, sinyalleri bul.', '3d'],
+  ]],
+];
+let k = 0;
+document.getElementById('main').innerHTML = GROUPS.map(([title, games]) =>
+  `<h3>${title}</h3><div class="list">${games.map(([slug, name, desc, tag]) =>
+    `<a href="${slug}/" style="animation-delay:${k++ * .05}s"><h2>${name}${tag ? `<span>${tag}</span>` : ''}</h2><p>${desc}</p></a>`).join('')}</div>`).join('');
+</script>
+</body>
+</html>

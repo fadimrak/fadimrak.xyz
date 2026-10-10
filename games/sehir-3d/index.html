@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>tel kafes şehir · fadimrak</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<style>
+  html, body { height: 100%; overflow: hidden; touch-action: none; }
+  canvas { position: fixed; inset: 0; display: block; }
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 2; max-width: none; }
+  .hud { position: fixed; top: 4rem; left: 16px; z-index: 2; color: var(--muted); font-size: .8rem; line-height: 1.8; pointer-events: none; }
+  .hud b { color: var(--fg); font-weight: 400; }
+  .speed { position: fixed; right: 16px; bottom: 16px; z-index: 2; text-align: right; pointer-events: none; }
+  .speed b { display: block; font-size: 2rem; font-weight: 400; }
+  .speed span { color: var(--muted); font-size: .7rem; }
+  .pad { position: fixed; bottom: 16px; z-index: 2; display: none; gap: 10px; }
+  .pad button { width: 64px; height: 64px; font-size: 1.3rem; border-radius: 50%; background: rgba(20,20,20,.7); user-select: none; -webkit-user-select: none; }
+  .pad button.on { background: var(--fg); color: var(--bg); }
+  .pad.l { left: 16px; } .pad.r { right: 16px; bottom: 90px; flex-direction: column; }
+  @media (pointer: coarse) { .pad { display: flex; } .speed { bottom: auto; top: 4rem; } }
+  .intro { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(10,10,10,.85); text-align: center; padding: 16px; }
+  .intro div { max-width: 360px; line-height: 1.7; }
+  .intro h2 { font-weight: 400; letter-spacing: .1em; }
+</style>
+</head>
+<body>
+<header><a href="../">← oyunlar</a><h1>tel kafes şehir</h1><span></span></header>
+<div class="hud"><b id="found">0</b> / <span id="total"></span> sinyal bulundu<br>en yakın sinyal: <b id="near">–</b><br>süre: <b id="time">0</b> sn</div>
+<div class="speed"><b id="spd">0</b><span>km/s</span></div>
+<div class="pad l"><button data-k="left">◀</button><button data-k="right">▶</button></div>
+<div class="pad r"><button data-k="up">▲</button><button data-k="down">▼</button></div>
+<div class="intro" id="intro"><div>
+  <h2>tel kafes şehir</h2>
+  <p class="hint">Şehirde saklı sinyalleri bul.<br>WASD / ok tuşları ile sür. Telefonda ekrandaki tuşları kullan.</p>
+  <button class="primary" id="go">başla</button>
+</div></div>
+<script src="../common.js"></script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+// Şehir düzeni: N×N blok, aralarında yol
+const N = 10, BLOCK = 44, ROAD = 16, CELL = BLOCK + ROAD, SIZE = N * CELL, HALF = SIZE / 2;
+const SIGNALS = 12;
+const rand = rng(2027);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0a);
+scene.fog = new THREE.Fog(0x0a0a0a, 60, 320);
+const camera = new THREE.PerspectiveCamera(65, 1, .5, 800);
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+// Zemin ızgarası
+const grid = new THREE.GridHelper(SIZE + 200, (SIZE + 200) / 20, 0x2a2a2a, 0x161616);
+scene.add(grid);
+
+// Binalar: tek bir çizgi geometrisi + kenarları kapatan siyah kutular (InstancedMesh)
+const blocks = [], linePos = [], boxes = [];
+const edge = (a, b) => linePos.push(...a, ...b);
+function building(x, z, w, d, h) {
+  const x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
+  const c = [[x0, 0, z0], [x1, 0, z0], [x1, 0, z1], [x0, 0, z1]];
+  const t = c.map(([a, , b]) => [a, h, b]);
+  for (let i = 0; i < 4; i++) { edge(c[i], c[(i + 1) % 4]); edge(t[i], t[(i + 1) % 4]); edge(c[i], t[i]); }
+  // kat çizgileri
+  for (let y = 8; y < h - 2; y += 8) for (let i = 0; i < 4; i++) { const a = c[i], b = c[(i + 1) % 4]; if (rand() < .6) edge([a[0], y, a[2]], [b[0], y, b[2]]); }
+  boxes.push([x, z, w, d, h]);
+}
+for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+  const bx = -HALF + ROAD / 2 + i * CELL + BLOCK / 2, bz = -HALF + ROAD / 2 + j * CELL + BLOCK / 2;
+  blocks.push([bx - BLOCK / 2, bz - BLOCK / 2, bx + BLOCK / 2, bz + BLOCK / 2]);
+  if (rand() < .12) { // park: sadece bir çerçeve
+    const s = BLOCK / 2;
+    edge([bx - s, .2, bz - s], [bx + s, .2, bz - s]); edge([bx + s, .2, bz - s], [bx + s, .2, bz + s]);
+    edge([bx + s, .2, bz + s], [bx - s, .2, bz + s]); edge([bx - s, .2, bz + s], [bx - s, .2, bz - s]);
+    continue;
+  }
+  const split = rand() < .5 ? 1 : 2, sub = BLOCK / split;
+  for (let a = 0; a < split; a++) for (let b = 0; b < split; b++) {
+    const tall = rand() < .08 ? 90 + rand() * 60 : 10 + rand() * (split === 1 ? 50 : 30);
+    building(bx - BLOCK / 2 + sub * (a + .5), bz - BLOCK / 2 + sub * (b + .5), sub - 4, sub - 4, tall);
+  }
+}
+const lg = new THREE.BufferGeometry();
+lg.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
+scene.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xcfcfcf })));
+const solid = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x0a0a0a, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }), boxes.length);
+const m4 = new THREE.Matrix4();
+boxes.forEach(([x, z, w, d, h], i) => solid.setMatrixAt(i, m4.compose(new THREE.Vector3(x, h / 2, z), new THREE.Quaternion(), new THREE.Vector3(w - .05, h - .05, d - .05))));
+scene.add(solid);
+
+// Araba
+const car = new THREE.Group();
+const carEdges = (w, h, d, y, z) => {
+  const g = new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d));
+  const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffffff }));
+  l.position.set(0, y, z); car.add(l);
+  const s = new THREE.Mesh(new THREE.BoxGeometry(w * .98, h * .98, d * .98), new THREE.MeshBasicMaterial({ color: 0x0a0a0a }));
+  s.position.copy(l.position); car.add(s);
+};
+carEdges(2.2, .8, 4.2, .75, 0);
+carEdges(1.8, .7, 2, 1.5, -.3);
+const wheelGeo = new THREE.EdgesGeometry(new THREE.CylinderGeometry(.42, .42, .3, 10));
+[[-1.1, 1.3], [1.1, 1.3], [-1.1, -1.3], [1.1, -1.3]].forEach(([x, z]) => {
+  const w = new THREE.LineSegments(wheelGeo, new THREE.LineBasicMaterial({ color: 0x888888 }));
+  w.rotation.z = Math.PI / 2; w.position.set(x, .42, z); car.add(w);
+});
+scene.add(car);
+
+// Sinyaller (yollarda)
+const signals = [];
+const sigGeo = new THREE.EdgesGeometry(new THREE.OctahedronGeometry(1.6));
+while (signals.length < SIGNALS) {
+  const along = -HALF + rand() * SIZE, line = Math.floor(rand() * (N + 1));
+  const across = -HALF + line * CELL;
+  const pos = rand() < .5 ? new THREE.Vector3(along, 3, across) : new THREE.Vector3(across, 3, along);
+  if (Math.abs(pos.x) > HALF - 4 || Math.abs(pos.z) > HALF - 4 || signals.some(s => s.position.distanceTo(pos) < 60)) continue;
+  const s = new THREE.LineSegments(sigGeo, new THREE.LineBasicMaterial({ color: 0xffffff }));
+  s.position.copy(pos);
+  const beam = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 60, 0)]), new THREE.LineBasicMaterial({ color: 0x777777 }));
+  s.add(beam);
+  scene.add(s); signals.push(s);
+}
+document.getElementById('total').textContent = SIGNALS;
+
+// Kontroller
+const keys = {};
+const map = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+addEventListener('keydown', e => { if (map[e.code]) { keys[map[e.code]] = true; e.preventDefault(); } });
+addEventListener('keyup', e => { if (map[e.code]) keys[map[e.code]] = false; });
+document.querySelectorAll('.pad button').forEach(b => {
+  const on = v => e => { e.preventDefault(); keys[b.dataset.k] = v; b.classList.toggle('on', v); };
+  b.addEventListener('pointerdown', on(true)); b.addEventListener('pointerup', on(false));
+  b.addEventListener('pointerleave', on(false)); b.addEventListener('pointercancel', on(false));
+});
+
+// Çarpışma: blok dikdörtgenleri (parklar dahil, kaldırım payıyla)
+const R = 1.8;
+const hit = (x, z) => Math.abs(x) > HALF - R || Math.abs(z) > HALF - R || blocks.some(([x0, z0, x1, z1]) => x > x0 - R && x < x1 + R && z > z0 - R && z < z1 + R);
+
+let speed = 0, heading = 0, found = 0, started = false, t0 = 0, finished = false;
+car.position.set(0, 0, 0); // merkez kavşak
+const camPos = new THREE.Vector3(), look = new THREE.Vector3();
+const clock = new THREE.Clock();
+
+function loop() {
+  const dt = Math.min(clock.getDelta(), .05);
+  if (started && !finished) {
+    const acc = keys.up ? 28 : keys.down ? -34 : 0;
+    speed += acc * dt;
+    speed -= speed * (acc ? .6 : 1.6) * dt;
+    speed = Math.max(-12, Math.min(42, speed));
+    const steer = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
+    heading += steer * dt * 2.2 * Math.min(1, Math.abs(speed) / 8) * Math.sign(speed || 1);
+    const nx = car.position.x + Math.sin(heading) * speed * dt, nz = car.position.z + Math.cos(heading) * speed * dt;
+    if (!hit(nx, nz)) car.position.set(nx, 0, nz);
+    else if (!hit(nx, car.position.z)) { car.position.x = nx; speed *= .9; }
+    else if (!hit(car.position.x, nz)) { car.position.z = nz; speed *= .9; }
+    else speed *= -.3;
+    car.rotation.y = heading;
+    document.getElementById('time').textContent = Math.floor((performance.now() - t0) / 1000);
+  }
+  document.getElementById('spd').textContent = Math.round(Math.abs(speed) * 3.6);
+
+  let nearest = Infinity;
+  signals.forEach(s => {
+    if (!s.visible) return;
+    s.rotation.y += dt * 1.5;
+    s.position.y = 3 + Math.sin(performance.now() / 400 + s.position.x) * .4;
+    const d = s.position.distanceTo(car.position);
+    if (d < 4) {
+      s.visible = false; found++;
+      document.getElementById('found').textContent = found;
+      if (found === SIGNALS) {
+        finished = true;
+        const secs = Math.floor((performance.now() - t0) / 1000), best = store.get('sehir3d-best', null);
+        if (!best || secs < best) store.set('sehir3d-best', secs);
+        toast(`tüm sinyaller bulundu! ${secs} sn (en iyi ${Math.min(secs, best || secs)} sn)`, 6000);
+      } else toast(`sinyal bulundu · ${found}/${SIGNALS}`);
+    } else nearest = Math.min(nearest, d);
+  });
+  document.getElementById('near').textContent = nearest === Infinity ? '–' : Math.round(nearest) + ' m';
+
+  // Takip kamerası
+  const back = new THREE.Vector3(-Math.sin(heading) * 11, 5.5, -Math.cos(heading) * 11).add(car.position);
+  camPos.lerp(back, 1 - Math.pow(.02, dt));
+  camera.position.copy(camPos);
+  look.lerp(new THREE.Vector3(Math.sin(heading) * 8, 1.5, Math.cos(heading) * 8).add(car.position), 1 - Math.pow(.01, dt));
+  camera.lookAt(look);
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+camPos.set(car.position.x, 20, car.position.z - 30);
+loop();
+
+document.getElementById('go').onclick = () => {
+  document.getElementById('intro').remove();
+  started = true; t0 = performance.now();
+};
+</script>
+</body>
+</html>
