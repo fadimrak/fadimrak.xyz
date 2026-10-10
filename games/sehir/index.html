@@ -112,7 +112,7 @@
       const n = st.guesses[i];
       if (!n) { box.insertAdjacentHTML('beforeend', '<div class="g empty"></div>'); continue; }
       const il = byName[norm(n)], d = dist(il, target), hit = n === target.n, p = pct(d);
-      box.insertAdjacentHTML('beforeend', `<div class="g${hit ? ' win' : ''}" style="--hc:${heat(p)}">${hit ? '' : `<i class="bar" style="width:${p}%"></i>`}<span>${n}</span><span class="d">${d} km</span><span class="a">${hit ? '🎉' : `<span style="display:inline-block;transform:rotate(${arrow(il, target) * 45}deg)">↑︎</span>`}</span><span class="d">${p}%</span></div>`);
+      box.insertAdjacentHTML('beforeend', `<div class="g${hit ? ' win' : ''}" style="--hc:${heat(p)}">${hit ? '' : `<i class="bar" style="width:${p}%"></i>`}<span>${n}</span><span class="d">${d} km</span><span class="a">${hit ? '✓' : `<span style="display:inline-block;transform:rotate(${arrow(il, target) * 45}deg)">↑︎</span>`}</span><span class="d">${p}%</span></div>`);
     }
     const map = document.getElementById('map'), info = document.getElementById('info'), end = document.getElementById('endBtns');
     const isOver = over();
@@ -133,14 +133,14 @@
     document.getElementById('share').onclick = () => {
       const rows = st.guesses.map(n => {
         const il = byName[norm(n)], p = pct(dist(il, target)), full = Math.floor(p / 20);
-        return n === target.n ? '🟩🟩🟩🟩🟩🎉' : '🟩'.repeat(full) + '⬜'.repeat(5 - full) + EMOJI[arrow(il, target)];
+        return n === target.n ? '🟩🟩🟩🟩🟩' : '🟩'.repeat(full) + '⬜'.repeat(5 - full) + EMOJI[arrow(il, target)];
       }).join('\n');
       share(`şehir ${mode === 'daily' ? '#' + (day + 1) : '(sınırsız)'} ${won() ? st.guesses.length : 'X'}/6\n${rows}\nfadimrak.xyz/games/sehir`);
     };
     const more = document.getElementById('more'), again = document.getElementById('again');
     if (more) more.onclick = () => document.querySelector('[data-m="free"]').click();
     if (again) again.onclick = () => start('free');
-    if (fresh) { toast(won() ? 'bildin! 🎉' : 'cevap: ' + target.n, 2500); if (won()) confetti(); }
+    if (fresh) { toast(won() ? 'bildin!' : 'cevap: ' + target.n, 2500); if (won()) confetti(); }
   }
 
   document.getElementById('form').onsubmit = e => {

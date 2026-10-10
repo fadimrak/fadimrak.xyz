@@ -159,7 +159,7 @@
     const won = st.guesses.at(-1) === answer;
     if (fresh) {
       if (won) { grid.children[st.guesses.length - 1].classList.add('win'); confetti(); }
-      toast(won ? ['dahi! 🤯', 'harika! 🔥', 'çok iyi! ✨', 'güzel! 👏', 'iyi 👍', 'kıl payı! 😅'][st.guesses.length - 1] : 'olmadı 😔', 2200);
+      toast(won ? ['dahi!', 'harika', 'çok iyi', 'güzel', 'iyi', 'kıl payı'][st.guesses.length - 1] : 'olmadı', 2200);
     }
     const stats = store.get(statKey(), { played: 0, wins: 0, streak: 0, best: 0 });
     document.getElementById('answer').innerHTML = `kelime: <b>${answer}</b> <a href="https://sozluk.gov.tr/?kelime=${encodeURIComponent(answer.toLocaleLowerCase('tr-TR'))}" target="_blank" rel="noopener">anlamı ↗</a>`;

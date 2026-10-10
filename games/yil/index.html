@@ -14,6 +14,8 @@
   main { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; text-align: center; }
   .card { width: 100%; max-width: 520px; overflow: hidden; padding: 0; animation: pop .4s; }
   .card .img { height: 210px; background: #ffe2b8 center / cover no-repeat; border-bottom: 2px solid var(--ink); display: grid; place-items: center; font-size: 4rem; }
+  .card .img { position: relative; }
+  .card .credit { position: absolute; right: 6px; bottom: 6px; font-size: .68rem; font-weight: 600; background: rgba(255,255,255,.85); padding: .1rem .4rem; border-radius: 6px; text-decoration: none; }
   .card .txt { padding: 1.1rem 1.2rem 1.25rem; font-size: 1.05rem; line-height: 1.5; font-weight: 500; }
   .round { font-weight: 800; font-size: .8rem; letter-spacing: .08em; color: var(--muted); }
   .dots { display: flex; gap: 6px; } .dots i { width: 28px; height: 8px; border-radius: 9px; background: #e3d9c5; border: 1.5px solid var(--ink); } .dots i.done { background: var(--orange); } .dots i.now { background: var(--yellow); }
@@ -60,7 +62,8 @@ async function eventsOn(m, d) {
       year: e.year,
       // metindeki yıl ipuçlarını gizle
       text: e.text.replace(/\b(1[0-9]{3}|20[0-9]{2})\b/g, '…'),
-      img: e.pages?.find(p => p.thumbnail)?.thumbnail.source || null,
+      // sadece serbest lisanslı Wikimedia Commons görselleri (yerel 'adil kullanım' görselleri alınmaz)
+      img: e.pages?.map(p => p.thumbnail?.source).find(u => u && u.includes('/wikipedia/commons/')) || null,
       link: e.pages?.[0]?.content_urls?.desktop.page || null,
       m, d,
     }));
@@ -115,7 +118,9 @@ async function start(m) {
 const save = () => store.set('yil-' + mode, st);
 const months = ['ocak', 'şubat', 'mart', 'nisan', 'mayıs', 'haziran', 'temmuz', 'ağustos', 'eylül', 'ekim', 'kasım', 'aralık'];
 const dots = i => `<div class="dots">${Array.from({ length: ROUNDS }, (_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>`;
-const card = e => `<div class="card panel"><div class="img" ${e.img ? `style="background-image:url('${e.img}')"` : ''}>${e.img ? '' : '📜'}</div><div class="txt">${e.text}${e.m ? `<div class="when">${e.d} ${months[e.m - 1]}</div>` : ''}</div></div>`;
+const commons = u => { const f = u.split('/commons/')[1].replace(/^thumb\//, '').split('/')[2]; return `https://commons.wikimedia.org/wiki/File:${f}`; };
+const img = e => e.img && e.img.includes('/wikipedia/commons/') ? e.img : null;
+const card = e => `<div class="card panel"><div class="img" ${img(e) ? `style="background-image:url('${img(e)}')"` : ''}>${img(e) ? `<a class="credit" href="${commons(img(e))}" target="_blank" rel="noopener">görsel: Wikimedia Commons</a>` : '?'}</div><div class="txt">${e.text}${e.m ? `<div class="when">${e.d} ${months[e.m - 1]}</div>` : ''}</div></div>`;
 
 function play() {
   const i = st.answers.length;
@@ -141,7 +146,7 @@ function reveal(g) {
   const p = points(g, e.year), diff = Math.abs(g - e.year);
   if (p === 1000) confetti(50);
   game.innerHTML = `${dots(st.answers.length)}${card({ ...e, text: e.orig || e.text })}
-    <div class="result">doğru cevap <b>${e.year}</b><br>senin tahminin ${g} · ${diff ? diff + ' yıl fark' : 'tam isabet! 🎯'}</div>
+    <div class="result">doğru cevap <b>${e.year}</b><br>senin tahminin ${g} · ${diff ? diff + ' yıl fark' : 'tam isabet!'}</div>
     <span class="pts">+${p} puan</span>
     <div class="row">${e.link ? `<a class="btn" href="${e.link}" target="_blank" rel="noopener">wikipedia ↗</a>` : ''}<button class="primary" id="next">${st.answers.length < ROUNDS ? 'sonraki →' : 'sonuç'}</button></div>`;
   game.querySelector('#next').onclick = play;
@@ -160,7 +165,7 @@ function summary() {
       ? '<button class="primary" id="share">paylaş</button><button id="more">sınırsız oyna</button>'
       : '<button class="primary" id="again">yeni 5 olay</button><button id="share">paylaş</button>'}</div>`;
   game.querySelector('#share').onclick = () => {
-    const rows = st.picks.map((e, i) => { const p = points(st.answers[i], e.year); return p === 1000 ? '🎯' : p >= 750 ? '🟩' : p >= 400 ? '🟨' : p > 0 ? '🟧' : '🟥'; }).join('');
+    const rows = st.picks.map((e, i) => { const p = points(st.answers[i], e.year); return p >= 750 ? '🟩' : p >= 400 ? '🟨' : p > 0 ? '🟧' : '🟥'; }).join('');
     share(`yıl ${mode === 'daily' ? '#' + (day + 1) : '(sınırsız)'}: ${total}/${ROUNDS * 1000}\n${rows}\nfadimrak.xyz/games/yil`);
   };
   const more = game.querySelector('#more'), again = game.querySelector('#again');

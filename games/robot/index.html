@@ -54,7 +54,7 @@ const cap = document.getElementById('cap');
 const R = n => Math.floor(Math.random() * n), pick = a => a[R(a.length)];
 let level = 0, plan = [], t0 = 0, timer, cleanup = null;
 const q = s => cap.querySelector(s);
-const nope = msg => { shake(cap); toast(msg || 'robot tespit edildi 🤖'); };
+const nope = msg => { shake(cap); toast(msg || 'robot tespit edildi'); };
 function frame(title, sub, body) {
   cap.innerHTML = `<div class="top"><h2>${title}</h2>${sub ? `<small>${sub}</small>` : ''}</div><div class="body">${body}</div>`;
   cap.style.animation = 'none'; void cap.offsetWidth; cap.style.animation = '';
@@ -83,10 +83,10 @@ const LAST = () => {
   frame('Son soru: robot musun?', 'dürüst ol', `<div class="row" id="r" style="flex:1;align-items:center"><button id="y">evet, robotum</button><button class="primary" id="n">hayır</button></div>`);
   let swaps = 0;
   q('#n').onclick = () => {
-    if (swaps++ < 2) { const r = q('#r'); r.append(r.firstElementChild); q('#n').textContent = ['hayır', 'gerçekten hayır', 'yemin ederim hayır'][swaps]; return toast('emin misin? 🤨'); }
+    if (swaps++ < 2) { const r = q('#r'); r.append(r.firstElementChild); q('#n').textContent = ['hayır', 'gerçekten hayır', 'yemin ederim hayır'][swaps]; return toast('emin misin?'); }
     next();
   };
-  q('#y').onclick = () => { toast('dürüstlüğün için teşekkürler 🤖'); reset(); };
+  q('#y').onclick = () => { toast('dürüstlüğün için teşekkürler'); reset(); };
 };
 
 const POOL = [
@@ -117,10 +117,10 @@ const POOL = [
     for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.style.background = `hsl(${h} 70% ${i === k ? 52 : 57}%)`; b.onclick = () => i === k ? next() : nope('daha koyusu var'); q('#t').append(b); }
   },
   () => {
-    frame('Hiçbir şeye dokunma.', '5 saniye bekle. tıklarsan ya da tuşa basarsan baştan başlar.', `<div class="meter"><i id="p"></i></div><div class="big" style="font-size:3rem">🧘</div>`);
+    frame('Hiçbir şeye dokunma.', '5 saniye bekle. tıklarsan ya da tuşa basarsan baştan başlar.', `<div class="meter"><i id="p"></i></div><div class="big" id="cd" style="font-size:3rem">5</div>`);
     let start = performance.now(), raf;
-    const reset = () => { start = performance.now(); nope('dokundun! 😤'); };
-    const loop = () => { const f = (performance.now() - start) / 5000; q('#p').style.width = Math.min(100, f * 100) + '%'; f >= 1 ? next() : raf = requestAnimationFrame(loop); };
+    const reset = () => { start = performance.now(); nope('dokundun!'); };
+    const loop = () => { const f = (performance.now() - start) / 5000; q('#p').style.width = Math.min(100, f * 100) + '%'; q('#cd').textContent = Math.max(0, Math.ceil(5 - f * 5)); f >= 1 ? next() : raf = requestAnimationFrame(loop); };
     setTimeout(() => { addEventListener('pointerdown', reset); addEventListener('keydown', reset); }, 60);
     raf = requestAnimationFrame(loop);
     cleanup = () => { cancelAnimationFrame(raf); removeEventListener('pointerdown', reset); removeEventListener('keydown', reset); };
@@ -158,7 +158,7 @@ const POOL = [
     frame(`"${w}" kelimesini BÜYÜK harflerle yaz.`, 'Türkçe kurallarıyla', `<input type="text" id="i" autocomplete="off" autocapitalize="off">${OK}`);
     verify(() => {
       const v = q('#i').value.trim();
-      if (v === w.toUpperCase() && v !== w.toLocaleUpperCase('tr-TR')) { toast('noktalara dikkat: i → İ, ı → I 😉'); return false; }
+      if (v === w.toUpperCase() && v !== w.toLocaleUpperCase('tr-TR')) { toast('noktalara dikkat: i → İ, ı → I'); return false; }
       return v === w.toLocaleUpperCase('tr-TR');
     });
   },
@@ -166,7 +166,7 @@ const POOL = [
     const C = [['kırmızı', '#ff4b3e'], ['mavi', '#3d6cff'], ['yeşil', '#24a85c'], ['sarı', '#f2c200'], ['mor', '#8f5cf7'], ['turuncu', '#ff8c1a']];
     const word = pick(C); let ink; do ink = pick(C); while (ink === word);
     frame('Yazının RENGİNİ seç.', 'ne yazdığını değil, hangi renkte yazıldığını', `<div class="big" style="color:${ink[1]};font-size:2.6rem">${word[0].toLocaleUpperCase('tr-TR')}</div><div class="row" id="r"></div>`);
-    shuffle(C).forEach(c => { const b = document.createElement('button'); b.textContent = c[0]; b.onclick = () => c === ink ? next() : nope('yazıyı okudun 😏'); q('#r').append(b); });
+    shuffle(C).forEach(c => { const b = document.createElement('button'); b.textContent = c[0]; b.onclick = () => c === ink ? next() : nope('yazıyı okudun'); q('#r').append(b); });
   },
   () => {
     const n = 21 + R(978);
@@ -227,7 +227,7 @@ function win() {
   if (!best || secs < best) store.set('robot-best', secs);
   confetti();
   frame('Doğrulama tamamlandı ✓', '', `<div class="win"><b>%${90 + R(10)} insansın</b>${secs.toFixed(1)} saniyede tamamladın<br><span class="hint">en iyi: ${Math.min(secs, best || secs).toFixed(1)} sn</span></div><div class="row"><button class="primary" id="a">tekrar oyna</button><button id="s">paylaş</button></div>`);
-  q('#s').onclick = () => share(`ben robot değilim 🤖 ${plan.length} testi ${secs.toFixed(1)} saniyede geçtim\nfadimrak.xyz/games/robot`);
+  q('#s').onclick = () => share(`ben robot değilim: ${plan.length} testi ${secs.toFixed(1)} saniyede geçtim\nfadimrak.xyz/games/robot`);
   q('#a').onclick = reset;
   showBest();
 }

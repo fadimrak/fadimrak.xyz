@@ -96,3 +96,6 @@ function confetti(n = 80) {
     if (performance.now() - t0 < 2500) requestAnimationFrame(f); else c.remove();
   })();
 }
+
+// Sayfa altı imza
+document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot">fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');

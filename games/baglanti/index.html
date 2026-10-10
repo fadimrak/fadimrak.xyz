@@ -34,7 +34,7 @@
   <div class="board" id="board"></div>
   <div class="lives" id="lives"></div>
   <div class="row" id="controls">
-    <button id="shuffle">🔀 karıştır</button>
+    <button id="shuffle">karıştır</button>
     <button id="clear">seçimi kaldır</button>
     <button class="primary" id="submit" disabled>gönder</button>
   </div>
@@ -117,10 +117,10 @@ document.getElementById('submit').onclick = () => {
   if (best === 4) {
     st.solved.push(groupOf(sel[0]).level);
     sel = [];
-    if (st.solved.length === 4) { toast(['kusursuz! 🏆', 'harika! 🔥', 'iyi iş! 👏', 'son anda! 😅'][mistakes()], 2500); confetti(); }
+    if (st.solved.length === 4) { toast(['kusursuz!', 'harika', 'iyi iş', 'son anda'][mistakes()], 2500); confetti(); }
   } else {
     shake(board);
-    toast(best === 3 ? 'bir kaldı... 🤏' : 'olmadı');
+    toast(best === 3 ? 'bir kaldı...' : 'olmadı');
     if (mistakes() >= MAX) {
       sel = []; st.lost = true;
       puzzle.forEach(g => st.solved.includes(g.level) || st.solved.push(g.level));

@@ -77,17 +77,17 @@ function show(bdStr) {
   if (next < now) next.setFullYear(now.getFullYear() + 1);
   const toBday = Math.ceil((next - now) / 864e5);
   const facts = [
-    ['📆', fmt(days), 'gün yaşadın', '#ffd23f'],
-    ['❤️', fmt(days * 24 * 60 * 72), 'kalp atışı (dakikada ~72)', '#ff9fc6'],
-    ['🌬️', fmt(days * 24 * 60 * 15), 'nefes (dakikada ~15)', '#9fe3c9'],
-    ['🌕', fmt(days / 29.53), 'dolunay gördün', '#b6c8ff'],
-    ['😴', fmt(years / 3) + ' yıl', 'uyuyarak geçti (~1/3)', '#d6b8ff'],
-    ['🌍', fmt(days * 2.57) + ' milyon km', 'Dünya ile Güneş etrafında yol aldın', '#ffbf8a'],
-    ['🍂', fmt(years * 4), 'mevsim değişimi', '#c8e68f'],
-    ['🎂', toBday >= 365 || toBday === 0 ? 'bugün!' : toBday + ' gün', 'sonraki doğum gününe', '#ff9f7a'],
-    ['⏱️', fmt(days * 86400 / 1e6) + ' milyon', 'saniye', '#a5e6ff'],
+    ['', fmt(days), 'gün yaşadın', '#ffd23f'],
+    ['', fmt(days * 24 * 60 * 72), 'kalp atışı (dakikada ~72)', '#ff9fc6'],
+    ['', fmt(days * 24 * 60 * 15), 'nefes (dakikada ~15)', '#9fe3c9'],
+    ['', fmt(days / 29.53), 'dolunay gördün', '#b6c8ff'],
+    ['', fmt(years / 3) + ' yıl', 'uyuyarak geçti (~1/3)', '#d6b8ff'],
+    ['', fmt(days * 2.57) + ' milyon km', 'Dünya ile Güneş etrafında yol aldın', '#ffbf8a'],
+    ['', fmt(years * 4), 'mevsim değişimi', '#c8e68f'],
+    ['', toBday >= 365 || toBday === 0 ? 'bugün!' : toBday + ' gün', 'sonraki doğum gününe', '#ff9f7a'],
+    ['', fmt(days * 86400 / 1e6) + ' milyon', 'saniye', '#a5e6ff'],
   ];
-  document.getElementById('facts').innerHTML = facts.map(([e, b, t, col], k) => `<div style="--c:${col};animation-delay:${.3 + k * .07}s"><span>${e}</span><b>${b}</b>${t}</div>`).join('');
+  document.getElementById('facts').innerHTML = facts.map(([, b, t, col], k) => `<div style="--c:${col};animation-delay:${.3 + k * .07}s"><b>${b}</b>${t}</div>`).join('');
 }
 
 document.getElementById('form').onsubmit = e => { e.preventDefault(); show(document.getElementById('bd').value); };
