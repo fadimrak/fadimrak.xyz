@@ -4,102 +4,170 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>yıl · fadimrak</title>
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
-  main { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; text-align: center; }
-  .round { color: var(--muted); font-size: .8rem; letter-spacing: .1em; }
-  .event { font-size: 1.35rem; line-height: 1.5; min-height: 4.5em; display: grid; place-items: center; max-width: 520px; animation: in .4s; }
-  .year { font-size: 3rem; letter-spacing: .1em; }
-  input[type=range] { width: 100%; max-width: 480px; accent-color: var(--fg); padding: 0; border: 0; background: none; }
-  .steps { display: flex; gap: .4rem; }
-  .steps button { padding: .4rem .7rem; font-size: .8rem; }
-  .result { font-size: .95rem; line-height: 1.7; animation: in .3s; }
-  .result b { font-weight: 400; font-size: 1.4rem; }
-  .total { font-size: 2.5rem; }
-  .sum { display: flex; flex-direction: column; gap: 4px; width: 100%; max-width: 480px; font-size: .8rem; }
-  .sum div { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem .7rem; background: var(--panel); border-radius: 6px; text-align: left; }
-  .sum span:last-child { color: var(--muted); white-space: nowrap; }
+  :root { --accent: var(--orange); }
+  main { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; text-align: center; }
+  .card { width: 100%; max-width: 520px; overflow: hidden; padding: 0; animation: pop .4s; }
+  .card .img { height: 210px; background: #ffe2b8 center / cover no-repeat; border-bottom: 2px solid var(--ink); display: grid; place-items: center; font-size: 4rem; }
+  .card .txt { padding: 1.1rem 1.2rem 1.25rem; font-size: 1.05rem; line-height: 1.5; font-weight: 500; }
+  .round { font-weight: 800; font-size: .8rem; letter-spacing: .08em; color: var(--muted); }
+  .dots { display: flex; gap: 6px; } .dots i { width: 28px; height: 8px; border-radius: 9px; background: #e3d9c5; border: 1.5px solid var(--ink); } .dots i.done { background: var(--orange); } .dots i.now { background: var(--yellow); }
+  .year { font-family: var(--head); font-weight: 900; font-size: 3.6rem; line-height: 1; }
+  input[type=range] { width: 100%; max-width: 480px; accent-color: var(--orange); padding: 0; border: 0; box-shadow: none; background: none; height: 28px; }
+  .steps { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; }
+  .steps button { padding: .4rem .65rem; font-size: .85rem; box-shadow: 2px 2px 0 var(--ink); }
+  .result { font-size: 1rem; line-height: 1.7; } .result b { font-family: var(--head); font-size: 1.6rem; }
+  .pts { display: inline-block; padding: .3rem .9rem; border-radius: 99px; border: 2px solid var(--ink); background: var(--yellow); font-weight: 800; animation: pop .4s; }
+  .total { font-family: var(--head); font-weight: 900; font-size: 3.4rem; }
+  .sum { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 520px; }
+  .sum div { display: grid; grid-template-columns: 1fr auto; gap: .8rem; padding: .55rem .8rem; background: var(--card); border: 2px solid var(--ink); border-radius: 10px; text-align: left; font-size: .85rem; }
+  .sum span:last-child { font-weight: 700; white-space: nowrap; }
+  .when { font-size: .85rem; color: var(--muted); }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>yıl</h1><span class="hint" id="no"></span></header>
-<main id="main"></main>
+<header><a class="back" href="../">← oyunlar</a><h1>yıl</h1><span class="tag" id="no"></span></header>
+<main>
+  <div class="modes" id="modes"></div>
+  <div id="game" style="display:contents"></div>
+</main>
 <script src="../common.js"></script>
 <script>
-const EVENTS = [
-  ['Türkiye Cumhuriyeti ilan edildi', 1923], ['TBMM açıldı', 1920], ['Harf Devrimi yapıldı', 1928], ['Kadınlara milletvekili seçme ve seçilme hakkı verildi', 1934],
-  ['Soyadı Kanunu çıkarıldı', 1934], ['Atatürk vefat etti', 1938], ['Titanic battı', 1912], ['I. Dünya Savaşı başladı', 1914], ['II. Dünya Savaşı başladı', 1939],
-  ['II. Dünya Savaşı sona erdi', 1945], ['Ay\'a ilk insan ayak bastı', 1969], ['Berlin Duvarı yıkıldı', 1989], ['Sovyetler Birliği dağıldı', 1991],
-  ['İlk iPhone tanıtıldı', 2007], ['Facebook kuruldu', 2004], ['YouTube kuruldu', 2005], ['Google kuruldu', 1998], ['Wikipedia kuruldu', 2001],
-  ['Euro banknotları tedavüle girdi', 2002], ['Türkiye Dünya Kupası\'nda üçüncü oldu', 2002], ['Galatasaray UEFA Kupası\'nı kazandı', 2000],
-  ['Sertab Erener Eurovision\'u kazandı', 2003], ['Boğaziçi Köprüsü açıldı', 1973], ['Marmaray açıldı', 2013], ['Gölcük merkezli Marmara depremi oldu', 1999],
-  ['Kahramanmaraş merkezli depremler oldu', 2023], ['DSÖ COVID-19\'u pandemi ilan etti', 2020], ['Türkiye NATO\'ya katıldı', 1952], ['Kıbrıs Barış Harekâtı yapıldı', 1974],
-  ['TRT ilk deneme televizyon yayınını yaptı', 1968], ['İlk Türk astronot Alper Gezeravcı uzaya gitti', 2024], ['Orhan Pamuk Nobel Edebiyat Ödülü\'nü aldı', 2006],
-  ['Aziz Sancar Nobel Kimya Ödülü\'nü aldı', 2015], ['Çernobil faciası yaşandı', 1986], ['Sputnik 1 uzaya fırlatıldı', 1957], ['Wright kardeşler ilk motorlu uçuşu yaptı', 1903],
-  ['Einstein özel görelilik kuramını yayımladı', 1905], ['Fleming penisilini keşfetti', 1928], ['İlk Star Wars filmi vizyona girdi', 1977], ['Michael Jackson Thriller albümünü çıkardı', 1982],
-  ['Tetris oyunu yaratıldı', 1984], ['İlk Harry Potter kitabı yayımlandı', 1997], ['Bitcoin\'in ilk bloğu oluşturuldu', 2009], ['Instagram kuruldu', 2010],
-  ['ChatGPT yayınlandı', 2022], ['Türk lirasından altı sıfır atıldı', 2005], ['Tanzimat Fermanı ilan edildi', 1839], ['I. Meşrutiyet ilan edildi', 1876],
-  ['Eyfel Kulesi tamamlandı', 1889], ['Graham Bell telefonun patentini aldı', 1876], ['Amerikan İç Savaşı başladı', 1861], ['Galatasaray kuruldu', 1905],
-  ['Fenerbahçe kuruldu', 1907], ['Beşiktaş kuruldu', 1903], ['Çanakkale Deniz Zaferi kazanıldı', 1915], ['Lozan Antlaşması imzalandı', 1923],
-  ['Türkiye\'de ilk çok partili genel seçim yapıldı', 1946], ['Türkiye\'nin ilk internet bağlantısı kuruldu (ODTÜ)', 1993], ['Türkiye AB adaylık statüsü aldı', 1999],
-  ['Türkiye Euro 2008\'de yarı finale çıktı', 2008], ['İlk PlayStation çıktı', 1994], ['World Wide Web icat edildi', 1989], ['İlk Toy Story filmi vizyona girdi', 1995],
-];
-const MIN = 1800, MAX = 2025, ROUNDS = 5;
-const day = dayIndex(), picks = shuffle(EVENTS, rng(day * 7 + 1)).slice(0, ROUNDS);
-document.getElementById('no').textContent = '#' + (day + 1);
-const points = (g, y) => Math.max(0, 1000 - Math.abs(g - y) * 25);
+// Yedek olaylar (Wikipedia'ya ulaşılamazsa)
+const FALLBACK = [
+  ['Türkiye Cumhuriyeti ilan edildi.', 1923], ['TBMM açıldı.', 1920], ['Harf Devrimi yapıldı.', 1928], ['Titanic battı.', 1912], ['I. Dünya Savaşı başladı.', 1914],
+  ['II. Dünya Savaşı sona erdi.', 1945], ['Ay\'a ilk insan ayak bastı.', 1969], ['Berlin Duvarı yıkıldı.', 1989], ['İlk iPhone tanıtıldı.', 2007], ['Boğaziçi Köprüsü açıldı.', 1973],
+  ['Marmaray açıldı.', 2013], ['Çernobil faciası yaşandı.', 1986], ['Sputnik 1 uzaya fırlatıldı.', 1957], ['Wright kardeşler ilk motorlu uçuşu yaptı.', 1903], ['Eyfel Kulesi tamamlandı.', 1889],
+  ['İstanbul fethedildi.', 1453], ['Amerika kıtasına Kolomb ulaştı.', 1492], ['Fransız Devrimi başladı.', 1789], ['Galatasaray UEFA Kupası\'nı kazandı.', 2000], ['Sertab Erener Eurovision\'u kazandı.', 2003],
+].map(([text, year]) => ({ text, year }));
+const MIN = 1000, MAX = new Date().getFullYear(), ROUNDS = 5;
+const day = dayIndex();
+const game = document.getElementById('game');
+const points = (g, y) => Math.max(0, Math.round(1000 - Math.abs(g - y) * 20));
+let mode, st;
 
-let st = store.get('yil', {});
-if (st.day !== day) st = { day, answers: [] };
-const main = document.getElementById('main');
+const pad = n => String(n).padStart(2, '0');
+async function eventsOn(m, d) {
+  try {
+    const r = await fetch(`https://api.wikimedia.org/feed/v1/wikipedia/tr/onthisday/events/${pad(m)}/${pad(d)}`);
+    const j = await r.json();
+    return j.events.filter(e => e.year >= MIN && e.year <= MAX).map(e => ({
+      year: e.year,
+      // metindeki yıl ipuçlarını gizle
+      text: e.text.replace(/\b(1[0-9]{3}|20[0-9]{2})\b/g, '…'),
+      img: e.pages?.find(p => p.thumbnail)?.thumbnail.source || null,
+      link: e.pages?.[0]?.content_urls?.desktop.page || null,
+      m, d,
+    }));
+  } catch { return []; }
+}
+
+// Olayları yüzyıllara yay: yıla göre sırala, 5 dilime böl, her dilimden bir tane seç
+function spread(list, rand) {
+  const sorted = list.slice().sort((a, b) => a.year - b.year);
+  const picks = [];
+  for (let i = 0; i < ROUNDS; i++) {
+    const slice = sorted.slice(Math.floor(i * sorted.length / ROUNDS), Math.floor((i + 1) * sorted.length / ROUNDS));
+    const withImg = slice.filter(e => e.img);
+    const pool = withImg.length ? withImg : slice;
+    if (pool.length) picks.push(pool[Math.floor(rand() * pool.length)]);
+  }
+  return shuffle(picks, rand);
+}
+
+async function newPicks() {
+  if (mode === 'daily') {
+    const now = new Date();
+    const ev = await eventsOn(now.getMonth() + 1, now.getDate());
+    if (ev.length >= ROUNDS) return spread(ev, rng(day * 13 + 5));
+  } else {
+    // sınırsız: rastgele bir günün olayları
+    for (let i = 0; i < 3; i++) {
+      const t = new Date(2024, 0, 1 + Math.floor(Math.random() * 366));
+      const ev = await eventsOn(t.getMonth() + 1, t.getDate());
+      if (ev.length >= ROUNDS) return spread(ev, Math.random);
+    }
+  }
+  return shuffle(FALLBACK, mode === 'daily' ? rng(day) : Math.random).slice(0, ROUNDS);
+}
+
+async function start(m) {
+  mode = m;
+  game.innerHTML = '<p class="hint">olaylar yükleniyor…</p>';
+  if (mode === 'daily') {
+    st = store.get('yil-daily', {});
+    if (st.day !== day || !st.picks) st = { day, answers: [], picks: await newPicks() };
+    document.getElementById('no').textContent = '#' + (day + 1);
+  } else {
+    st = store.get('yil-free', null);
+    if (!st || st.answers.length >= ROUNDS) st = { answers: [], picks: await newPicks() };
+    document.getElementById('no').textContent = 'sınırsız';
+  }
+  if (m !== mode) return; // yüklenirken mod değişti
+  save();
+  play();
+}
+const save = () => store.set('yil-' + mode, st);
+const months = ['ocak', 'şubat', 'mart', 'nisan', 'mayıs', 'haziran', 'temmuz', 'ağustos', 'eylül', 'ekim', 'kasım', 'aralık'];
+const dots = i => `<div class="dots">${Array.from({ length: ROUNDS }, (_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>`;
+const card = e => `<div class="card panel"><div class="img" ${e.img ? `style="background-image:url('${e.img}')"` : ''}>${e.img ? '' : '📜'}</div><div class="txt">${e.text}${e.m ? `<div class="when">${e.d} ${months[e.m - 1]}</div>` : ''}</div></div>`;
 
 function play() {
   const i = st.answers.length;
-  if (i >= ROUNDS) return summary();
-  const [text] = picks[i];
-  let g = 1960;
-  main.innerHTML = `
-    <div class="round">TUR ${i + 1} / ${ROUNDS}</div>
-    <div class="event">${text}</div>
+  if (i >= ROUNDS) return summary(false);
+  const e = st.picks[i];
+  let g = 1950;
+  game.innerHTML = `${dots(i)}${card(e)}
     <div class="year" id="y">${g}</div>
     <input type="range" id="r" min="${MIN}" max="${MAX}" value="${g}" aria-label="yıl">
-    <div class="steps"><button data-d="-10">-10</button><button data-d="-1">-1</button><button data-d="1">+1</button><button data-d="10">+10</button></div>
+    <div class="steps"><button data-d="-100">-100</button><button data-d="-10">-10</button><button data-d="-1">-1</button><button data-d="1">+1</button><button data-d="10">+10</button><button data-d="100">+100</button></div>
     <button class="primary" id="go">tahmin et</button>`;
-  const r = main.querySelector('#r'), y = main.querySelector('#y');
+  const r = game.querySelector('#r'), y = game.querySelector('#y');
   const set = v => { g = Math.min(MAX, Math.max(MIN, v)); r.value = g; y.textContent = g; };
   r.oninput = () => set(+r.value);
-  main.querySelectorAll('[data-d]').forEach(b => b.onclick = () => set(g + +b.dataset.d));
-  main.querySelector('#go').onclick = () => reveal(g);
+  game.querySelectorAll('[data-d]').forEach(b => b.onclick = () => set(g + +b.dataset.d));
+  game.querySelector('#go').onclick = () => reveal(g);
 }
 
 function reveal(g) {
-  const [text, year] = picks[st.answers.length];
+  const e = st.picks[st.answers.length];
   st.answers.push(g);
-  store.set('yil', st);
-  const p = points(g, year), diff = Math.abs(g - year);
-  main.innerHTML = `
-    <div class="round">TUR ${st.answers.length} / ${ROUNDS}</div>
-    <div class="event">${text}</div>
-    <div class="result">doğru cevap <b>${year}</b><br>senin tahminin ${g} · ${diff ? diff + ' yıl fark' : 'tam isabet!'}<br><b>+${p}</b> puan</div>
-    <button class="primary" id="next">${st.answers.length < ROUNDS ? 'sonraki' : 'sonuç'}</button>`;
-  main.querySelector('#next').onclick = play;
+  save();
+  const p = points(g, e.year), diff = Math.abs(g - e.year);
+  if (p === 1000) confetti(50);
+  game.innerHTML = `${dots(st.answers.length)}${card({ ...e, text: e.orig || e.text })}
+    <div class="result">doğru cevap <b>${e.year}</b><br>senin tahminin ${g} · ${diff ? diff + ' yıl fark' : 'tam isabet! 🎯'}</div>
+    <span class="pts">+${p} puan</span>
+    <div class="row">${e.link ? `<a class="btn" href="${e.link}" target="_blank" rel="noopener">wikipedia ↗</a>` : ''}<button class="primary" id="next">${st.answers.length < ROUNDS ? 'sonraki →' : 'sonuç'}</button></div>`;
+  game.querySelector('#next').onclick = play;
 }
 
 function summary() {
-  const total = picks.reduce((s, [, y], i) => s + points(st.answers[i], y), 0);
-  main.innerHTML = `
-    <div class="round">BUGÜNKÜ PUANIN</div>
-    <div class="total">${total} <span class="hint">/ ${ROUNDS * 1000}</span></div>
-    <div class="sum">${picks.map(([t, y], i) => `<div><span>${t}</span><span>${st.answers[i]} → ${y}</span></div>`).join('')}</div>
-    <button class="primary" id="share">sonucu paylaş</button>
-    <span class="hint">yeni olaylar yarın</span>`;
-  main.querySelector('#share').onclick = () => {
-    const rows = picks.map(([, y], i) => { const p = points(st.answers[i], y); return p === 1000 ? '🎯' : p >= 750 ? '🟩' : p >= 400 ? '🟨' : p > 0 ? '🟧' : '⬛'; }).join('');
-    share(`yıl #${day + 1}: ${total}/${ROUNDS * 1000}\n${rows}\nfadimrak.xyz/games/yil`);
+  const total = st.picks.reduce((s, e, i) => s + points(st.answers[i], e.year), 0);
+  const best = store.get('yil-best', 0);
+  if (total > best) store.set('yil-best', total);
+  game.innerHTML = `
+    <div class="round">${mode === 'daily' ? 'BUGÜNKÜ PUANIN' : 'PUANIN'}</div>
+    <div class="total">${total}<span class="hint"> / ${ROUNDS * 1000}</span></div>
+    <div class="hint">en iyi: ${Math.max(best, total)}</div>
+    <div class="sum">${st.picks.map((e, i) => `<div><span>${e.text.slice(0, 90)}${e.text.length > 90 ? '…' : ''}</span><span>${st.answers[i]} → ${e.year}</span></div>`).join('')}</div>
+    <div class="row">${mode === 'daily'
+      ? '<button class="primary" id="share">paylaş</button><button id="more">sınırsız oyna</button>'
+      : '<button class="primary" id="again">yeni 5 olay</button><button id="share">paylaş</button>'}</div>`;
+  game.querySelector('#share').onclick = () => {
+    const rows = st.picks.map((e, i) => { const p = points(st.answers[i], e.year); return p === 1000 ? '🎯' : p >= 750 ? '🟩' : p >= 400 ? '🟨' : p > 0 ? '🟧' : '🟥'; }).join('');
+    share(`yıl ${mode === 'daily' ? '#' + (day + 1) : '(sınırsız)'}: ${total}/${ROUNDS * 1000}\n${rows}\nfadimrak.xyz/games/yil`);
   };
+  const more = game.querySelector('#more'), again = game.querySelector('#again');
+  if (more) more.onclick = () => document.querySelector('[data-m="free"]').click();
+  if (again) again.onclick = () => { store.set('yil-free', null); start('free'); };
 }
-play();
+modeSwitch(document.getElementById('modes'), 'yil', start);
 </script>
 </body>
 </html>

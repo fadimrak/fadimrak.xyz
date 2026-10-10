@@ -4,31 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hayatın haftaları · fadimrak</title>
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
+  :root { --accent: var(--red); }
   main { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
-  #out { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%; }
   form { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; }
-  input[type=date] { color-scheme: dark; }
-  canvas { width: 100%; max-width: 560px; }
-  .big { font-size: 1.1rem; line-height: 1.7; max-width: 520px; }
-  .big b { font-weight: 400; font-size: 1.8rem; display: block; }
-  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; width: 100%; }
-  .facts div { padding: 1rem; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; text-align: left; font-size: .8rem; color: var(--muted); line-height: 1.5; opacity: 0; animation: in .5s forwards; }
-  .facts b { display: block; color: var(--fg); font-size: 1.15rem; font-weight: 400; margin-bottom: .2rem; }
-  .legend { color: var(--muted); font-size: .75rem; }
+  #out { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%; }
+  .big { font-size: 1.15rem; line-height: 1.6; max-width: 520px; font-weight: 500; }
+  .big b { font-family: var(--head); font-weight: 900; font-size: 3.2rem; display: block; line-height: 1; color: var(--red); }
+  .gridbox { width: 100%; max-width: 600px; padding: 14px; }
+  canvas { width: 100%; display: block; }
+  .legend { display: flex; gap: .45rem; flex-wrap: wrap; justify-content: center; font-size: .78rem; font-weight: 700; }
+  .legend span { display: inline-flex; align-items: center; gap: .3rem; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--ink); }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; width: 100%; }
+  .facts div { padding: 1rem 1.1rem; background: var(--c); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); text-align: left; font-size: .85rem; font-weight: 600; line-height: 1.4; opacity: 0; animation: in .5s forwards; }
+  .facts b { display: block; font-family: var(--head); font-weight: 900; font-size: 1.45rem; margin-bottom: .15rem; }
+  .facts span { font-size: 1.3rem; float: right; }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>hayatın haftaları</h1><span></span></header>
+<header><a class="back" href="../">← oyunlar</a><h1>hayatın haftaları</h1><span class="tag">90 yıl</span></header>
 <main>
   <p class="hint">Doğum tarihini gir, hayatını haftalarla gör. Tarih sadece senin tarayıcında kalır.</p>
   <form id="form"><input type="date" id="bd" required aria-label="doğum tarihi"><button class="primary">göster</button></form>
   <div id="out" hidden>
     <div class="big" id="big"></div>
-    <canvas id="c"></canvas>
-    <div class="legend">her kare bir hafta · her satır bir yıl · 90 yıl</div>
+    <div class="gridbox panel"><canvas id="c"></canvas></div>
+    <div class="legend" id="legend"></div>
     <div class="facts" id="facts"></div>
   </div>
 </main>
@@ -36,6 +43,9 @@
 <script>
 const fmt = n => Math.round(n).toLocaleString('tr-TR');
 const YEARS = 90, COLS = 52;
+const STAGES = [[0, 'çocukluk', '#ffd23f'], [7, 'okul', '#3bb273'], [18, 'gençlik', '#4d7cfe'], [30, 'yetişkinlik', '#8f5cf7'], [65, 'emeklilik', '#ff6fae']];
+const stageOf = y => [...STAGES].reverse().find(([a]) => y >= a);
+document.getElementById('legend').innerHTML = STAGES.map(([a, n, c]) => `<span><i style="background:${c}"></i>${n} (${a}+)</span>`).join('') + '<span><i style="background:#ff5a4e"></i>bu hafta</span><span><i style="background:#e9e1d0"></i>gelecek</span>';
 
 function show(bdStr) {
   const bd = new Date(bdStr + 'T00:00'), now = new Date();
@@ -43,43 +53,41 @@ function show(bdStr) {
   if (!(days > 0) || days > 130 * 365) return toast('geçerli bir tarih gir');
   store.set('hafta-bd', bdStr);
   const weeks = Math.floor(days / 7), years = days / 365.25;
-  const out = document.getElementById('out');
-  out.hidden = false;
-
+  document.getElementById('out').hidden = false;
   const left = Math.max(0, YEARS * COLS - weeks);
-  document.getElementById('big').innerHTML = `<b>${fmt(weeks)}</b>hafta yaşadın. 90 yaşına kadar ${fmt(left)} hafta daha var.`;
+  document.getElementById('big').innerHTML = `<b>${fmt(weeks)}</b>hafta yaşadın. 90 yaşına kadar <strong>${fmt(left)}</strong> hafta daha var. Hepsi aşağıda.`;
 
-  // Izgara: canvas, yaşanan haftalar sırayla dolar
+  // Izgara: yaşanan haftalar hayat evresine göre renklenerek sırayla dolar
   const c = document.getElementById('c'), dpr = devicePixelRatio || 1;
-  const W = Math.min(560, c.parentElement.clientWidth), cell = W / COLS, H = cell * YEARS;
+  const W = c.parentElement.clientWidth - 28, cell = W / COLS, H = cell * YEARS;
   c.width = W * dpr; c.height = H * dpr; c.style.height = H + 'px';
   const ctx = c.getContext('2d');
   ctx.scale(dpr, dpr);
-  const box = (i, color) => { ctx.fillStyle = color; ctx.fillRect((i % COLS) * cell + .5, Math.floor(i / COLS) * cell + .5, cell - 1.5, cell - 1.5); };
-  for (let i = 0; i < YEARS * COLS; i++) box(i, '#1c1c1c');
+  const box = (i, color) => { ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect((i % COLS) * cell + .6, Math.floor(i / COLS) * cell + .6, cell - 1.6, cell - 1.6, cell * .25); ctx.fill(); };
+  for (let i = 0; i < YEARS * COLS; i++) box(i, '#e9e1d0');
   let i = 0;
   (function step() {
-    const end = Math.min(weeks, i + 60);
-    for (; i < end; i++) box(i, '#e6e6e6');
+    const end = Math.min(weeks, i + 70);
+    for (; i < end; i++) box(i, stageOf(Math.floor(i / COLS))[2]);
     if (i < weeks) requestAnimationFrame(step);
-    else if (i < YEARS * COLS) box(i, '#777');
+    else if (i < YEARS * COLS) box(i, '#ff5a4e');
   })();
 
   const next = new Date(now.getFullYear(), bd.getMonth(), bd.getDate());
   if (next < now) next.setFullYear(now.getFullYear() + 1);
   const toBday = Math.ceil((next - now) / 864e5);
   const facts = [
-    [fmt(days), 'gün yaşadın'],
-    [fmt(days * 24 * 60 * 72), 'kalp atışı (dakikada ~72)'],
-    [fmt(days * 24 * 60 * 15), 'nefes (dakikada ~15)'],
-    [fmt(days / 29.53), 'dolunay gördün'],
-    [fmt(years / 3) + ' yıl', 'uyuyarak geçti (~1/3)'],
-    [fmt(days * 2.57e6 / 1e6) + ' milyon km', 'Dünya ile Güneş etrafında yol aldın'],
-    [fmt(years * 4), 'mevsim değişimi'],
-    [toBday === 365 || toBday === 366 || toBday === 0 ? 'bugün!' : toBday + ' gün', 'sonraki doğum gününe'],
-    [fmt(days * 24 * 60 * 60 / 1e6) + ' milyon', 'saniye'],
+    ['📆', fmt(days), 'gün yaşadın', '#ffd23f'],
+    ['❤️', fmt(days * 24 * 60 * 72), 'kalp atışı (dakikada ~72)', '#ff9fc6'],
+    ['🌬️', fmt(days * 24 * 60 * 15), 'nefes (dakikada ~15)', '#9fe3c9'],
+    ['🌕', fmt(days / 29.53), 'dolunay gördün', '#b6c8ff'],
+    ['😴', fmt(years / 3) + ' yıl', 'uyuyarak geçti (~1/3)', '#d6b8ff'],
+    ['🌍', fmt(days * 2.57) + ' milyon km', 'Dünya ile Güneş etrafında yol aldın', '#ffbf8a'],
+    ['🍂', fmt(years * 4), 'mevsim değişimi', '#c8e68f'],
+    ['🎂', toBday >= 365 || toBday === 0 ? 'bugün!' : toBday + ' gün', 'sonraki doğum gününe', '#ff9f7a'],
+    ['⏱️', fmt(days * 86400 / 1e6) + ' milyon', 'saniye', '#a5e6ff'],
   ];
-  document.getElementById('facts').innerHTML = facts.map(([b, t], k) => `<div style="animation-delay:${.3 + k * .08}s"><b>${b}</b>${t}</div>`).join('');
+  document.getElementById('facts').innerHTML = facts.map(([e, b, t, col], k) => `<div style="--c:${col};animation-delay:${.3 + k * .07}s"><span>${e}</span><b>${b}</b>${t}</div>`).join('');
 }
 
 document.getElementById('form').onsubmit = e => { e.preventDefault(); show(document.getElementById('bd').value); };

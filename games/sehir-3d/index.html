@@ -3,134 +3,219 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>tel kafes şehir · fadimrak</title>
+<title>şehir turu · fadimrak</title>
+<meta name="theme-color" content="#9fd8ff">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
-  html, body { height: 100%; overflow: hidden; touch-action: none; }
-  canvas { position: fixed; inset: 0; display: block; }
-  header { position: fixed; top: 0; left: 0; right: 0; z-index: 2; max-width: none; }
-  .hud { position: fixed; top: 4rem; left: 16px; z-index: 2; color: var(--muted); font-size: .8rem; line-height: 1.8; pointer-events: none; }
-  .hud b { color: var(--fg); font-weight: 400; }
-  .speed { position: fixed; right: 16px; bottom: 16px; z-index: 2; text-align: right; pointer-events: none; }
-  .speed b { display: block; font-size: 2rem; font-weight: 400; }
-  .speed span { color: var(--muted); font-size: .7rem; }
-  .pad { position: fixed; bottom: 16px; z-index: 2; display: none; gap: 10px; }
-  .pad button { width: 64px; height: 64px; font-size: 1.3rem; border-radius: 50%; background: rgba(20,20,20,.7); user-select: none; -webkit-user-select: none; }
-  .pad button.on { background: var(--fg); color: var(--bg); }
-  .pad.l { left: 16px; } .pad.r { right: 16px; bottom: 90px; flex-direction: column; }
-  @media (pointer: coarse) { .pad { display: flex; } .speed { bottom: auto; top: 4rem; } }
-  .intro { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(10,10,10,.85); text-align: center; padding: 16px; }
-  .intro div { max-width: 360px; line-height: 1.7; }
-  .intro h2 { font-weight: 400; letter-spacing: .1em; }
+  :root { --accent: var(--red); }
+  html, body { height: 100%; overflow: hidden; touch-action: none; background: #9fd8ff; }
+  canvas.gl { position: fixed; inset: 0; display: block; }
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 6; max-width: none; pointer-events: none; }
+  header > * { pointer-events: auto; }
+  .hud { position: fixed; top: 4.2rem; left: 16px; z-index: 3; display: flex; flex-direction: column; gap: .5rem; pointer-events: none; }
+  .chip { background: var(--card); border: 2px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); padding: .4rem .75rem; font-weight: 800; font-size: .9rem; display: flex; align-items: center; gap: .4rem; }
+  .chip b { font-family: var(--head); font-weight: 900; font-size: 1.25rem; }
+  .chip.time.low { background: var(--red); color: #fff; animation: pop .5s infinite; }
+  .compass { position: fixed; top: 4.2rem; left: 50%; transform: translateX(-50%); z-index: 3; width: 62px; height: 62px; border-radius: 50%; background: var(--card); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); display: grid; place-items: center; pointer-events: none; }
+  .compass i { font-style: normal; font-size: 1.7rem; transition: transform .1s; color: var(--orange); -webkit-text-stroke: 1px var(--ink); }
+  .compass small { position: absolute; bottom: -1.3rem; font-weight: 800; font-size: .72rem; background: var(--ink); color: #fff; border-radius: 99px; padding: 0 .4rem; }
+  .speed { position: fixed; right: 16px; bottom: 16px; z-index: 3; pointer-events: none; text-align: center; }
+  .speed b { font-family: var(--head); font-weight: 900; font-size: 2.2rem; display: block; line-height: 1; -webkit-text-stroke: 1px var(--ink); color: #fff; }
+  .speed span { font-weight: 800; font-size: .75rem; }
+  .pad { position: fixed; bottom: 16px; z-index: 3; display: none; gap: 12px; }
+  .pad button { width: 70px; height: 70px; font-size: 1.5rem; border-radius: 50%; user-select: none; -webkit-user-select: none; }
+  .pad button.on { background: var(--yellow); transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  .pad.l { left: 16px; } .pad.r { right: 16px; bottom: 96px; flex-direction: column; }
+  @media (pointer: coarse) { .pad { display: flex; } .speed { bottom: auto; top: 4.2rem; } }
+  .overlay { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(159, 216, 255, .55); backdrop-filter: blur(3px); padding: 16px; }
+  .overlay .panel { max-width: 380px; text-align: center; animation: pop .4s; }
+  .overlay h2 { margin: 0 0 .3rem; font-size: 2.2rem; }
+  .overlay .row { margin-top: 1rem; }
+  .keys { display: inline-flex; gap: 4px; } .keys kbd { font-family: inherit; font-weight: 800; border: 2px solid var(--ink); border-radius: 6px; padding: 0 .35rem; background: #fff; }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>tel kafes şehir</h1><span></span></header>
-<div class="hud"><b id="found">0</b> / <span id="total"></span> sinyal bulundu<br>en yakın sinyal: <b id="near">–</b><br>süre: <b id="time">0</b> sn</div>
+<header><a class="back" href="../">← oyunlar</a><span></span><span></span></header>
+<div class="hud" id="hud" hidden>
+  <div class="chip">⭐ <b id="score">0</b></div>
+  <div class="chip time" id="timeChip">⏱️ <b id="time">60</b></div>
+</div>
+<div class="compass" id="compass" hidden><i id="arrow">▲</i><small id="dist"></small></div>
 <div class="speed"><b id="spd">0</b><span>km/s</span></div>
 <div class="pad l"><button data-k="left">◀</button><button data-k="right">▶</button></div>
 <div class="pad r"><button data-k="up">▲</button><button data-k="down">▼</button></div>
-<div class="intro" id="intro"><div>
-  <h2>tel kafes şehir</h2>
-  <p class="hint">Şehirde saklı sinyalleri bul.<br>WASD / ok tuşları ile sür. Telefonda ekrandaki tuşları kullan.</p>
-  <button class="primary" id="go">başla</button>
+<div class="overlay" id="menu"><div class="panel">
+  <h2>şehir turu</h2>
+  <p class="hint">Sonsuz, rengârenk bir şehirde sür. Yıldızları topla, her yıldız +6 saniye.</p>
+  <p class="hint"><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span> ya da ok tuşları · <span class="keys"><kbd>boşluk</kbd></span> el freni</p>
+  <div class="row"><button class="primary" data-mode="time">⏱️ zamana karşı</button><button data-mode="free">🌤️ serbest sür</button></div>
+  <p class="hint" id="bestLine"></p>
 </div></div>
 <script src="../common.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// Şehir düzeni: N×N blok, aralarında yol
-const N = 10, BLOCK = 44, ROAD = 16, CELL = BLOCK + ROAD, SIZE = N * CELL, HALF = SIZE / 2;
-const SIGNALS = 12;
-const rand = rng(2027);
+// ——— Şehir düzeni: sonsuz ızgara. Her blok, koordinatına göre hep aynı şekilde üretilir.
+const BLOCK = 46, ROAD = 18, CELL = BLOCK + ROAD, CHUNK = 3, CH = CELL * CHUNK, VIEW = 2;
+const hash = (a, b, s = 0) => { let h = (a * 374761393 + b * 668265263 + s * 2147483647) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const blockType = (i, j) => (i === 0 && j === 0) ? 'park' : hash(i, j, 1) < .16 ? 'park' : hash(i, j, 2) < .05 ? 'pool' : 'city';
+const PALETTE = ['#ff8a80', '#ffd180', '#ffe57f', '#a7ffeb', '#80d8ff', '#b388ff', '#ff80ab', '#ccff90', '#f8bbd0', '#90caf9', '#fff59d', '#ffab91', '#ce93d8', '#80cbc4'];
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.domElement.className = 'gl';
 document.body.prepend(renderer.domElement);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0a0a);
-scene.fog = new THREE.Fog(0x0a0a0a, 60, 320);
-const camera = new THREE.PerspectiveCamera(65, 1, .5, 800);
+const SKY = new THREE.Color('#9fd8ff');
+scene.background = SKY;
+scene.fog = new THREE.Fog(SKY, 140, 330);
+const camera = new THREE.PerspectiveCamera(62, 1, .5, 900);
 function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 
-// Zemin ızgarası
-const grid = new THREE.GridHelper(SIZE + 200, (SIZE + 200) / 20, 0x2a2a2a, 0x161616);
-scene.add(grid);
+scene.add(new THREE.HemisphereLight('#ffffff', '#8aa0b8', 1.6));
+const sun = new THREE.DirectionalLight('#fff4dc', 2.2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 300 });
+sun.shadow.bias = -.0005;
+scene.add(sun, sun.target);
 
-// Binalar: tek bir çizgi geometrisi + kenarları kapatan siyah kutular (InstancedMesh)
-const blocks = [], linePos = [], boxes = [];
-const edge = (a, b) => linePos.push(...a, ...b);
-function building(x, z, w, d, h) {
-  const x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
-  const c = [[x0, 0, z0], [x1, 0, z0], [x1, 0, z1], [x0, 0, z1]];
-  const t = c.map(([a, , b]) => [a, h, b]);
-  for (let i = 0; i < 4; i++) { edge(c[i], c[(i + 1) % 4]); edge(t[i], t[(i + 1) % 4]); edge(c[i], t[i]); }
-  // kat çizgileri
-  for (let y = 8; y < h - 2; y += 8) for (let i = 0; i < 4; i++) { const a = c[i], b = c[(i + 1) % 4]; if (rand() < .6) edge([a[0], y, a[2]], [b[0], y, b[2]]); }
-  boxes.push([x, z, w, d, h]);
-}
-for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
-  const bx = -HALF + ROAD / 2 + i * CELL + BLOCK / 2, bz = -HALF + ROAD / 2 + j * CELL + BLOCK / 2;
-  blocks.push([bx - BLOCK / 2, bz - BLOCK / 2, bx + BLOCK / 2, bz + BLOCK / 2]);
-  if (rand() < .12) { // park: sadece bir çerçeve
-    const s = BLOCK / 2;
-    edge([bx - s, .2, bz - s], [bx + s, .2, bz - s]); edge([bx + s, .2, bz - s], [bx + s, .2, bz + s]);
-    edge([bx + s, .2, bz + s], [bx - s, .2, bz + s]); edge([bx - s, .2, bz + s], [bx - s, .2, bz - s]);
-    continue;
-  }
-  const split = rand() < .5 ? 1 : 2, sub = BLOCK / split;
-  for (let a = 0; a < split; a++) for (let b = 0; b < split; b++) {
-    const tall = rand() < .08 ? 90 + rand() * 60 : 10 + rand() * (split === 1 ? 50 : 30);
-    building(bx - BLOCK / 2 + sub * (a + .5), bz - BLOCK / 2 + sub * (b + .5), sub - 4, sub - 4, tall);
-  }
-}
-const lg = new THREE.BufferGeometry();
-lg.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
-scene.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xcfcfcf })));
-const solid = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x0a0a0a, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }), boxes.length);
-const m4 = new THREE.Matrix4();
-boxes.forEach(([x, z, w, d, h], i) => solid.setMatrixAt(i, m4.compose(new THREE.Vector3(x, h / 2, z), new THREE.Quaternion(), new THREE.Vector3(w - .05, h - .05, d - .05))));
-scene.add(solid);
+// Paylaşılan geometri ve malzemeler
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+const lambert = c => new THREE.MeshLambertMaterial({ color: c });
+const M = { walk: lambert('#e6dfd0'), grass: lambert('#7fd36b'), trunk: lambert('#9b6b43'), leaf: lambert('#3fae5a'), leaf2: lambert('#69c34f'), dash: lambert('#fffbe8'), water: new THREE.MeshLambertMaterial({ color: '#4fc3f7', transparent: true, opacity: .9 }), tint: lambert('#ffffff') };
+const LEAF = new THREE.IcosahedronGeometry(1, 0), TRUNK = new THREE.CylinderGeometry(.35, .45, 1, 6), CONE = new THREE.ConeGeometry(1, 1, 7);
 
-// Araba
+// Sonsuz asfalt
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400), lambert('#596273'));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+scene.add(ground);
+
+const chunks = new Map();
+const m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3(), col = new THREE.Color();
+function instanced(geo, mat, list, shadow = true) {
+  const m = new THREE.InstancedMesh(geo, mat, Math.max(1, list.length));
+  list.forEach(([x, y, z, sx, sy, sz, c, ry = 0], k) => {
+    q4.setFromAxisAngle(v3.set(0, 1, 0), ry);
+    m.setMatrixAt(k, m4.compose(v3.set(x, y, z), q4, s3.set(sx, sy, sz)));
+    if (c) m.setColorAt(k, col.set(c));
+  });
+  m.count = list.length;
+  m.castShadow = shadow; m.receiveShadow = true;
+  return m;
+}
+function buildChunk(cx, cz) {
+  const g = new THREE.Group(), slabs = [], grass = [], pools = [], blds = [], roofs = [], trunks = [], leaves = [], dashes = [];
+  for (let a = 0; a < CHUNK; a++) for (let b = 0; b < CHUNK; b++) {
+    const i = cx * CHUNK + a, j = cz * CHUNK + b, x = i * CELL + CELL / 2, z = j * CELL + CELL / 2, t = blockType(i, j);
+    slabs.push([x, .15, z, BLOCK, .3, BLOCK]);
+    if (t === 'park' || t === 'pool') {
+      grass.push([x, .32, z, BLOCK - 4, .1, BLOCK - 4]);
+      if (t === 'pool') pools.push([x, .4, z, BLOCK * .55, .1, BLOCK * .55]);
+      const n = 6 + Math.floor(hash(i, j, 3) * 8);
+      for (let k = 0; k < n; k++) {
+        let tx = x + (hash(i, j, 10 + k) - .5) * (BLOCK - 8), tz = z + (hash(i, j, 40 + k) - .5) * (BLOCK - 8);
+        if (t === 'pool' && Math.abs(tx - x) < BLOCK * .32 && Math.abs(tz - z) < BLOCK * .32) continue;
+        const h = 2.5 + hash(i, j, 70 + k) * 2;
+        trunks.push([tx, h / 2 + .3, tz, 1, h, 1]);
+        leaves.push([tx, h + 2, tz, 2.6 + hash(i, j, 90 + k), 2.4 + hash(i, j, 95 + k), 2.6, hash(i, j, 99 + k) < .5 ? '#3fae5a' : '#69c34f']);
+      }
+    } else {
+      const split = hash(i, j, 4) < .45 ? 2 : 1, sub = BLOCK / split;
+      for (let p = 0; p < split; p++) for (let q = 0; q < split; q++) {
+        const r = hash(i, j, 20 + p * 2 + q), tall = r < .1;
+        const h = tall ? 45 + r * 300 : 8 + hash(i, j, 30 + p * 2 + q) * (split === 1 ? 32 : 22);
+        const bx = x - BLOCK / 2 + sub * (p + .5), bz = z - BLOCK / 2 + sub * (q + .5), w = sub - 5;
+        const c = PALETTE[Math.floor(hash(i, j, 50 + p * 2 + q) * PALETTE.length)];
+        blds.push([bx, h / 2 + .3, bz, w, h, w, c]);
+        col.set(c).offsetHSL(0, 0, -.18);
+        roofs.push([bx, h + .6, bz, w + .8, 1.2, w + .8, '#' + col.getHexString()]);
+        if (hash(i, j, 60 + p) < .5) roofs.push([bx + w * .2, h + 2, bz - w * .15, w * .3, 2.6, w * .3, '#eceff1']);
+      }
+    }
+  }
+  // Yol çizgileri (kavşak ortalarını atla)
+  for (let a = 0; a < CHUNK; a++) {
+    const line = (cx * CHUNK + a) * CELL, lineZ = (cz * CHUNK + a) * CELL;
+    for (let s = 0; s < CH; s += 8) {
+      const off = s % CELL; if (off < ROAD / 2 + 2 || off > CELL - ROAD / 2 - 6) continue;
+      dashes.push([line, .02, cz * CH + s + 2, .35, .04, 3.5]);
+      dashes.push([cx * CH + s + 2, .02, lineZ, 3.5, .04, .35]);
+    }
+  }
+  g.add(instanced(BOX, M.walk, slabs, false), instanced(BOX, M.grass, grass, false), instanced(BOX, M.dash, dashes, false));
+  if (pools.length) g.add(instanced(BOX, M.water, pools, false));
+  if (blds.length) g.add(instanced(BOX, M.tint, blds), instanced(BOX, M.tint, roofs));
+  if (trunks.length) g.add(instanced(TRUNK, M.trunk, trunks), instanced(LEAF, M.tint, leaves));
+  scene.add(g);
+  return g;
+}
+function updateChunks(px, pz) {
+  const ccx = Math.floor(px / CH), ccz = Math.floor(pz / CH), want = new Set();
+  for (let a = -VIEW; a <= VIEW; a++) for (let b = -VIEW; b <= VIEW; b++) {
+    const key = (ccx + a) + ',' + (ccz + b); want.add(key);
+    if (!chunks.has(key)) chunks.set(key, buildChunk(ccx + a, ccz + b));
+  }
+  for (const [key, g] of chunks) if (!want.has(key)) { scene.remove(g); g.traverse(o => o.isInstancedMesh && o.dispose()); chunks.delete(key); }
+}
+
+// Çarpışma: binalı blokların dikdörtgeni (kaldırım dahil). Park ve havuzlu bloklara girilebilir.
+const R = 2;
+function solid(x, z) {
+  const i = Math.floor(x / CELL), j = Math.floor(z / CELL), lx = x - i * CELL, lz = z - j * CELL;
+  const inBlock = lx > ROAD / 2 - R && lx < CELL - ROAD / 2 + R && lz > ROAD / 2 - R && lz < CELL - ROAD / 2 + R;
+  if (!inBlock) return false;
+  const t = blockType(i, j);
+  if (t === 'city') return true;
+  if (t === 'pool') return Math.abs(lx - CELL / 2) < BLOCK * .28 + R && Math.abs(lz - CELL / 2) < BLOCK * .28 + R;
+  return false;
+}
+
+// ——— Araba
 const car = new THREE.Group();
-const carEdges = (w, h, d, y, z) => {
-  const g = new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d));
-  const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffffff }));
-  l.position.set(0, y, z); car.add(l);
-  const s = new THREE.Mesh(new THREE.BoxGeometry(w * .98, h * .98, d * .98), new THREE.MeshBasicMaterial({ color: 0x0a0a0a }));
-  s.position.copy(l.position); car.add(s);
-};
-carEdges(2.2, .8, 4.2, .75, 0);
-carEdges(1.8, .7, 2, 1.5, -.3);
-const wheelGeo = new THREE.EdgesGeometry(new THREE.CylinderGeometry(.42, .42, .3, 10));
-[[-1.1, 1.3], [1.1, 1.3], [-1.1, -1.3], [1.1, -1.3]].forEach(([x, z]) => {
-  const w = new THREE.LineSegments(wheelGeo, new THREE.LineBasicMaterial({ color: 0x888888 }));
-  w.rotation.z = Math.PI / 2; w.position.set(x, .42, z); car.add(w);
-});
+const part = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.castShadow = true; car.add(m); return m; };
+part(BOX, lambert('#ff4b3e'), 0, 1, 0, 2.6, .9, 4.6);
+part(BOX, lambert('#ff4b3e'), 0, 1.75, -.35, 2.2, .75, 2.4);
+part(BOX, lambert('#bfe9ff'), 0, 1.78, -.33, 2.25, .55, 2.2);
+part(BOX, lambert('#ffffff'), 0, 1.2, 0, 2.65, .14, 4.65);
+part(BOX, lambert('#fff59d'), -.8, 1.05, 2.31, .5, .3, .05); part(BOX, lambert('#fff59d'), .8, 1.05, 2.31, .5, .3, .05);
+part(BOX, lambert('#b71c1c'), -.85, 1.05, -2.31, .45, .25, .05); part(BOX, lambert('#b71c1c'), .85, 1.05, -2.31, .45, .25, .05);
+const wheelGeo = new THREE.CylinderGeometry(.5, .5, .45, 14), wheelMat = lambert('#263238'), wheels = [];
+[[-1.3, 1.5], [1.3, 1.5], [-1.3, -1.5], [1.3, -1.5]].forEach(([x, z]) => { const w = part(wheelGeo, wheelMat, x, .5, z); w.rotation.z = Math.PI / 2; wheels.push(w); });
 scene.add(car);
 
-// Sinyaller (yollarda)
-const signals = [];
-const sigGeo = new THREE.EdgesGeometry(new THREE.OctahedronGeometry(1.6));
-while (signals.length < SIGNALS) {
-  const along = -HALF + rand() * SIZE, line = Math.floor(rand() * (N + 1));
-  const across = -HALF + line * CELL;
-  const pos = rand() < .5 ? new THREE.Vector3(along, 3, across) : new THREE.Vector3(across, 3, along);
-  if (Math.abs(pos.x) > HALF - 4 || Math.abs(pos.z) > HALF - 4 || signals.some(s => s.position.distanceTo(pos) < 60)) continue;
-  const s = new THREE.LineSegments(sigGeo, new THREE.LineBasicMaterial({ color: 0xffffff }));
-  s.position.copy(pos);
-  const beam = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 60, 0)]), new THREE.LineBasicMaterial({ color: 0x777777 }));
-  s.add(beam);
-  scene.add(s); signals.push(s);
+// ——— Yıldızlar
+const starShape = new THREE.Shape();
+for (let k = 0; k < 10; k++) { const r = k % 2 ? .9 : 2, a = k / 10 * Math.PI * 2 + Math.PI / 2; k ? starShape.lineTo(Math.cos(a) * r, Math.sin(a) * r) : starShape.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: .6, bevelEnabled: true, bevelSize: .15, bevelThickness: .15, bevelSegments: 1 });
+starGeo.center();
+const starMat = new THREE.MeshLambertMaterial({ color: '#ffd23f', emissive: '#ff9f1c', emissiveIntensity: .45 });
+const beamGeo = new THREE.CylinderGeometry(.6, .6, 60, 8, 1, true);
+const beamMat = new THREE.MeshBasicMaterial({ color: '#ffe57f', transparent: true, opacity: .35, depthWrite: false });
+const stars = [];
+function spawnStar() {
+  for (let t = 0; t < 50; t++) {
+    const ang = Math.random() * Math.PI * 2, d = 90 + Math.random() * 180;
+    let x = car.position.x + Math.sin(ang) * d, z = car.position.z + Math.cos(ang) * d;
+    if (Math.random() < .5) x = Math.round(x / CELL) * CELL; else z = Math.round(z / CELL) * CELL; // yola oturt
+    if (solid(x, z) || stars.some(s => Math.hypot(s.position.x - x, s.position.z - z) < 50)) continue;
+    const s = new THREE.Group();
+    const m = new THREE.Mesh(starGeo, starMat); m.castShadow = true; s.add(m);
+    const beam = new THREE.Mesh(beamGeo, beamMat); beam.position.y = 30; s.add(beam);
+    s.position.set(x, 3, z); scene.add(s); stars.push(s);
+    return;
+  }
 }
-document.getElementById('total').textContent = SIGNALS;
 
-// Kontroller
+// ——— Kontroller
 const keys = {};
-const map = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+const map = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'brake' };
 addEventListener('keydown', e => { if (map[e.code]) { keys[map[e.code]] = true; e.preventDefault(); } });
 addEventListener('keyup', e => { if (map[e.code]) keys[map[e.code]] = false; });
 document.querySelectorAll('.pad button').forEach(b => {
@@ -139,69 +224,101 @@ document.querySelectorAll('.pad button').forEach(b => {
   b.addEventListener('pointerleave', on(false)); b.addEventListener('pointercancel', on(false));
 });
 
-// Çarpışma: blok dikdörtgenleri (parklar dahil, kaldırım payıyla)
-const R = 1.8;
-const hit = (x, z) => Math.abs(x) > HALF - R || Math.abs(z) > HALF - R || blocks.some(([x0, z0, x1, z1]) => x > x0 - R && x < x1 + R && z > z0 - R && z < z1 + R);
+// ——— Oyun durumu
+let mode = null, speed = 0, heading = 0, score = 0, timeLeft = 60, playing = false;
+const $ = id => document.getElementById(id);
+const bestKey = 'sehir3d-best';
+const showBest = () => { const b = store.get(bestKey, 0); $('bestLine').textContent = b ? `rekorun: ${b} yıldız` : ''; };
+showBest();
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => startGame(b.dataset.mode));
+function startGame(m) {
+  mode = m; playing = true; score = 0; timeLeft = 60; speed = 0;
+  $('menu').hidden = true; $('hud').hidden = false; $('compass').hidden = false;
+  $('timeChip').hidden = mode !== 'time';
+  $('score').textContent = 0;
+  stars.splice(0).forEach(s => scene.remove(s));
+  for (let k = 0; k < 6; k++) spawnStar();
+}
+function endGame() {
+  playing = false;
+  const best = store.get(bestKey, 0);
+  if (score > best) { store.set(bestKey, score); confetti(); }
+  $('menu').hidden = false;
+  $('menu').querySelector('h2').textContent = `${score} yıldız!`;
+  $('menu').querySelector('.hint').textContent = score > best ? 'yeni rekor! 🎉' : 'süre bitti. bir daha?';
+  showBest();
+}
 
-let speed = 0, heading = 0, found = 0, started = false, t0 = 0, finished = false;
-car.position.set(0, 0, 0); // merkez kavşak
-const camPos = new THREE.Vector3(), look = new THREE.Vector3();
+car.position.set(0, 0, 0); // başlangıç: merkez kavşak
+updateChunks(0, 0);
+const camPos = new THREE.Vector3(0, 30, -40), look = new THREE.Vector3();
 const clock = new THREE.Clock();
+let chunkTimer = 0;
 
 function loop() {
   const dt = Math.min(clock.getDelta(), .05);
-  if (started && !finished) {
-    const acc = keys.up ? 28 : keys.down ? -34 : 0;
-    speed += acc * dt;
-    speed -= speed * (acc ? .6 : 1.6) * dt;
-    speed = Math.max(-12, Math.min(42, speed));
-    const steer = (keys.left ? 1 : 0) - (keys.right ? 1 : 0);
-    heading += steer * dt * 2.2 * Math.min(1, Math.abs(speed) / 8) * Math.sign(speed || 1);
-    const nx = car.position.x + Math.sin(heading) * speed * dt, nz = car.position.z + Math.cos(heading) * speed * dt;
-    if (!hit(nx, nz)) car.position.set(nx, 0, nz);
-    else if (!hit(nx, car.position.z)) { car.position.x = nx; speed *= .9; }
-    else if (!hit(car.position.x, nz)) { car.position.z = nz; speed *= .9; }
-    else speed *= -.3;
-    car.rotation.y = heading;
-    document.getElementById('time').textContent = Math.floor((performance.now() - t0) / 1000);
-  }
-  document.getElementById('spd').textContent = Math.round(Math.abs(speed) * 3.6);
+  // Sürüş fiziği (arcade)
+  const acc = playing ? (keys.up ? 34 : keys.down ? -40 : 0) : 0;
+  speed += acc * dt;
+  speed -= speed * (keys.brake ? 3 : acc ? .55 : 1.4) * dt;
+  speed = Math.max(-14, Math.min(48, speed));
+  const steer = playing ? (keys.left ? 1 : 0) - (keys.right ? 1 : 0) : 0;
+  heading += steer * dt * (keys.brake ? 3.2 : 2.3) * Math.min(1, Math.abs(speed) / 8) * Math.sign(speed || 1);
+  const nx = car.position.x + Math.sin(heading) * speed * dt, nz = car.position.z + Math.cos(heading) * speed * dt;
+  if (!solid(nx, nz)) car.position.set(nx, 0, nz);
+  else if (!solid(nx, car.position.z)) { car.position.x = nx; speed *= .92; }
+  else if (!solid(car.position.x, nz)) { car.position.z = nz; speed *= .92; }
+  else speed *= -.35;
+  car.rotation.y = heading;
+  car.rotation.z = THREE.MathUtils.lerp(car.rotation.z, -steer * Math.min(1, Math.abs(speed) / 30) * .06, .1);
+  wheels.forEach(w => w.rotation.x += speed * dt / .5);
+  $('spd').textContent = Math.round(Math.abs(speed) * 3.6);
 
-  let nearest = Infinity;
-  signals.forEach(s => {
-    if (!s.visible) return;
-    s.rotation.y += dt * 1.5;
-    s.position.y = 3 + Math.sin(performance.now() / 400 + s.position.x) * .4;
-    const d = s.position.distanceTo(car.position);
-    if (d < 4) {
-      s.visible = false; found++;
-      document.getElementById('found').textContent = found;
-      if (found === SIGNALS) {
-        finished = true;
-        const secs = Math.floor((performance.now() - t0) / 1000), best = store.get('sehir3d-best', null);
-        if (!best || secs < best) store.set('sehir3d-best', secs);
-        toast(`tüm sinyaller bulundu! ${secs} sn (en iyi ${Math.min(secs, best || secs)} sn)`, 6000);
-      } else toast(`sinyal bulundu · ${found}/${SIGNALS}`);
-    } else nearest = Math.min(nearest, d);
+  if ((chunkTimer += dt) > .3) { chunkTimer = 0; updateChunks(car.position.x, car.position.z); }
+
+  // Yıldızlar
+  let nearest = null, nd = Infinity;
+  stars.forEach(s => {
+    s.children[0].rotation.y += dt * 2.5;
+    s.position.y = 3 + Math.sin(performance.now() / 300 + s.position.x) * .5;
+    const d = Math.hypot(s.position.x - car.position.x, s.position.z - car.position.z);
+    if (d < nd) { nd = d; nearest = s; }
   });
-  document.getElementById('near').textContent = nearest === Infinity ? '–' : Math.round(nearest) + ' m';
+  if (playing && nearest && nd < 4.5) {
+    scene.remove(nearest); stars.splice(stars.indexOf(nearest), 1);
+    score++; $('score').textContent = score;
+    if (mode === 'time') timeLeft += 6;
+    toast(['süper! ⭐', 'yakaladın!', '+6 sn', 'devam! 🔥'][score % 4], 900);
+    spawnStar();
+  }
+  for (const s of stars) if (Math.hypot(s.position.x - car.position.x, s.position.z - car.position.z) > 420) { scene.remove(s); stars.splice(stars.indexOf(s), 1); spawnStar(); break; }
+  if (nearest && playing) {
+    const ang = Math.atan2(nearest.position.x - car.position.x, nearest.position.z - car.position.z) - heading;
+    $('arrow').style.transform = `rotate(${-ang}rad)`;
+    $('dist').textContent = Math.round(nd) + ' m';
+  }
+  if (playing && mode === 'time') {
+    timeLeft -= dt;
+    $('time').textContent = Math.max(0, Math.ceil(timeLeft));
+    $('timeChip').classList.toggle('low', timeLeft < 10);
+    if (timeLeft <= 0) endGame();
+  }
+
+  // Güneş ve gölge arabayı izler
+  sun.position.set(car.position.x + 60, 120, car.position.z + 40);
+  sun.target.position.copy(car.position);
+  ground.position.set(Math.round(car.position.x / 100) * 100, 0, Math.round(car.position.z / 100) * 100);
 
   // Takip kamerası
-  const back = new THREE.Vector3(-Math.sin(heading) * 11, 5.5, -Math.cos(heading) * 11).add(car.position);
-  camPos.lerp(back, 1 - Math.pow(.02, dt));
+  const back = v3.set(-Math.sin(heading) * 13, 6.5 + Math.abs(speed) * .04, -Math.cos(heading) * 13).add(car.position);
+  camPos.lerp(back, 1 - Math.pow(.015, dt));
   camera.position.copy(camPos);
-  look.lerp(new THREE.Vector3(Math.sin(heading) * 8, 1.5, Math.cos(heading) * 8).add(car.position), 1 - Math.pow(.01, dt));
+  look.lerp(s3.set(Math.sin(heading) * 10, 2, Math.cos(heading) * 10).add(car.position), 1 - Math.pow(.005, dt));
   camera.lookAt(look);
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
 }
-camPos.set(car.position.x, 20, car.position.z - 30);
 loop();
-
-document.getElementById('go').onclick = () => {
-  document.getElementById('intro').remove();
-  started = true; t0 = performance.now();
-};
 </script>
 </body>
 </html>

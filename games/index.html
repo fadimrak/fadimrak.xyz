@@ -4,46 +4,79 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>oyunlar · fadimrak</title>
-<meta name="description" content="fadimrak oyunları">
+<meta name="description" content="günlük bulmacalar, küçük deneyler ve 3D oyunlar">
 <meta property="og:title" content="oyunlar · fadimrak">
-<meta property="og:description" content="günlük bulmacalar, küçük deneyler ve bir şehir">
+<meta property="og:description" content="günlük bulmacalar, küçük deneyler ve 3D oyunlar">
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>
+  // Ana sayfadan (ya da dışarıdan) gelince ekran siyahtan açılır; oyundan geri dönünce açılmaz
+  try { if (!new URL(document.referrer).pathname.startsWith('/games/')) document.documentElement.classList.add('dawn'); }
+  catch { document.documentElement.classList.add('dawn'); }
+</script>
 <style>
-  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-  .list a { display: flex; flex-direction: column; gap: .4rem; padding: 1.1rem 1.2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; transition: border-color .2s, transform .2s; opacity: 0; animation: in .5s forwards; }
-  .list a:hover { border-color: var(--dim); transform: translateY(-2px); }
-  .list h2 { margin: 0; display: flex; justify-content: space-between; align-items: center; gap: .5rem; font-size: 1rem; font-weight: 400; }
-  .list h2 span { font-size: .65rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: .15rem .5rem; letter-spacing: .05em; }
-  .list p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
-  h3 { font-weight: 400; font-size: .75rem; letter-spacing: .15em; color: var(--muted); margin: 2rem 0 .75rem; }
+  html.dawn body { animation: dawn 1.2s cubic-bezier(.6, 0, .3, 1) both; }
+  @keyframes dawn { 0%, 15% { background: #0a0a0a; } 100% { background: var(--bg); } }
+  html.dawn .hero, html.dawn header { animation: in .7s .55s both; }
+  .hero { text-align: center; padding: 1.5rem 0 1rem; }
+  .hero h1 { margin: 0; font-size: clamp(3rem, 14vw, 5.5rem); line-height: .95; }
+  .hero h1 span { display: inline-block; animation: bob 3s ease-in-out infinite; }
+  .hero h1 span:nth-child(2n) { animation-delay: -1.5s; }
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(-2deg); } }
+  .hero p { color: var(--muted); margin: .6rem 0 0; }
+  h3 { font-size: 1rem; margin: 2.25rem 0 .9rem; display: flex; align-items: center; gap: .6rem; }
+  h3::after { content: ''; flex: 1; height: 2px; background: var(--ink); opacity: .15; border-radius: 2px; }
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 14px; }
+  .game { position: relative; display: flex; gap: 1rem; align-items: flex-start; padding: 1.1rem 1.15rem; background: var(--c); border: 2px solid var(--ink); border-radius: 18px; box-shadow: var(--shadow); text-decoration: none; transition: transform .18s, box-shadow .18s; animation: in .5s both; overflow: hidden; }
+  .game:hover { transform: translate(-2px, -3px) rotate(-.4deg); box-shadow: 6px 7px 0 var(--ink); }
+  .game:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+  .game .ico { flex: none; width: 56px; height: 56px; display: grid; place-items: center; font-size: 1.9rem; background: var(--card); border: 2px solid var(--ink); border-radius: 14px; transition: transform .3s; }
+  .game:hover .ico { transform: rotate(-8deg) scale(1.08); }
+  .game h2 { margin: .1rem 0 .3rem; font-size: 1.3rem; line-height: 1.1; }
+  .game p { margin: 0; font-size: .88rem; line-height: 1.4; opacity: .85; }
+  .game .pill { position: absolute; top: .7rem; right: .7rem; font-size: .68rem; font-weight: 800; letter-spacing: .04em; padding: .2rem .55rem; border-radius: 99px; background: var(--ink); color: var(--bg); }
+  .game.light { color: #fff; } .game.light .ico { color: var(--ink); }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 3rem; }
 </style>
 </head>
 <body>
-<header><a href="/">← fadimrak</a><h1>oyunlar</h1><span></span></header>
-<main id="main"></main>
+<header><a class="back" href="/">← fadimrak</a><span></span><span></span></header>
+<main>
+  <div class="hero">
+    <h1><span>o</span><span>y</span><span>u</span><span>n</span><span>l</span><span>a</span><span>r</span></h1>
+    <p>bulmacalar, deneyler, küçük dünyalar</p>
+  </div>
+  <div id="list"></div>
+  <footer>her gün yeni bulmaca · sınırsız mod her oyunda</footer>
+</main>
 <script>
 const GROUPS = [
-  ['GÜNLÜK BULMACALAR', [
-    ['kelime', 'kelime', '5 harfli kelimeyi 6 denemede bul.', 'günlük'],
-    ['baglanti', 'bağlantı', '16 kelimeyi 4\'lü gruplara ayır.', 'günlük'],
-    ['sehir', 'şehir', 'Silüetinden ili tahmin et.', 'günlük'],
-    ['yil', 'yıl', 'Olayların hangi yıl olduğunu tahmin et.', 'günlük'],
+  ['günlük bulmacalar', [
+    ['kelime', 'kelime', '5 harfli kelimeyi 6 denemede bul.', '🟩', 'var(--green)', 'light', 'günlük'],
+    ['baglanti', 'bağlantı', '16 kelimeyi 4\'lü gruplara ayır.', '🧩', 'var(--purple)', 'light', 'günlük'],
+    ['sehir', 'şehir', 'Silüetinden ili bul.', '🗺️', 'var(--teal)', 'light', 'günlük'],
+    ['yil', 'yıl', 'Tarihte bugün ne oldu, hangi yıl?', '⏳', 'var(--orange)', '', 'günlük'],
   ]],
-  ['DENEYLER', [
-    ['hafta', 'hayatın haftaları', 'Hayatın, kare kare.'],
-    ['robot', 'ben robot değilim', 'Giderek saçmalaşan 12 test.'],
-    ['kalabalik', 'daha kalabalık', 'Hangi il daha kalabalık? Seriyi bozma.'],
-    ['derinlik', 'derinlik', 'Okyanusun en dibine kaydır.'],
+  ['oyunlar', [
+    ['sehir-3d', 'şehir turu', 'Rengârenk sonsuz bir şehirde araba sür, yıldızları topla.', '🚗', 'var(--red)', 'light', '3D'],
+    ['kasaba', 'kasaba', 'Küçük bir kasabada gez, sokak kedilerini bul ve besle.', '🐈', 'var(--yellow)', '', '3D'],
   ]],
-  ['OYUNLAR', [
-    ['sehir-3d', 'tel kafes şehir', 'Çizgilerden bir şehirde araba sür, sinyalleri bul.', '3d'],
+  ['deneyler', [
+    ['kalabalik', 'hangisi daha?', 'Kalabalık mı, büyük mü, yüksek mi? Seriyi bozma.', '⚖️', 'var(--pink)', '', ''],
+    ['robot', 'ben robot değilim', 'Giderek saçmalaşan doğrulama testleri.', '🤖', 'var(--blue)', 'light', ''],
+    ['hafta', 'hayatın haftaları', 'Hayatın, kare kare.', '📅', '#ffb4a2', '', ''],
+    ['derinlik', 'derinlik', 'Okyanusun en dibine kaydır.', '🌊', '#7fd3ff', '', ''],
   ]],
 ];
 let k = 0;
-document.getElementById('main').innerHTML = GROUPS.map(([title, games]) =>
-  `<h3>${title}</h3><div class="list">${games.map(([slug, name, desc, tag]) =>
-    `<a href="${slug}/" style="animation-delay:${k++ * .05}s"><h2>${name}${tag ? `<span>${tag}</span>` : ''}</h2><p>${desc}</p></a>`).join('')}</div>`).join('');
+const base = document.documentElement.classList.contains('dawn') ? .6 : 0;
+document.getElementById('list').innerHTML = GROUPS.map(([title, games]) =>
+  `<h3>${title}</h3><div class="list">${games.map(([slug, name, desc, ico, c, cls, tag]) =>
+    `<a class="game ${cls}" href="${slug}/" style="--c:${c};animation-delay:${base + k++ * .05}s">
+      <div class="ico">${ico}</div><div><h2>${name}</h2><p>${desc}</p></div>${tag ? `<span class="pill">${tag}</span>` : ''}</a>`).join('')}</div>`).join('');
 </script>
 </body>
 </html>

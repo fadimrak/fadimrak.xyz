@@ -4,72 +4,76 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>bağlantı · fadimrak</title>
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
+  :root { --accent: var(--purple); --l0: #f9df6d; --l1: #a0c35a; --l2: #b0c4ef; --l3: #ba81c5; }
   main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 520px; }
-  .w { aspect-ratio: 1.6; padding: 4px; font-size: clamp(.6rem, 2.6vw, .85rem); word-break: break-word; border-radius: 8px; user-select: none; }
-  .w.sel { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-  .solved { grid-column: 1 / -1; padding: .9rem; border-radius: 8px; text-align: center; animation: in .4s; }
-  .solved b { display: block; font-weight: 400; letter-spacing: .1em; margin-bottom: .25rem; }
-  .solved span { font-size: .8rem; }
-  .l0 { background: #e6e6e6; color: #0a0a0a; } .l1 { background: #a8a8a8; color: #0a0a0a; }
-  .l2 { background: #5c5c5c; color: #f0f0f0; } .l3 { background: #2c2c2c; color: #f0f0f0; border: 1px solid #3a3a3a; }
-  .lives { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: .8rem; }
-  .lives i { width: 10px; height: 10px; border-radius: 50%; background: var(--fg); transition: opacity .3s; }
-  .lives i.off { opacity: .15; }
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; max-width: 560px; }
+  .w { aspect-ratio: 1.45; padding: 4px; font-size: clamp(.62rem, 2.7vw, .9rem); font-weight: 800; word-break: break-word; border-radius: 12px; user-select: none; box-shadow: 2px 2px 0 var(--ink); line-height: 1.1; }
+  .w.sel { background: var(--ink); color: var(--bg); transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  .solved { grid-column: 1 / -1; padding: .85rem; border: 2px solid var(--ink); border-radius: 12px; text-align: center; box-shadow: 2px 2px 0 var(--ink); animation: pop .4s; }
+  .solved b { display: block; font-family: var(--head); font-weight: 900; font-size: 1.05rem; margin-bottom: .2rem; }
+  .solved span { font-size: .85rem; font-weight: 600; }
+  .l0 { background: var(--l0); } .l1 { background: var(--l1); } .l2 { background: var(--l2); } .l3 { background: var(--l3); }
+  .lives { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: .85rem; font-weight: 600; }
+  .lives i { width: 13px; height: 13px; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); transition: transform .3s, opacity .3s; }
+  .lives i.off { opacity: .2; transform: scale(.7); }
+  .legend { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; font-size: .75rem; color: var(--muted); }
+  .legend span { padding: .15rem .55rem; border-radius: 99px; border: 1.5px solid var(--ink); color: var(--ink); font-weight: 600; }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>bağlantı</h1><span class="hint" id="no"></span></header>
+<header><a class="back" href="../">← oyunlar</a><h1>bağlantı</h1><span class="tag" id="no"></span></header>
 <main>
-  <p class="hint">16 kelimeyi ortak noktası olan 4'lü gruplara ayır.</p>
+  <div class="modes" id="modes"></div>
+  <p class="hint">16 kelimeyi ortak noktası olan 4'lü gruplara ayır. Dikkat: bazı kelimeler birden fazla gruba uyuyor gibi görünür.</p>
   <div class="board" id="board"></div>
   <div class="lives" id="lives"></div>
   <div class="row" id="controls">
-    <button id="shuffle">karıştır</button>
+    <button id="shuffle">🔀 karıştır</button>
     <button id="clear">seçimi kaldır</button>
     <button class="primary" id="submit" disabled>gönder</button>
   </div>
-  <button class="primary" id="share" hidden>sonucu paylaş</button>
+  <div class="row" id="endBtns" hidden></div>
+  <div class="legend"><span class="l0">kolay</span><span class="l1">orta</span><span class="l2">zor</span><span class="l3">çok zor</span></div>
 </main>
 <script src="../common.js"></script>
+<script src="kategoriler.js"></script>
 <script>
-// Her bulmaca: 4 grup, kolaydan zora. ponytail: 14 bulmaca döngüde, liste uzadıkça tekrar seyrekleşir
-const PUZZLES = [
-  [['Renkler', 'KIRMIZI MAVİ YEŞİL SARI'], ['Gezegenler', 'MARS VENÜS SATÜRN JÜPİTER'], ['Takım maskotları', 'KARTAL ASLAN KANARYA FIRTINA'], ['___ çayı', 'ADA KUŞBURNU IHLAMUR ELMA']],
-  [['Mutfak eşyaları', 'TENCERE TAVA KEPÇE SÜZGEÇ'], ['Müzik aletleri', 'BAĞLAMA KEMAN DAVUL ZURNA'], ['Satranç taşları', 'PİYON FİL AT KALE'], ['GÖZ ile başlar', 'GÖZLÜK GÖZLEME GÖZCÜ GÖZYAŞI']],
-  [['Mevsimler', 'İLKBAHAR YAZ SONBAHAR KIŞ'], ['Yönler', 'KUZEY GÜNEY DOĞU BATI'], ['Yazar soyadları', 'PAMUK KEMAL ŞAFAK NESİN'], ['Kahve çeşitleri', 'TÜRK FİLTRE ESPRESSO LATTE']],
-  [['Okul eşyaları', 'KALEM SİLGİ DEFTER CETVEL'], ['Hava olayları', 'YAĞMUR KAR DOLU SİS'], ['Hayvan yavruları', 'KUZU BUZAĞI OĞLAK SIPA'], ['Tavla terimleri', 'PUL ZAR MARS ŞEŞBEŞ']],
-  [['Organlar', 'KALP AKCİĞER BÖBREK KARACİĞER'], ['Denizlerimiz', 'KARADENİZ EGE AKDENİZ MARMARA'], ['Şarkıcı adları', 'TARKAN SEZEN AJDA BARIŞ'], ['Hamamda bulunur', 'KESE PEŞTAMAL KURNA NALIN']],
-  [['Sporlar', 'FUTBOL BASKETBOL VOLEYBOL TENİS'], ['Baklagiller', 'NOHUT MERCİMEK FASULYE BAKLA'], ['Yeşilçam soyadları', 'SUNAL ŞEN ARKIN İNANIR'], ['Deniz ürünleri', 'KARİDES MİDYE AHTAPOT KALAMAR']],
-  [['Giysiler', 'GÖMLEK PANTOLON ETEK CEKET'], ['Ağaçlar', 'ÇAM MEŞE ÇINAR SÖĞÜT'], ['Kuşlar', 'SERÇE MARTI LEYLEK BAYKUŞ'], ['Tatlılar', 'BAKLAVA KÜNEFE SÜTLAÇ AŞURE']],
-  [['Mobilya', 'MASA SANDALYE DOLAP KOLTUK'], ['Dağlar', 'AĞRI ERCİYES ULUDAĞ PALANDÖKEN'], ['Göller', 'VAN TUZ EĞİRDİR BEYŞEHİR'], ['Peynirler', 'KAŞAR TULUM LOR ÇEÇİL']],
-  [['Duygular', 'MUTLULUK ÜZÜNTÜ ÖFKE KORKU'], ['Toplu taşıma', 'OTOBÜS TRAMVAY VAPUR METRO'], ['Kahvaltılık', 'ZEYTİN BAL KAYMAK REÇEL'], ['Kağıt oyunları', 'PİŞTİ BATAK KING POKER']],
-  [['Meslekler', 'DOKTOR ÖĞRETMEN AVUKAT MÜHENDİS'], ['Baharatlar', 'KİMYON NANE SUMAK KEKİK'], ['Kıtalar', 'ASYA AVRUPA AFRİKA ANTARKTİKA'], ['Halk oyunları', 'HORON ZEYBEK HALAY BAR']],
-  [['İçecekler', 'ÇAY AYRAN ŞALGAM LİMONATA'], ['Hamur işleri', 'SİMİT POĞAÇA BÖREK PİDE'], ['Antik yerler', 'EFES TRUVA NEMRUT GÖBEKLİTEPE'], ['Burçlar', 'KOÇ BOĞA İKİZLER YENGEÇ']],
-  [['Vücut', 'KOL BACAK BOYUN OMUZ'], ['Vahşi hayvanlar', 'ZEBRA ZÜRAFA GERGEDAN TİMSAH'], ['Padişah lakapları', 'FATİH YAVUZ KANUNİ YILDIRIM'], ['Mezeler', 'HAYDARİ FAVA ŞAKŞUKA CACIK']],
-  [['Teknoloji', 'TELEFON BİLGİSAYAR TABLET KULAKLIK'], ['Metaller', 'ALTIN GÜMÜŞ BAKIR DEMİR'], ['Başkentler', 'PARİS ROMA BERLİN MADRİD'], ['Masal kahramanları', 'KELOĞLAN KÜLKEDİSİ PİNOKYO ALADDİN']],
-  [['Sebzeler', 'DOMATES PATLICAN KABAK BİBER'], ['Ölçü birimleri', 'METRE LİTRE GRAM SANİYE'], ['Ressamlar', 'PİCASSO DALİ MONET REMBRANDT'], ['Tiyatro terimleri', 'SAHNE PERDE KULİS SUFLÖR']],
-].map(p => p.map(([name, words], level) => ({ name, level, words: words.split(' ') })));
-
-const day = dayIndex(), puzzle = PUZZLES[((day % PUZZLES.length) + PUZZLES.length) % PUZZLES.length];
-document.getElementById('no').textContent = '#' + (day + 1);
+const day = dayIndex(), MAX = 4, board = document.getElementById('board');
+let mode, puzzle, st, sel = [];
 const groupOf = w => puzzle.find(g => g.words.includes(w));
-
-let st = store.get('baglanti', {});
-if (st.day !== day) st = { day, solved: [], tries: [], order: shuffle(puzzle.flatMap(g => g.words)) };
-let sel = [];
-const board = document.getElementById('board'), MAX = 4;
 const mistakes = () => st.tries.filter(t => new Set(t.map(w => groupOf(w).level)).size > 1).length;
-const over = () => st.solved.length === 4 || mistakes() >= MAX;
+const won = () => st.solved.length === 4 && !st.lost;
+const over = () => st.solved.length === 4;
+const save = () => store.set('baglanti-' + mode, st);
+
+function start(m) {
+  mode = m; sel = [];
+  if (mode === 'daily') {
+    st = store.get('baglanti-daily', {});
+    if (st.day !== day) st = { day, solved: [], tries: [] };
+    puzzle = makePuzzle(rng(day * 31 + 7));
+    document.getElementById('no').textContent = '#' + (day + 1);
+  } else {
+    st = store.get('baglanti-free', null);
+    if (!st || over()) st = { seed: Math.floor(Math.random() * 1e9), solved: [], tries: [] };
+    puzzle = makePuzzle(rng(st.seed));
+    document.getElementById('no').textContent = 'sınırsız';
+  }
+  if (!st.order) st.order = shuffle(puzzle.flatMap(g => g.words));
+  render();
+}
 
 function render() {
   board.innerHTML = '';
   st.solved.forEach(l => {
-    const g = puzzle[l];
-    board.insertAdjacentHTML('beforeend', `<div class="solved l${l}"><b>${g.name}</b><span>${g.words.join(', ')}</span></div>`);
+    const g = puzzle.find(g => g.level === l);
+    board.insertAdjacentHTML('beforeend', `<div class="solved l${l}"><b>${g.name}</b><span>${g.words.join(' · ')}</span></div>`);
   });
   st.order.filter(w => !st.solved.includes(groupOf(w).level)).forEach(w => {
     const b = document.createElement('button');
@@ -85,8 +89,22 @@ function render() {
   document.getElementById('lives').innerHTML = 'kalan hata ' + Array.from({ length: MAX }, (_, i) => `<i class="${i < MAX - mistakes() ? '' : 'off'}"></i>`).join('');
   document.getElementById('submit').disabled = sel.length !== 4;
   document.getElementById('controls').hidden = over();
-  document.getElementById('share').hidden = !over();
-  store.set('baglanti', st);
+  document.getElementById('lives').hidden = over();
+  const end = document.getElementById('endBtns');
+  end.hidden = !over();
+  if (over()) {
+    end.innerHTML = mode === 'daily'
+      ? '<button class="primary" id="share">paylaş</button><button id="more">sınırsız oyna</button>'
+      : '<button class="primary" id="again">yeni bulmaca</button><button id="share">paylaş</button>';
+    document.getElementById('share').onclick = () => {
+      const rows = st.tries.map(t => t.map(w => ['🟨', '🟩', '🟦', '🟪'][groupOf(w).level]).join('')).join('\n');
+      share(`bağlantı ${mode === 'daily' ? '#' + (day + 1) : '(sınırsız)'}\n${rows}\nfadimrak.xyz/games/baglanti`);
+    };
+    const more = document.getElementById('more'), again = document.getElementById('again');
+    if (more) more.onclick = () => document.querySelector('[data-m="free"]').click();
+    if (again) again.onclick = () => { st = null; store.set('baglanti-free', null); start('free'); };
+  }
+  save();
 }
 
 document.getElementById('submit').onclick = () => {
@@ -99,25 +117,21 @@ document.getElementById('submit').onclick = () => {
   if (best === 4) {
     st.solved.push(groupOf(sel[0]).level);
     sel = [];
-    if (st.solved.length === 4) toast(['kusursuz!', 'harika', 'iyi iş', 'son anda!'][mistakes()], 2500);
+    if (st.solved.length === 4) { toast(['kusursuz! 🏆', 'harika! 🔥', 'iyi iş! 👏', 'son anda! 😅'][mistakes()], 2500); confetti(); }
   } else {
     shake(board);
-    toast(best === 3 ? 'bir kaldı...' : 'olmadı');
+    toast(best === 3 ? 'bir kaldı... 🤏' : 'olmadı');
     if (mistakes() >= MAX) {
-      sel = [];
+      sel = []; st.lost = true;
       puzzle.forEach(g => st.solved.includes(g.level) || st.solved.push(g.level));
-      toast('bitti — cevaplar açıldı', 2500);
+      toast('bitti, cevaplar açıldı', 2500);
     }
   }
   render();
 };
 document.getElementById('shuffle').onclick = () => { st.order = shuffle(st.order); render(); };
 document.getElementById('clear').onclick = () => { sel = []; render(); };
-document.getElementById('share').onclick = () => {
-  const rows = st.tries.map(t => t.map(w => ['🟨', '🟩', '🟦', '🟪'][groupOf(w).level]).join('')).join('\n');
-  share(`bağlantı #${day + 1}\n${rows}\nfadimrak.xyz/games/baglanti`);
-};
-render();
+modeSwitch(document.getElementById('modes'), 'baglanti', start);
 </script>
 </body>
 </html>

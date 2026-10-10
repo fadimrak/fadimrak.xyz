@@ -4,151 +4,189 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>kelime · fadimrak</title>
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
-  main { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
-  .grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; }
+  :root { --accent: var(--green); --c: #3bb273; --p: #f2b531; --a: #9b958a; }
+  main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .grid { display: grid; gap: 6px; }
   .grid .r { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .t { width: min(14vw, 58px); aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 6px; font-size: 1.6rem; text-transform: uppercase; transition: border-color .15s; }
-  .t.filled { border-color: var(--dim); animation: pop .1s; }
-  .t.c, .k.c { background: var(--ok); color: var(--bg); border-color: var(--ok); }
-  .t.p, .k.p { background: var(--mid); color: var(--fg); border-color: var(--mid); }
-  .t.a, .k.a { background: var(--bad); color: var(--dim); border-color: var(--bad); }
+  .t { width: min(15vw, 62px); aspect-ratio: 1; display: grid; place-items: center; border: 2px solid #d6cdbb; border-radius: 10px; background: var(--card); font-family: var(--head); font-weight: 900; font-size: 1.75rem; transition: border-color .15s; }
+  .t.filled { border-color: var(--ink); animation: pop .15s; }
+  .t.c, .t.p, .t.a { color: #fff; border-color: var(--ink); }
+  .t.c { background: var(--c); } .t.p { background: var(--p); } .t.a { background: var(--a); }
   .t.flip { animation: flip .5s ease both; }
-  @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
-  @keyframes pop { 50% { transform: scale(1.08); } }
-  .kb { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 520px; }
+  .r.win .t { animation: jump .5s ease both; }
+  @keyframes flip { 50% { transform: rotateX(90deg); } }
+  @keyframes jump { 40% { transform: translateY(-14px); } }
+  .kb { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 540px; }
   .kb div { display: flex; gap: 5px; justify-content: center; }
-  .k { flex: 1; max-width: 44px; height: 54px; padding: 0; font-size: .95rem; border-radius: 6px; }
-  .k.wide { max-width: 68px; flex: 1.5; font-size: .7rem; }
-  .end { display: none; flex-direction: column; align-items: center; gap: .75rem; }
+  .k { flex: 1; max-width: 46px; height: 56px; padding: 0; font-size: 1rem; border-radius: 9px; box-shadow: 2px 2px 0 var(--ink); }
+  .k.wide { max-width: 72px; flex: 1.5; font-size: .75rem; }
+  .k.c { background: var(--c); color: #fff; } .k.p { background: var(--p); color: #fff; } .k.a { background: var(--a); color: #fff; opacity: .55; }
+  .legend i { display: inline-block; width: .85em; height: .85em; border-radius: 3px; border: 1.5px solid var(--ink); margin: 0 .3em 0 .7em; vertical-align: -1px; }
+  .end { display: none; flex-direction: column; align-items: center; gap: .9rem; width: 100%; max-width: 420px; }
   .end.show { display: flex; animation: in .5s; }
-  .stats { display: flex; gap: 1.5rem; color: var(--muted); font-size: .75rem; text-align: center; }
-  .stats b { display: block; color: var(--fg); font-size: 1.3rem; font-weight: 400; }
+  .answer { font-size: .95rem; } .answer b { font-family: var(--head); font-size: 1.5rem; letter-spacing: .08em; }
+  .answer a { font-size: .8rem; color: var(--muted); }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>kelime</h1><span class="hint" id="no"></span></header>
+<header><a class="back" href="../">← oyunlar</a><h1>kelime</h1><span class="tag" id="no"></span></header>
 <main>
-  <p class="hint">5 harfli kelimeyi 6 denemede bul. Beyaz: doğru yer, gri: kelimede var ama yeri yanlış.</p>
+  <div class="modes" id="modes"></div>
   <div class="grid" id="grid"></div>
-  <div class="end" id="end">
+  <div class="end panel" id="end">
+    <div class="answer" id="answer"></div>
     <div class="stats" id="stats"></div>
-    <button class="primary" id="share">sonucu paylaş</button>
-    <span class="hint">yeni kelime yarın</span>
+    <div class="row" id="endBtns"></div>
   </div>
   <div class="kb" id="kb"></div>
+  <p class="hint legend"><i style="background:var(--c)"></i>doğru yerde <i style="background:var(--p)"></i>var ama yeri yanlış <i style="background:var(--a)"></i>kelimede yok</p>
 </main>
 <script src="../common.js"></script>
 <script>
-// ponytail: tahminler sözlükte kontrol edilmiyor, 5 harfli her şey kabul; sözlük listesi eklenince doğrulama açılır
-const WORDS = 'FENER ZAFER SEHPA MİDYE HALAT SİYAH ÜÇGEN BAKIR ASKER TABAK BACAK KADIN BEYİN SABAH SALÇA DERİN ARABA KAVUN KAĞIT PABUÇ KUŞAK ŞURUP SOĞAN ÇİZME SAMAN GİTAR YAYLA HABER KİTAP LOKUM ÇEKİÇ ÇUKUR TOHUM ZAMAN KOVAN ŞARKI ROKET KOMİK HAFTA URGAN KONAK ANLAM HAVLU ÇOCUK ÇADIR KARIN DAMAR SERÇE KEMİK FIRÇA SICAK CÜMLE PEMBE DENİZ YAŞLI ŞOFÖR KİRAZ ÇİZGİ KASIM DÜMEN DÜNYA ÇORAP TARLA AKŞAM PANDA PİLAV KİLİT GÜZEL NİŞAN GÖLET TEPSİ TAVAN GENİŞ BALIK KEBAP MOTOR KREMA KALÇA DOĞAN KEMER LAMBA GÖĞÜS BALTA ORMAN KOLAY KÖYLÜ YILAN ELMAS BETON ÇAMUR KANCA GÜMÜŞ KAYIK SİHİR ÇEŞME KAHVE AYRAN BÖCEK KÖPRÜ PİLOT SALEP NİSAN ÇELİK BULUT SORUN ŞUBAT ARMUT İPLİK SAHİL ÇAYIR KIRIK LİMON ÇİLEK TUĞLA TOPUK ÇARŞI KOYUN İNSAN KİRPİ BIYIK HAYAT TATİL PAZAR ÜZGÜN TARAK TAVUK ŞEKER ŞEKİL HIZLI ÖRDEK YUNUS KOLYE AKREP DEMİR SOKAK TURNA FİDAN SOĞUK OTLAK SINAV SİNEK BARIŞ RADYO DOLAP GÜLÜŞ VAPUR YATAK KARGA MUTLU KASAP SEVGİ CEVİZ BÖREK KEMAN SIÇAN SINIF MELEK DUDAK IRMAK KALAS GÖLGE ŞAHİN BİLGİ RESİM SAKSI BIÇAK DUVAR DUMAN BİLEK ŞEHİR KURAL KAŞIK ÇOBAN ZEBRA YÜZÜK ADRES SAKAL ÖRNEK YARIN HAMAM KALEM BADEM LİMAN MASAL METRO BUGÜN HOROZ MANTI HAMUR SAYFA PARTİ ÇİÇEK BURUN DÖNER KÖMÜR ROMAN KUZEY KALIP MEYVE TOPAÇ SİMİT NEHİR HİNDİ DAVUL POLİS EKMEK HAFİF TERZİ TENİS SARAY BOYUN FİKİR MARTI NEFES ÇORBA BAKLA DÜĞÜN ÇANTA KUMRU GÜNEY KÖFTE POSTA KÜÇÜK TEMİZ HOKEY CEKET TATLI ÇİMEN PERDE ÇATAL ÖĞLEN BİBER YÜZME DÜĞME BAHÇE KÜREK KUMAŞ GÜREŞ KÖPEK HELVA HAYAL TEKNE NOKTA HAVUZ BOĞAZ YEŞİL KAZAN DAİRE MAKAS GEYİK BÜYÜK SAVAŞ YAVAŞ MÜZİK NABIZ MAYIS ŞAPKA BAHAR TAKSİ SEBZE KAVGA YAZAR ASLAN CEVAP BİDON TİLKİ DERGİ KULAK ERKEK EYLÜL KOMŞU KORKU BEYAZ İNCİR ALTIN GÜNEŞ ÇAKAL SABUN SAHNE'.split(' ');
-const day = dayIndex(), answer = WORDS[((day % WORDS.length) + WORDS.length) % WORDS.length];
-const ROWS = ['ERTYUIOPĞÜ', 'ASDFGHJKLŞİ', '⏎ZCVBNMÖÇ⌫'];
-const LETTERS = new Set('ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ');
-document.getElementById('no').textContent = '#' + (day + 1);
+(async () => {
+  const data = await (await fetch('kelimeler.json')).json();
+  const ANSWERS = data.a.split(' '), VALID = new Set(data.v.split(' '));
+  const ROWS = ['ERTYUIOPĞÜ', 'ASDFGHJKLŞİ', '⏎ZCVBNMÖÇ⌫'];
+  const LETTERS = new Set('ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ');
+  const day = dayIndex();
+  const grid = document.getElementById('grid'), kb = document.getElementById('kb');
+  let mode, answer, st, cur = '', done = false, busy = false;
 
-let saved = store.get('kelime', {});
-if (saved.day !== day) saved = { day, guesses: [] };
-const stats = store.get('kelime-stats', { played: 0, wins: 0, streak: 0, best: 0, last: null });
-let cur = '', done = false;
-
-const grid = document.getElementById('grid'), kb = document.getElementById('kb');
-for (let i = 0; i < 6; i++) grid.insertAdjacentHTML('beforeend', '<div class="r">' + '<div class="t"></div>'.repeat(5) + '</div>');
-ROWS.forEach(r => {
-  const row = document.createElement('div');
-  [...r].forEach(ch => {
-    const b = document.createElement('button');
-    b.className = 'k' + (ch === '⏎' || ch === '⌫' ? ' wide' : '');
-    b.textContent = ch === '⏎' ? 'GİR' : ch;
-    b.dataset.k = ch;
-    b.onclick = () => press(ch);
-    row.append(b);
+  for (let i = 0; i < 6; i++) grid.insertAdjacentHTML('beforeend', '<div class="r">' + '<div class="t"></div>'.repeat(5) + '</div>');
+  ROWS.forEach(r => {
+    const row = document.createElement('div');
+    [...r].forEach(ch => {
+      const b = document.createElement('button');
+      b.className = 'k' + (ch === '⏎' || ch === '⌫' ? ' wide' : '');
+      b.textContent = ch === '⏎' ? 'GİR' : ch;
+      b.dataset.k = ch;
+      b.onclick = () => press(ch);
+      row.append(b);
+    });
+    kb.append(row);
   });
-  kb.append(row);
-});
 
-function score(guess) {
-  const res = Array(5).fill('a'), left = {};
-  for (let i = 0; i < 5; i++) guess[i] === answer[i] ? res[i] = 'c' : left[answer[i]] = (left[answer[i]] || 0) + 1;
-  for (let i = 0; i < 5; i++) if (res[i] !== 'c' && left[guess[i]]) { res[i] = 'p'; left[guess[i]]--; }
-  return res;
-}
-
-function paintRow(r, word, res, animate) {
-  const tiles = grid.children[r].children;
-  [...word].forEach((ch, i) => {
-    const t = tiles[i];
-    t.textContent = ch;
-    const apply = () => {
-      t.className = 't ' + res[i];
-      const k = kb.querySelector(`[data-k="${ch}"]`);
-      const rank = { c: 3, p: 2, a: 1 };
-      const prev = k.className.match(/ (c|p|a)$/)?.[1];
-      if (!prev || rank[res[i]] > rank[prev]) k.className = 'k ' + res[i];
-    };
-    if (animate) { t.style.animationDelay = i * .15 + 's'; t.classList.add('flip'); setTimeout(apply, i * 150 + 250); }
-    else apply();
-  });
-}
-
-function drawCurrent() {
-  const tiles = grid.children[saved.guesses.length]?.children;
-  if (!tiles) return;
-  for (let i = 0; i < 5; i++) { tiles[i].textContent = cur[i] || ''; tiles[i].className = 't' + (cur[i] ? ' filled' : ''); }
-}
-
-function press(ch) {
-  if (done) return;
-  if (ch === '⌫') cur = cur.slice(0, -1);
-  else if (ch === '⏎') return submit();
-  else if (cur.length < 5 && LETTERS.has(ch)) cur += ch;
-  drawCurrent();
-}
-
-function submit() {
-  if (cur.length < 5) { shake(grid.children[saved.guesses.length]); return toast('yetersiz harf'); }
-  const r = saved.guesses.length;
-  saved.guesses.push(cur);
-  store.set('kelime', saved);
-  paintRow(r, cur, score(cur), true);
-  const won = cur === answer;
-  cur = '';
-  if (won || saved.guesses.length === 6) {
-    done = true;
-    if (stats.last !== day) {
-      stats.played++; stats.last = day;
-      if (won) { stats.wins++; stats.streak = stats.lastWin === day - 1 ? stats.streak + 1 : 1; stats.lastWin = day; stats.best = Math.max(stats.best, stats.streak); }
-      else stats.streak = 0;
-      store.set('kelime-stats', stats);
+  const statKey = () => 'kelime-stats-' + mode;
+  function start(m) {
+    mode = m; cur = ''; done = false;
+    if (mode === 'daily') {
+      answer = nthOf(ANSWERS, day, 1);
+      st = store.get('kelime-daily', {});
+      if (st.day !== day) st = { day, guesses: [] };
+      document.getElementById('no').textContent = '#' + (day + 1);
+    } else {
+      st = store.get('kelime-free', null);
+      if (!st || st.over) st = { word: ANSWERS[Math.floor(Math.random() * ANSWERS.length)], guesses: [] };
+      answer = st.word;
+      document.getElementById('no').textContent = 'sınırsız';
     }
-    setTimeout(() => finish(won), 1100);
+    [...grid.children].forEach(r => { r.className = 'r'; [...r.children].forEach(t => { t.className = 't'; t.textContent = ''; t.style.animationDelay = ''; }); });
+    kb.querySelectorAll('.k').forEach(k => k.className = 'k' + (k.classList.contains('wide') ? ' wide' : ''));
+    document.getElementById('end').classList.remove('show');
+    st.guesses.forEach((g, i) => paintRow(i, g, score(g), false));
+    if (st.guesses.at(-1) === answer || st.guesses.length === 6) { done = true; finish(false); }
   }
-}
+  const save = () => store.set(mode === 'daily' ? 'kelime-daily' : 'kelime-free', st);
 
-function finish(won) {
-  toast(won ? ['dahi!', 'harika', 'çok iyi', 'güzel', 'iyi', 'kıl payı'][saved.guesses.length - 1] : answer, 2500);
-  document.getElementById('stats').innerHTML =
-    `<div><b>${stats.played}</b>oynanan</div><div><b>${stats.played ? Math.round(stats.wins / stats.played * 100) : 0}%</b>kazanılan</div><div><b>${stats.streak}</b>seri</div><div><b>${stats.best}</b>en iyi seri</div>`;
-  document.getElementById('end').classList.add('show');
-}
+  function score(guess) {
+    const res = Array(5).fill('a'), left = {};
+    for (let i = 0; i < 5; i++) {
+      if (guess[i] === answer[i]) res[i] = 'c';
+      else left[answer[i]] = (left[answer[i]] || 0) + 1;
+    }
+    for (let i = 0; i < 5; i++) if (res[i] !== 'c' && left[guess[i]]) { res[i] = 'p'; left[guess[i]]--; }
+    return res;
+  }
 
-document.getElementById('share').onclick = () => {
-  const won = saved.guesses.at(-1) === answer;
-  const rows = saved.guesses.map(g => score(g).map(s => ({ c: '🟩', p: '🟨', a: '⬛' })[s]).join('')).join('\n');
-  share(`kelime #${day + 1} ${won ? saved.guesses.length : 'X'}/6\n\n${rows}\nfadimrak.xyz/games/kelime`);
-};
+  function paintRow(r, word, res, animate) {
+    const tiles = grid.children[r].children, rank = { c: 3, p: 2, a: 1 };
+    [...word].forEach((ch, i) => {
+      const t = tiles[i];
+      t.textContent = ch;
+      const apply = () => {
+        t.className = 't ' + res[i];
+        const k = kb.querySelector(`[data-k="${ch}"]`), prev = k.className.match(/ (c|p|a)$/)?.[1];
+        if (!prev || rank[res[i]] > rank[prev]) k.className = 'k ' + res[i];
+      };
+      if (animate) { t.style.animationDelay = i * .18 + 's'; t.classList.add('flip'); setTimeout(apply, i * 180 + 250); }
+      else apply();
+    });
+  }
 
-addEventListener('keydown', e => {
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.key === 'Enter') press('⏎');
-  else if (e.key === 'Backspace') press('⌫');
-  else if (e.key.length === 1) press(e.key.toLocaleUpperCase('tr-TR'));
-});
+  function drawCurrent() {
+    const tiles = grid.children[st.guesses.length]?.children;
+    if (!tiles) return;
+    for (let i = 0; i < 5; i++) { tiles[i].textContent = cur[i] || ''; tiles[i].className = 't' + (cur[i] ? ' filled' : ''); }
+  }
 
-saved.guesses.forEach((g, i) => paintRow(i, g, score(g), false));
-if (saved.guesses.at(-1) === answer || saved.guesses.length === 6) { done = true; finish(saved.guesses.at(-1) === answer); }
+  function press(ch) {
+    if (done || busy) return;
+    if (ch === '⌫') cur = cur.slice(0, -1);
+    else if (ch === '⏎') return submit();
+    else if (cur.length < 5 && LETTERS.has(ch)) cur += ch;
+    drawCurrent();
+  }
+
+  function submit() {
+    const row = grid.children[st.guesses.length];
+    if (cur.length < 5) { shake(row); return toast('yetersiz harf'); }
+    if (!VALID.has(cur)) { shake(row); return toast('sözlükte yok'); }
+    const r = st.guesses.length;
+    st.guesses.push(cur);
+    save();
+    paintRow(r, cur, score(cur), true);
+    const won = cur === answer;
+    cur = '';
+    if (won || st.guesses.length === 6) {
+      done = true; busy = true;
+      const stats = store.get(statKey(), { played: 0, wins: 0, streak: 0, best: 0 });
+      stats.played++;
+      if (won) { stats.wins++; stats.streak = mode === 'daily' && stats.lastWin !== day - 1 ? 1 : stats.streak + 1; stats.lastWin = day; stats.best = Math.max(stats.best, stats.streak); }
+      else stats.streak = 0;
+      store.set(statKey(), stats);
+      if (mode === 'free') { st.over = true; save(); }
+      setTimeout(() => { busy = false; finish(true); }, 1300);
+    }
+  }
+
+  function finish(fresh) {
+    const won = st.guesses.at(-1) === answer;
+    if (fresh) {
+      if (won) { grid.children[st.guesses.length - 1].classList.add('win'); confetti(); }
+      toast(won ? ['dahi! 🤯', 'harika! 🔥', 'çok iyi! ✨', 'güzel! 👏', 'iyi 👍', 'kıl payı! 😅'][st.guesses.length - 1] : 'olmadı 😔', 2200);
+    }
+    const stats = store.get(statKey(), { played: 0, wins: 0, streak: 0, best: 0 });
+    document.getElementById('answer').innerHTML = `kelime: <b>${answer}</b> <a href="https://sozluk.gov.tr/?kelime=${encodeURIComponent(answer.toLocaleLowerCase('tr-TR'))}" target="_blank" rel="noopener">anlamı ↗</a>`;
+    document.getElementById('stats').innerHTML =
+      `<div><b>${stats.played}</b>oynanan</div><div><b>${stats.played ? Math.round(stats.wins / stats.played * 100) : 0}%</b>kazanılan</div><div><b>${stats.streak}</b>seri</div><div><b>${stats.best}</b>en iyi</div>`;
+    document.getElementById('endBtns').innerHTML = mode === 'daily'
+      ? '<button class="primary" id="share">paylaş</button><button id="more">sınırsız oyna</button>'
+      : '<button class="primary" id="again">yeni kelime</button><button id="share">paylaş</button>';
+    document.getElementById('share').onclick = () => {
+      const rows = st.guesses.map(g => score(g).map(s => ({ c: '🟩', p: '🟨', a: '⬜' })[s]).join('')).join('\n');
+      share(`kelime ${mode === 'daily' ? '#' + (day + 1) : '(sınırsız)'} ${won ? st.guesses.length : 'X'}/6\n\n${rows}\nfadimrak.xyz/games/kelime`);
+    };
+    const more = document.getElementById('more'), again = document.getElementById('again');
+    if (more) more.onclick = () => document.querySelector('[data-m="free"]').click();
+    if (again) again.onclick = () => start('free');
+    document.getElementById('end').classList.add('show');
+  }
+
+  addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Enter') press('⏎');
+    else if (e.key === 'Backspace') press('⌫');
+    else if (e.key.length === 1) press(e.key.toLocaleUpperCase('tr-TR'));
+  });
+
+  modeSwitch(document.getElementById('modes'), 'kelime', start);
+})();
 </script>
 </body>
 </html>

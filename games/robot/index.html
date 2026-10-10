@@ -4,140 +4,208 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>ben robot değilim · fadimrak</title>
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
+  :root { --accent: var(--blue); }
   main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  .bar { display: flex; justify-content: space-between; width: 100%; max-width: 400px; color: var(--muted); font-size: .8rem; }
-  .cap { position: relative; width: 100%; max-width: 400px; min-height: 300px; padding: 1.25rem; background: #0e0e0e; border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; gap: 1rem; animation: in .35s; }
-  .cap h2 { margin: 0; font-size: 1rem; font-weight: 400; line-height: 1.5; }
-  .cap .sub { color: var(--muted); font-size: .8rem; margin-top: -.6rem; }
-  .check { display: flex; align-items: center; gap: .9rem; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; user-select: none; }
-  .box { width: 26px; height: 26px; border: 2px solid var(--dim); border-radius: 4px; display: grid; place-items: center; flex: none; transition: all .2s; }
-  .box.on { border-color: var(--fg); background: var(--fg); }
-  .box.on::after { content: '✓'; color: var(--bg); font-size: 1rem; }
-  .box.load { border-color: transparent; border-top-color: var(--fg); border-radius: 50%; animation: spin .7s linear infinite; }
+  .bar { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 420px; font-weight: 700; font-size: .9rem; }
+  .prog { width: 100%; max-width: 420px; height: 12px; border: 2px solid var(--ink); border-radius: 99px; background: var(--card); overflow: hidden; }
+  .prog i { display: block; height: 100%; background: var(--blue); transition: width .4s; }
+  .cap { position: relative; width: 100%; max-width: 420px; min-height: 330px; background: var(--card); border: 2px solid var(--ink); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; animation: pop .35s; }
+  .cap .top { background: var(--blue); color: #fff; padding: 1rem 1.1rem; border-bottom: 2px solid var(--ink); }
+  .cap .top h2 { margin: 0; font-size: 1.2rem; line-height: 1.3; }
+  .cap .top small { display: block; opacity: .85; font-weight: 500; margin-top: .25rem; }
+  .cap .body { padding: 1.1rem; display: flex; flex-direction: column; gap: .9rem; flex: 1; position: relative; }
+  .check { display: flex; align-items: center; gap: .9rem; padding: 1rem 1.1rem; border: 2px solid var(--ink); border-radius: 12px; background: #f4f6ff; cursor: pointer; user-select: none; font-weight: 700; box-shadow: 2px 2px 0 var(--ink); }
+  .box { width: 30px; height: 30px; border: 2.5px solid var(--ink); border-radius: 6px; display: grid; place-items: center; flex: none; background: #fff; transition: all .2s; }
+  .box.on { background: var(--green); }
+  .box.on::after { content: '✓'; color: #fff; font-weight: 900; }
+  .box.load { border-color: #c9d4ff; border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .tiles { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 4px; }
-  .tiles button { aspect-ratio: 1; padding: 0; border-radius: 4px; font-size: 1.4rem; }
-  .tiles button.on { outline: 3px solid var(--fg); outline-offset: -3px; }
+  .tiles { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 6px; }
+  .tiles button { aspect-ratio: 1; padding: 0; border-radius: 8px; font-size: 1.5rem; box-shadow: 2px 2px 0 var(--ink); }
+  .tiles button.on { outline: 4px solid var(--blue); outline-offset: -4px; background: #dfe7ff; }
+  .tiles button.gone { visibility: hidden; }
   .cap input[type=text] { width: 100%; }
-  .cap input[type=range] { width: 100%; accent-color: var(--fg); }
-  .prog { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
-  .prog i { display: block; height: 100%; width: 0; background: var(--fg); }
+  .cap input[type=range] { width: 100%; accent-color: var(--blue); box-shadow: none; border: 0; padding: 0; }
+  .big { font-family: var(--head); font-weight: 900; font-size: 1.8rem; text-align: center; }
+  .meter { height: 14px; border: 2px solid var(--ink); border-radius: 99px; overflow: hidden; background: #fff; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--green); }
   .runner { position: absolute; transition: left .15s, top .15s; }
-  .win { text-align: center; line-height: 1.8; }
-  .win b { display: block; font-size: 2.2rem; font-weight: 400; }
+  .win { text-align: center; line-height: 1.8; padding: 1.5rem 1rem; }
+  .win b { display: block; font-family: var(--head); font-size: 2.6rem; color: var(--blue); }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>ben robot değilim</h1><span></span></header>
+<header><a class="back" href="../">← oyunlar</a><h1>ben robot değilim</h1><span class="tag" id="time">0.0 sn</span></header>
 <main>
-  <div class="bar"><span id="lvl"></span><span id="time">0.0 sn</span></div>
+  <div class="bar"><span id="lvl"></span><span id="best"></span></div>
+  <div class="prog"><i id="pg"></i></div>
   <div class="cap" id="cap"></div>
-  <p class="hint">Her seviyeyi geçerek insan olduğunu kanıtla.</p>
+  <p class="hint">Her seviyeyi geçerek insan olduğunu kanıtla. Testler her oyunda değişir.</p>
 </main>
 <script src="../common.js"></script>
 <script>
 const cap = document.getElementById('cap');
-let level = 0, t0 = 0, timer, cleanup = null;
-const h = html => { cap.innerHTML = html; cap.style.animation = 'none'; void cap.offsetWidth; cap.style.animation = ''; };
+const R = n => Math.floor(Math.random() * n), pick = a => a[R(a.length)];
+let level = 0, plan = [], t0 = 0, timer, cleanup = null;
 const q = s => cap.querySelector(s);
 const nope = msg => { shake(cap); toast(msg || 'robot tespit edildi 🤖'); };
-const verifyBtn = (check) => { q('#ok').onclick = () => check() ? next() : nope(); };
+function frame(title, sub, body) {
+  cap.innerHTML = `<div class="top"><h2>${title}</h2>${sub ? `<small>${sub}</small>` : ''}</div><div class="body">${body}</div>`;
+  cap.style.animation = 'none'; void cap.offsetWidth; cap.style.animation = '';
+}
+const verify = check => { q('#ok').onclick = () => check() ? next() : nope(); q('#i')?.addEventListener('keydown', e => e.key === 'Enter' && q('#ok').click()); };
+const OK = '<button class="primary" id="ok">doğrula</button>';
 
-const LEVELS = [
-  // 1: klasik
+// Türkçe sayı → yazı
+function sayi(n) {
+  const b = ['', 'bir', 'iki', 'üç', 'dört', 'beş', 'altı', 'yedi', 'sekiz', 'dokuz'], o = ['', 'on', 'yirmi', 'otuz', 'kırk', 'elli', 'altmış', 'yetmiş', 'seksen', 'doksan'];
+  const y = Math.floor(n / 100), r = n % 100;
+  return [y ? (y > 1 ? b[y] + ' ' : '') + 'yüz' : '', o[Math.floor(r / 10)], b[r % 10]].filter(Boolean).join(' ');
+}
+
+const FIRST = () => {
+  frame('Başlamak için kutuyu işaretle.', 'insan doğrulaması', `<div class="check" id="c"><div class="box" id="b"></div>Ben robot değilim</div>`);
+  q('#c').onclick = () => {
+    if (q('#b').className !== 'box') return;
+    if (!t0) { t0 = performance.now(); tick(); }
+    q('#b').className = 'box load';
+    setTimeout(() => { q('#b').className = 'box on'; setTimeout(next, 450); }, 900);
+  };
+};
+
+const LAST = () => {
+  frame('Son soru: robot musun?', 'dürüst ol', `<div class="row" id="r" style="flex:1;align-items:center"><button id="y">evet, robotum</button><button class="primary" id="n">hayır</button></div>`);
+  let swaps = 0;
+  q('#n').onclick = () => {
+    if (swaps++ < 2) { const r = q('#r'); r.append(r.firstElementChild); q('#n').textContent = ['hayır', 'gerçekten hayır', 'yemin ederim hayır'][swaps]; return toast('emin misin? 🤨'); }
+    next();
+  };
+  q('#y').onclick = () => { toast('dürüstlüğün için teşekkürler 🤖'); reset(); };
+};
+
+const POOL = [
   () => {
-    h(`<h2>Başlamak için kutuyu işaretle.</h2><div class="check" id="c"><div class="box" id="b"></div>Ben robot değilim</div>`);
-    q('#c').onclick = () => { if (q('#b').className !== 'box') return; if (!t0) { t0 = performance.now(); tick(); } q('#b').className = 'box load'; setTimeout(() => { q('#b').className = 'box on'; setTimeout(next, 500); }, 900); };
-  },
-  // 2: tüm kareler
-  () => {
-    h(`<h2>İçinde kare olan tüm kareleri seç.</h2><div class="tiles" id="t"></div><button class="primary" id="ok">doğrula</button>`);
+    frame('İçinde kare olan tüm kareleri seç.', 'hepsini seçince doğrula', `<div class="tiles" id="t"></div>${OK}`);
     for (let i = 0; i < 9; i++) { const b = document.createElement('button'); b.onclick = () => b.classList.toggle('on'); q('#t').append(b); }
-    verifyBtn(() => cap.querySelectorAll('.tiles .on').length === 9);
+    verify(() => cap.querySelectorAll('.tiles .on').length === 9);
   },
-  // 3: tersten yaz
   () => {
-    h(`<h2>Bunu tersten yaz:</h2><div style="font-size:1.4rem;letter-spacing:.1em">robot değilim</div><input type="text" id="i" autocomplete="off" placeholder="..."><button class="primary" id="ok">doğrula</button>`);
-    verifyBtn(() => q('#i').value.trim().toLocaleLowerCase('tr-TR') === 'milğed tobor');
+    const w = pick(['robot değilim', 'insanım ben', 'kedi maması', 'çay demlik', 'merhaba dünya', 'simit ayran']);
+    frame('Bunu tersten yaz:', '', `<div class="big">${w}</div><input type="text" id="i" autocomplete="off" placeholder="...">${OK}`);
+    verify(() => q('#i').value.trim().toLocaleLowerCase('tr-TR') === [...w].reverse().join(''));
   },
-  // 4: işlem önceliği
   () => {
-    h(`<h2>2 + 2 × 2 = ?</h2><div class="sub">robotlar bunu hep yanlış yapar (aslında insanlar)</div><input type="text" id="i" inputmode="numeric" autocomplete="off"><button class="primary" id="ok">doğrula</button>`);
-    verifyBtn(() => q('#i').value.trim() === '6');
+    const a = 2 + R(8), b = 2 + R(6), c = 2 + R(6);
+    frame(`${a} + ${b} × ${c} = ?`, 'robotlar bunu hep yanlış yapar (aslında insanlar)', `<input type="text" id="i" inputmode="numeric" autocomplete="off">${OK}`);
+    verify(() => +q('#i').value.trim() === a + b * c);
   },
-  // 5: gülümseyeni bul
   () => {
-    const n = 36, k = Math.floor(Math.random() * n);
-    h(`<h2>Gülümseyen yüzü bul.</h2><div class="tiles" id="t" style="--n:6"></div>`);
-    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.textContent = i === k ? '🙂' : '😐'; b.style.fontSize = '1.1rem'; b.onclick = () => i === k ? next() : nope('o gülümsemiyor'); q('#t').append(b); }
+    const [plain, odd, what] = pick([['😐', '🙂', 'gülümseyen yüzü'], ['🐶', '🐱', 'kediyi'], ['🍏', '🍎', 'kırmızı elmayı'], ['⭐', '🌟', 'parlayan yıldızı'], ['🚗', '🚕', 'taksiyi'], ['🌑', '🌕', 'dolunayı']]);
+    const n = 36, k = R(n);
+    frame(`${what[0].toLocaleUpperCase('tr-TR') + what.slice(1)} bul.`, 'tek bir tane var', `<div class="tiles" id="t" style="--n:6"></div>`);
+    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.textContent = i === k ? odd : plain; b.style.fontSize = '1.15rem'; b.onclick = () => i === k ? next() : nope('o değil'); q('#t').append(b); }
   },
-  // 6: en koyu kare
   () => {
-    const n = 16, k = Math.floor(Math.random() * n);
-    h(`<h2>En koyu kareyi seç.</h2><div class="tiles" id="t" style="--n:4"></div>`);
-    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.style.background = i === k ? '#5a5a5a' : '#646464'; b.style.borderColor = 'transparent'; b.onclick = () => i === k ? next() : nope('daha koyusu var'); q('#t').append(b); }
+    const h = R(360), n = 16, k = R(n);
+    frame('En koyu kareyi seç.', 'gözlerine güven', `<div class="tiles" id="t" style="--n:4"></div>`);
+    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.style.background = `hsl(${h} 70% ${i === k ? 52 : 57}%)`; b.onclick = () => i === k ? next() : nope('daha koyusu var'); q('#t').append(b); }
   },
-  // 7: dokunma
   () => {
-    h(`<h2>Hiçbir şeye dokunma.</h2><div class="sub">5 saniye bekle. tıklarsan ya da tuşa basarsan baştan başlar.</div><div class="prog"><i id="p"></i></div>`);
+    frame('Hiçbir şeye dokunma.', '5 saniye bekle. tıklarsan ya da tuşa basarsan baştan başlar.', `<div class="meter"><i id="p"></i></div><div class="big" style="font-size:3rem">🧘</div>`);
     let start = performance.now(), raf;
-    const reset = () => { start = performance.now(); nope('dokundun!'); };
+    const reset = () => { start = performance.now(); nope('dokundun! 😤'); };
     const loop = () => { const f = (performance.now() - start) / 5000; q('#p').style.width = Math.min(100, f * 100) + '%'; f >= 1 ? next() : raf = requestAnimationFrame(loop); };
-    setTimeout(() => { addEventListener('pointerdown', reset); addEventListener('keydown', reset); }, 50);
+    setTimeout(() => { addEventListener('pointerdown', reset); addEventListener('keydown', reset); }, 60);
     raf = requestAnimationFrame(loop);
     cleanup = () => { cancelAnimationFrame(raf); removeEventListener('pointerdown', reset); removeEventListener('keydown', reset); };
   },
-  // 8: saat
   () => {
-    h(`<h2>Şu an saat kaç? (SS:DD)</h2><div class="sub">telefonuna bakmak serbest</div><input type="text" id="i" inputmode="numeric" placeholder="14:05" autocomplete="off"><button class="primary" id="ok">doğrula</button>`);
-    verifyBtn(() => {
+    frame('Şu an saat kaç? (SS:DD)', 'telefonuna bakmak serbest', `<input type="text" id="i" inputmode="numeric" placeholder="14:05" autocomplete="off">${OK}`);
+    verify(() => {
       const m = q('#i').value.trim().match(/^(\d{1,2})[:.](\d{2})$/);
       if (!m) return false;
       const now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), g = +m[1] * 60 + +m[2];
       return Math.abs(mins - g) <= 1 || Math.abs(mins - g) >= 1439;
     });
   },
-  // 9: kaydırıcı
   () => {
-    h(`<h2>Kaydırıcıyı tam olarak 73'e getir.</h2><input type="range" id="r" min="0" max="1000" value="0"><div style="text-align:center;font-size:1.5rem" id="v">0.0</div><button class="primary" id="ok">doğrula</button>`);
-    q('#r').oninput = () => q('#v').textContent = (q('#r').value / 10).toFixed(1);
-    verifyBtn(() => q('#r').value === '730');
+    const t = 10 + R(89) + R(10) / 10;
+    frame(`Kaydırıcıyı tam şu değere getir: ${t.toFixed(1).replace('.', ',')}`, 'ok tuşları işe yarayabilir', `<input type="range" id="r" min="0" max="1000" value="0"><div class="big" id="v">0,0</div>${OK}`);
+    q('#r').oninput = () => q('#v').textContent = (q('#r').value / 10).toFixed(1).replace('.', ',');
+    verify(() => +q('#r').value === Math.round(t * 10));
   },
-  // 10: kaçan kutu
   () => {
-    h(`<h2>Kutuyu işaretle.</h2><div class="sub">kolay, değil mi?</div><div class="check runner" id="c" style="left:20px;top:110px"><div class="box"></div>işaretle</div>`);
+    frame('Kutuyu işaretle.', 'kolay, değil mi?', `<div class="check runner" id="c" style="left:20px;top:80px"><div class="box"></div>işaretle</div>`);
     let runs = 0;
     const run = e => {
       if (runs >= 6) return;
       e.preventDefault(); runs++;
-      const c = q('#c'), W = cap.clientWidth - c.offsetWidth - 20, H = cap.clientHeight - c.offsetHeight - 20;
-      c.style.left = 10 + Math.random() * W + 'px'; c.style.top = 60 + Math.random() * (H - 50) + 'px';
+      const c = q('#c'), body = q('.body'), W = body.clientWidth - c.offsetWidth - 20, H = body.clientHeight - c.offsetHeight - 20;
+      c.style.left = 10 + Math.random() * W + 'px'; c.style.top = 10 + Math.random() * H + 'px';
     };
     q('#c').addEventListener('pointerenter', run);
     q('#c').addEventListener('pointerdown', e => runs < 6 ? run(e) : null);
     q('#c').onclick = () => { if (runs >= 6) { q('.box').classList.add('on'); setTimeout(next, 400); } };
   },
-  // 11: büyük harf
   () => {
-    h(`<h2>"insan" kelimesini BÜYÜK harflerle yaz.</h2><input type="text" id="i" autocomplete="off" autocapitalize="off"><button class="primary" id="ok">doğrula</button>`);
-    verifyBtn(() => {
+    const w = pick(['insan', 'istanbul', 'izmir', 'ılık', 'ırmak', 'iğne']);
+    frame(`"${w}" kelimesini BÜYÜK harflerle yaz.`, 'Türkçe kurallarıyla', `<input type="text" id="i" autocomplete="off" autocapitalize="off">${OK}`);
+    verify(() => {
       const v = q('#i').value.trim();
-      if (v === 'INSAN') { toast('noktalı İ, Türkçe bu 😉'); return false; }
-      return v === 'İNSAN';
+      if (v === w.toUpperCase() && v !== w.toLocaleUpperCase('tr-TR')) { toast('noktalara dikkat: i → İ, ı → I 😉'); return false; }
+      return v === w.toLocaleUpperCase('tr-TR');
     });
   },
-  // 12: son soru
   () => {
-    h(`<h2>Son soru: robot musun?</h2><div class="row" id="r" style="position:relative;min-height:120px"><button id="y">evet, robotum</button><button class="primary" id="n">hayır</button></div>`);
-    let swaps = 0;
-    q('#n').onclick = () => {
-      if (swaps++ < 2) { const r = q('#r'); r.append(r.firstElementChild); q('#n').textContent = ['hayır', 'gerçekten hayır', 'yemin ederim hayır'][swaps]; return toast('emin misin?'); }
-      next();
+    const C = [['kırmızı', '#ff4b3e'], ['mavi', '#3d6cff'], ['yeşil', '#24a85c'], ['sarı', '#f2c200'], ['mor', '#8f5cf7'], ['turuncu', '#ff8c1a']];
+    const word = pick(C); let ink; do ink = pick(C); while (ink === word);
+    frame('Yazının RENGİNİ seç.', 'ne yazdığını değil, hangi renkte yazıldığını', `<div class="big" style="color:${ink[1]};font-size:2.6rem">${word[0].toLocaleUpperCase('tr-TR')}</div><div class="row" id="r"></div>`);
+    shuffle(C).forEach(c => { const b = document.createElement('button'); b.textContent = c[0]; b.onclick = () => c === ink ? next() : nope('yazıyı okudun 😏'); q('#r').append(b); });
+  },
+  () => {
+    const n = 21 + R(978);
+    frame('Bu sayıyı rakamla yaz:', '', `<div class="big" style="font-size:1.5rem">${sayi(n)}</div><input type="text" id="i" inputmode="numeric" autocomplete="off">${OK}`);
+    verify(() => +q('#i').value.trim() === n);
+  },
+  () => {
+    const others = ['🐶', '🐭', '🐰', '🦊', '🐻', '🐼', '🐸', '🐵'], cats = ['🐱', '🐈', '😺'];
+    const n = 16, set = new Set(shuffle([...Array(n).keys()]).slice(0, 3 + R(4)));
+    frame('Tüm kedileri seç.', 'hiçbirini kaçırma', `<div class="tiles" id="t" style="--n:4"></div>${OK}`);
+    for (let i = 0; i < n; i++) { const b = document.createElement('button'); b.textContent = set.has(i) ? pick(cats) : pick(others); b.dataset.cat = set.has(i) ? 1 : ''; b.onclick = () => b.classList.toggle('on'); q('#t').append(b); }
+    verify(() => [...cap.querySelectorAll('.tiles button')].every(b => b.classList.contains('on') === !!b.dataset.cat));
+  },
+  () => {
+    frame('Butona 3 saniyede 12 kez bas.', 'hızlı parmaklar', `<div class="big" id="c">0 / 12</div><button class="primary" id="b" style="font-size:1.3rem;padding:1rem">bas!</button>`);
+    let n = 0, first = 0;
+    q('#b').onclick = () => {
+      const now = performance.now();
+      if (!first || now - first > 3000) { first = now; n = 0; }
+      n++; q('#c').textContent = n + ' / 12';
+      if (n >= 12) next();
     };
-    q('#y').onclick = () => { toast('dürüstlüğün için teşekkürler 🤖'); clearInterval(timer); document.getElementById('time').textContent = '0.0 sn'; level = -1; t0 = 0; next(); };
+  },
+  () => {
+    frame('Sayılara 1\'den 9\'a sırayla bas.', 'yanlış basarsan baştan', `<div class="tiles" id="t"></div>`);
+    let want = 1;
+    shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).forEach(v => {
+      const b = document.createElement('button'); b.textContent = v; b.style.fontFamily = 'var(--head)'; b.style.fontWeight = 900;
+      b.onclick = () => {
+        if (v === want) { b.classList.add('gone'); if (++want > 9) next(); }
+        else { want = 1; cap.querySelectorAll('.gone').forEach(x => x.classList.remove('gone')); nope('sıra bozuldu'); }
+      };
+      q('#t').append(b);
+    });
+  },
+  () => {
+    const s = pick(['ali ata bak', 'kara kartal kara kayada', 'şu köşe yaz köşesi', 'bir berber bir berbere', 'dal sarkar kartal kalkar']), ch = pick([...new Set(s.replace(/ /g, ''))]);
+    frame(`Bu cümlede kaç tane "${ch}" harfi var?`, '', `<div class="big" style="font-size:1.35rem">${s}</div><input type="text" id="i" inputmode="numeric" autocomplete="off">${OK}`);
+    verify(() => +q('#i').value.trim() === [...s].filter(x => x === ch).length);
   },
 ];
 
@@ -146,22 +214,33 @@ function tick() { clearInterval(timer); timer = setInterval(() => document.getEl
 function next() {
   if (cleanup) { cleanup(); cleanup = null; }
   level++;
-  if (level >= LEVELS.length) return win();
-  document.getElementById('lvl').textContent = `seviye ${level + 1} / ${LEVELS.length}`;
-  LEVELS[level]();
+  if (level >= plan.length) return win();
+  document.getElementById('lvl').textContent = `seviye ${level + 1} / ${plan.length}`;
+  document.getElementById('pg').style.width = (level / plan.length * 100) + '%';
+  plan[level]();
 }
 
 function win() {
   clearInterval(timer);
+  document.getElementById('pg').style.width = '100%';
   const secs = (performance.now() - t0) / 1000, best = store.get('robot-best', null);
   if (!best || secs < best) store.set('robot-best', secs);
-  h(`<div class="win"><b>%${Math.floor(90 + Math.random() * 10)} insansın</b>${secs.toFixed(1)} saniyede tamamladın<br><span class="hint">en iyi: ${Math.min(secs, best || secs).toFixed(1)} sn</span></div><button class="primary" id="s">paylaş</button><button id="a">tekrar oyna</button>`);
-  q('#s').onclick = () => share(`ben robot değilim 🤖 ${LEVELS.length} seviyeyi ${secs.toFixed(1)} saniyede geçtim\nfadimrak.xyz/games/robot`);
-  q('#a').onclick = () => { level = -1; t0 = 0; document.getElementById('time').textContent = '0.0 sn'; next(); };
+  confetti();
+  frame('Doğrulama tamamlandı ✓', '', `<div class="win"><b>%${90 + R(10)} insansın</b>${secs.toFixed(1)} saniyede tamamladın<br><span class="hint">en iyi: ${Math.min(secs, best || secs).toFixed(1)} sn</span></div><div class="row"><button class="primary" id="a">tekrar oyna</button><button id="s">paylaş</button></div>`);
+  q('#s').onclick = () => share(`ben robot değilim 🤖 ${plan.length} testi ${secs.toFixed(1)} saniyede geçtim\nfadimrak.xyz/games/robot`);
+  q('#a').onclick = reset;
+  showBest();
 }
 
-level = -1;
-next();
+const showBest = () => { const b = store.get('robot-best', null); document.getElementById('best').textContent = b ? `en iyi ${b.toFixed(1)} sn` : ''; };
+function reset() {
+  clearInterval(timer); t0 = 0; level = -1;
+  document.getElementById('time').textContent = '0.0 sn';
+  plan = [FIRST, ...shuffle(POOL).slice(0, 12), LAST];
+  showBest();
+  next();
+}
+reset();
 </script>
 </body>
 </html>

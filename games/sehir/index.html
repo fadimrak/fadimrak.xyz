@@ -4,50 +4,58 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>şehir · fadimrak</title>
+<meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
+  :root { --accent: var(--teal); }
   main { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  svg.shape { width: min(80vw, 300px); height: min(80vw, 300px); }
-  svg.shape path { fill: var(--fg); }
-  svg.map { width: 100%; max-width: 600px; animation: in .6s; }
-  svg.map path { fill: #1a1a1a; stroke: #333; stroke-width: .02; }
-  svg.map path.g { fill: #555; }
-  svg.map path.t { fill: var(--fg); }
-  form { display: flex; gap: .5rem; width: 100%; max-width: 420px; }
+  .stage { width: min(84vw, 320px); aspect-ratio: 1; display: grid; place-items: center; background: #dff3ef; border: 2px solid var(--ink); border-radius: 24px; box-shadow: var(--shadow); background-image: radial-gradient(#b9e3dc 1.5px, transparent 1.5px); background-size: 18px 18px; }
+  svg.shape { width: 82%; height: 82%; overflow: visible; }
+  svg.shape path { fill: var(--teal); stroke: var(--ink); stroke-width: 2.5px; vector-effect: non-scaling-stroke; stroke-linejoin: round; filter: drop-shadow(4px 4px 0 rgba(28,26,23,.9)); animation: pop .5s; }
+  svg.map { width: 100%; max-width: 640px; animation: in .6s; }
+  svg.map path { fill: #efe7d6; stroke: #b9ae98; stroke-width: 1px; vector-effect: non-scaling-stroke; }
+  svg.map path.t { fill: var(--teal); stroke: var(--ink); stroke-width: 2px; }
+  form { display: flex; gap: .5rem; width: 100%; max-width: 440px; }
   form input { flex: 1; min-width: 0; }
-  .guesses { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 420px; }
-  .g { display: grid; grid-template-columns: 1fr auto auto auto; gap: .75rem; align-items: center; padding: .55rem .8rem; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; font-size: .85rem; animation: in .3s; }
-  .g .d { color: var(--muted); }
-  .g .a { font-size: 1.1rem; width: 1.2rem; text-align: center; }
-  .g.win { background: var(--fg); color: var(--bg); }
-  .g.win .d { color: #555; }
-  .g.empty { background: none; border-style: dashed; height: 2.3rem; }
+  .guesses { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 440px; }
+  .g { display: grid; grid-template-columns: 1fr auto auto auto; gap: .8rem; align-items: center; padding: .6rem .9rem; background: var(--card); border: 2px solid var(--ink); border-radius: 12px; font-weight: 600; animation: in .3s; box-shadow: 2px 2px 0 var(--ink); position: relative; overflow: hidden; }
+  .g .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--hc); opacity: .35; z-index: 0; }
+  .g > span { position: relative; z-index: 1; }
+  .g .d { color: var(--muted); font-size: .9rem; }
+  .g .a { font-size: 1.2rem; width: 1.4rem; text-align: center; }
+  .g.win { background: var(--teal); color: #fff; } .g.win .d { color: #e3fffa; }
+  .g.empty { background: none; border-style: dashed; border-color: #cfc5b1; height: 2.6rem; box-shadow: none; }
+  .info { font-size: .95rem; text-align: center; } .info b { font-family: var(--head); font-size: 1.6rem; display: block; }
 </style>
 </head>
 <body>
-<header><a href="../">← oyunlar</a><h1>şehir</h1><span class="hint" id="no"></span></header>
+<header><a class="back" href="../">← oyunlar</a><h1>şehir</h1><span class="tag" id="no"></span></header>
 <main>
+  <div class="modes" id="modes"></div>
   <p class="hint">Bu hangi il? 6 hakkın var. Her tahminde uzaklık ve yön gösterilir.</p>
-  <svg class="shape" id="shape"></svg>
+  <div class="stage"><svg class="shape" id="shape"></svg></div>
   <form id="form" autocomplete="off">
     <input id="inp" list="iller" placeholder="il adı yaz..." aria-label="il adı">
     <button class="primary">tahmin</button>
   </form>
   <datalist id="iller"></datalist>
   <div class="guesses" id="guesses"></div>
-  <button class="primary" id="share" hidden>sonucu paylaş</button>
+  <div class="info" id="info" hidden></div>
+  <div class="row" id="endBtns" hidden></div>
   <svg class="map" id="map" hidden></svg>
 </main>
 <script src="../common.js"></script>
 <script>
 (async () => {
   const iller = await (await fetch('iller.json')).json();
-  const day = dayIndex(), target = iller[shuffle(iller.map((_, i) => i), rng(4242))[((day % 81) + 81) % 81]];
-  document.getElementById('no').textContent = '#' + (day + 1);
+  const day = dayIndex();
   const norm = s => s.toLocaleLowerCase('tr-TR').trim();
   const byName = Object.fromEntries(iller.map(il => [norm(il.n), il]));
   document.getElementById('iller').innerHTML = iller.map(il => `<option value="${il.n}">`).join('');
+  let mode, target, st;
 
   // Basit eşdikdörtgen izdüşüm (Türkiye için yeterli)
   const K = Math.cos(39 * Math.PI / 180);
@@ -55,13 +63,10 @@
   function fit(svg, list) {
     const xs = [], ys = [];
     list.forEach(il => il.r.forEach(r => r.forEach(([x, y]) => { xs.push(x * K); ys.push(-y); })));
-    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), pad = (x1 - x0) * .05;
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), pad = (x1 - x0) * .04;
     svg.setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`);
     svg.style.aspectRatio = `${x1 - x0 + 2 * pad} / ${y1 - y0 + 2 * pad}`;
   }
-  const shape = document.getElementById('shape');
-  fit(shape, [target]);
-  shape.innerHTML = `<path d="${pathOf(target)}"/>`;
 
   const rad = d => d * Math.PI / 180;
   function dist(a, b) {
@@ -72,35 +77,70 @@
   function arrow(a, b) {
     const y = Math.sin(rad(b.c[0] - a.c[0])) * Math.cos(rad(b.c[1]));
     const x = Math.cos(rad(a.c[1])) * Math.sin(rad(b.c[1])) - Math.sin(rad(a.c[1])) * Math.cos(rad(b.c[1])) * Math.cos(rad(b.c[0] - a.c[0]));
-    const deg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-    return Math.round(deg / 45) % 8;
+    return Math.round(((Math.atan2(y, x) * 180 / Math.PI + 360) % 360) / 45) % 8;
   }
   const EMOJI = ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️'];
-  const MAXD = 1600; // Türkiye'de iki il arası en uzak mesafe ~1600 km
-  const pct = d => Math.max(0, Math.round(100 - d / MAXD * 100));
+  const pct = d => Math.max(0, Math.round(100 - d / 1600 * 100)); // Türkiye'de iki il arası en uzak ~1600 km
+  const heat = p => `hsl(${Math.round(p * 1.2)} 80% 55%)`; // kırmızı (uzak) → yeşil (yakın)
 
-  let st = store.get('sehir', {});
-  if (st.day !== day) st = { day, guesses: [] };
   const won = () => st.guesses.at(-1) === target.n, over = () => won() || st.guesses.length >= 6;
+  const save = () => store.set('sehir-' + mode, st);
 
-  function render() {
+  function start(m) {
+    mode = m;
+    if (mode === 'daily') {
+      st = store.get('sehir-daily', {});
+      if (st.day !== day) st = { day, guesses: [] };
+      target = nthOf(iller, day, 3);
+      document.getElementById('no').textContent = '#' + (day + 1);
+    } else {
+      st = store.get('sehir-free', null);
+      if (!st || st.over) st = { target: iller[Math.floor(Math.random() * iller.length)].n, guesses: [] };
+      target = byName[norm(st.target)];
+      document.getElementById('no').textContent = 'sınırsız';
+    }
+    const shape = document.getElementById('shape');
+    fit(shape, [target]);
+    shape.innerHTML = `<path d="${pathOf(target)}"/>`;
+    render(false);
+  }
+
+  function render(fresh) {
     const box = document.getElementById('guesses');
     box.innerHTML = '';
     for (let i = 0; i < 6; i++) {
       const n = st.guesses[i];
       if (!n) { box.insertAdjacentHTML('beforeend', '<div class="g empty"></div>'); continue; }
-      const il = byName[norm(n)], d = dist(il, target), hit = n === target.n;
-      box.insertAdjacentHTML('beforeend', `<div class="g${hit ? ' win' : ''}"><span>${n}</span><span class="d">${d} km</span><span class="a">${hit ? '✓' : `<span style="display:inline-block;transform:rotate(${arrow(il, target) * 45}deg)">↑︎</span>`}</span><span class="d">${pct(d)}%</span></div>`);
+      const il = byName[norm(n)], d = dist(il, target), hit = n === target.n, p = pct(d);
+      box.insertAdjacentHTML('beforeend', `<div class="g${hit ? ' win' : ''}" style="--hc:${heat(p)}">${hit ? '' : `<i class="bar" style="width:${p}%"></i>`}<span>${n}</span><span class="d">${d} km</span><span class="a">${hit ? '🎉' : `<span style="display:inline-block;transform:rotate(${arrow(il, target) * 45}deg)">↑︎</span>`}</span><span class="d">${p}%</span></div>`);
     }
-    if (over()) {
-      document.getElementById('form').hidden = true;
-      document.getElementById('share').hidden = false;
-      const map = document.getElementById('map');
-      map.removeAttribute('hidden'); // SVG'de .hidden özelliği yok
-      fit(map, iller);
-      map.innerHTML = iller.map(il => `<path class="${il === target ? 't' : st.guesses.includes(il.n) ? 'g' : ''}" d="${pathOf(il)}"><title>${il.n}</title></path>`).join('');
-      if (!document.body.dataset.done) { document.body.dataset.done = 1; toast(won() ? 'bildin!' : 'cevap: ' + target.n, 2500); }
-    }
+    const map = document.getElementById('map'), info = document.getElementById('info'), end = document.getElementById('endBtns');
+    const isOver = over();
+    document.getElementById('form').hidden = isOver;
+    info.hidden = end.hidden = !isOver;
+    if (isOver) map.removeAttribute('hidden'); else map.setAttribute('hidden', ''); // SVG'de .hidden özelliği yok
+    if (!isOver) return;
+    if (mode === 'free') { st.over = true; save(); }
+    info.innerHTML = `${won() ? 'bildin!' : 'cevap'}<b>${target.n}</b><a href="https://tr.wikipedia.org/wiki/${encodeURIComponent(target.n)}_(il)" target="_blank" rel="noopener" class="hint">wikipedia ↗</a>`;
+    fit(map, iller);
+    map.innerHTML = iller.map(il => {
+      const g = st.guesses.includes(il.n) && il !== target;
+      return `<path class="${il === target ? 't' : ''}" ${g ? `style="fill:${heat(pct(dist(il, target)))}"` : ''} d="${pathOf(il)}"><title>${il.n}</title></path>`;
+    }).join('');
+    end.innerHTML = mode === 'daily'
+      ? '<button class="primary" id="share">paylaş</button><button id="more">sınırsız oyna</button>'
+      : '<button class="primary" id="again">yeni il</button><button id="share">paylaş</button>';
+    document.getElementById('share').onclick = () => {
+      const rows = st.guesses.map(n => {
+        const il = byName[norm(n)], p = pct(dist(il, target)), full = Math.floor(p / 20);
+        return n === target.n ? '🟩🟩🟩🟩🟩🎉' : '🟩'.repeat(full) + '⬜'.repeat(5 - full) + EMOJI[arrow(il, target)];
+      }).join('\n');
+      share(`şehir ${mode === 'daily' ? '#' + (day + 1) : '(sınırsız)'} ${won() ? st.guesses.length : 'X'}/6\n${rows}\nfadimrak.xyz/games/sehir`);
+    };
+    const more = document.getElementById('more'), again = document.getElementById('again');
+    if (more) more.onclick = () => document.querySelector('[data-m="free"]').click();
+    if (again) again.onclick = () => start('free');
+    if (fresh) { toast(won() ? 'bildin! 🎉' : 'cevap: ' + target.n, 2500); if (won()) confetti(); }
   }
 
   document.getElementById('form').onsubmit = e => {
@@ -109,18 +149,11 @@
     if (!il) { shake(inp); return toast('böyle bir il yok'); }
     if (st.guesses.includes(il.n)) return toast('bunu zaten denedin');
     st.guesses.push(il.n);
-    store.set('sehir', st);
+    save();
     inp.value = '';
-    render();
+    render(true);
   };
-  document.getElementById('share').onclick = () => {
-    const rows = st.guesses.map(n => {
-      const il = byName[norm(n)], d = dist(il, target), p = pct(d);
-      return n === target.n ? '🟩🟩🟩🟩🟩🎉' : '🟩'.repeat(Math.floor(p / 20)) + '⬜'.repeat(5 - Math.floor(p / 20)) + EMOJI[arrow(il, target)];
-    }).join('\n');
-    share(`şehir #${day + 1} ${won() ? st.guesses.length : 'X'}/6\n${rows}\nfadimrak.xyz/games/sehir`);
-  };
-  render();
+  modeSwitch(document.getElementById('modes'), 'sehir', start);
 })();
 </script>
 </body>
