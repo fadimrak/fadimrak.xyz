@@ -6,13 +6,23 @@
 <title>fadimrak</title>
 <style>
   html, body { height: 100%; margin: 0; }
-  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; background: #000; color: #fff; font-family: system-ui, sans-serif; }
-  h1 { margin: 0; font-size: 3rem; }
-  p { margin: 0; opacity: .6; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; background: #0a0a0a; color: #e6e6e6; font-family: ui-monospace, Menlo, Consolas, monospace; }
+  body > * { opacity: 0; animation: in 1.2s ease forwards; }
+  p { animation-delay: .3s; }
+  a { animation-delay: .6s; }
+  h1 { margin: 0; font-size: 2.5rem; font-weight: 400; letter-spacing: .15em; }
+  p { margin: 0; display: flex; align-items: center; gap: .6rem; color: #777; font-size: .9rem; }
+  .spin { width: .7rem; height: .7rem; border: 1px solid #333; border-top-color: #aaa; border-radius: 50%; animation: spin 1.4s linear infinite; }
+  a { margin-top: 1.5rem; color: #777; font-size: .8rem; text-decoration: none; border-bottom: 1px solid #333; transition: color .3s, border-color .3s; }
+  a:hover { color: #e6e6e6; border-color: #e6e6e6; }
+  @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { body > *, .spin { animation: none; opacity: 1; } }
 </style>
 </head>
 <body>
 <h1>fadimrak</h1>
-<p>07.2027</p>
+<p>07.2027 <span class="spin" aria-label="yükleniyor"></span></p>
+<a href="https://discord.com/users/1263876356534702247" target="_blank" rel="noopener">discord</a>
 </body>
 </html>
