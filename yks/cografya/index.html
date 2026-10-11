@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>coğrafya haritaları · YKS · fadimrak</title>
+<meta name="description" content="Türkiye haritası üzerinde bölgeler, nüfus yoğunluğu, madenler, tarım ürünleri ve yer şekilleri">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--teal); }
+  .layers { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; margin-bottom: .7rem; }
+  .mapbox { padding: .6rem; }
+  svg.map { width: 100%; height: auto; display: block; }
+  svg.map path { stroke: var(--line); stroke-width: .7; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .25s; }
+  svg.map path:hover { filter: brightness(1.08); stroke-width: 2; }
+  svg.map path.sel { stroke-width: 2.5; }
+  svg.map .pt circle { stroke: #1c1a17; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+  svg.map .pt text { font: 600 .2px Outfit, sans-serif; paint-order: stroke; stroke: var(--card); stroke-width: .05px; fill: var(--ink); pointer-events: none; }
+  .legend { display: flex; gap: .4rem .9rem; flex-wrap: wrap; font-size: .82rem; margin-top: .6rem; }
+  .legend span { display: inline-flex; align-items: center; gap: .35rem; }
+  .legend i { width: 14px; height: 14px; border-radius: 4px; border: 2px solid var(--line); display: inline-block; }
+  .side { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  #info h2 { margin: 0 0 .3rem; }
+  #info dl { display: grid; grid-template-columns: max-content 1fr; gap: .25rem .8rem; margin: .4rem 0 0; font-size: .92rem; }
+  #info dt { color: var(--muted); } #info dd { margin: 0; font-weight: 600; }
+  .notes ul { margin: .3rem 0 0; padding-left: 1.1rem; font-size: .92rem; } .notes li { margin: .25rem 0; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>coğrafya haritaları</h1><div class="acts"></div></header>
+<main class="wide">
+  <div class="layers" role="group" aria-label="katmanlar">
+    <button class="chip on" data-l="bolge">bölgeler</button>
+    <button class="chip" data-l="yogunluk">nüfus yoğunluğu</button>
+    <button class="chip" data-l="maden">madenler ve enerji</button>
+    <button class="chip" data-l="tarim">tarım ürünleri</button>
+    <button class="chip" data-l="yer">dağ, göl, ova</button>
+    <select id="urun" aria-label="tarım ürünü" hidden></select>
+  </div>
+  <div class="panel mapbox"><svg class="map" id="map" role="img" aria-label="Türkiye haritası"></svg><div class="legend" id="legend"></div></div>
+  <div class="side" style="margin-top:1rem">
+    <div class="panel" id="info"><p class="muted" style="margin:0">Bir ile dokun: bölgesi, nüfusu ve yüzölçümü burada görünür.</p></div>
+    <div class="panel notes" id="notes"></div>
+  </div>
+  <p class="muted small">İl sınırları Natural Earth (kamu malı), nüfus ve yüzölçümü TÜİK 2025 verisiyle Vikipedi'den alınmıştır. Maden, tarım ve yer şekli konumları ders kitaplarında öne çıkan yerleri gösterir; yaklaşık işaretlenmiştir.</p>
+</main>
+<script>
+const REG = {
+  'Marmara': ['#9cc7ff', 'Edirne Kırklareli Tekirdağ İstanbul Kocaeli Yalova Sakarya Bilecik Bursa Balıkesir Çanakkale'],
+  'Ege': ['#8fe0d5', 'İzmir Manisa Aydın Denizli Kütahya Afyonkarahisar Uşak Muğla'],
+  'Akdeniz': ['#ffc56b', 'Antalya Isparta Burdur Mersin Adana Hatay Osmaniye Kahramanmaraş'],
+  'İç Anadolu': ['#ffe08a', 'Ankara Konya Kayseri Eskişehir Sivas Kırıkkale Aksaray Karaman Kırşehir Niğde Nevşehir Yozgat Çankırı'],
+  'Karadeniz': ['#b9e3b0', 'Rize Trabzon Artvin Sinop Tokat Çorum Kastamonu Samsun Zonguldak Ordu Düzce Bolu Karabük Amasya Bartın Giresun Gümüşhane Bayburt'],
+  'Doğu Anadolu': ['#e6a7f0', 'Erzurum Malatya Elazığ Van Kars Ağrı Ardahan Bingöl Bitlis Erzincan Hakkari Iğdır Muş Tunceli'],
+  'Güneydoğu Anadolu': ['#ff9f8f', 'Gaziantep Diyarbakır Şanlıurfa Batman Adıyaman Siirt Mardin Kilis Şırnak'],
+};
+const regionOf = n => Object.keys(REG).find(r => REG[r][1].split(' ').some(x => site.norm(x) === site.norm(n)));
+
+// [ad, boylam, enlem, tür]
+const MADEN = [
+  ['Bigadiç (bor)', 28.13, 39.39, 'bor'], ['Emet (bor)', 29.26, 39.34, 'bor'], ['Kırka (bor)', 30.53, 39.29, 'bor'], ['Mustafakemalpaşa (bor)', 28.41, 40.04, 'bor'],
+  ['Guleman (krom)', 39.86, 38.47, 'krom'], ['Fethiye (krom)', 29.12, 36.62, 'krom'], ['Orhaneli (krom)', 28.99, 39.90, 'krom'],
+  ['Divriği (demir)', 38.11, 39.37, 'demir'], ['Hekimhan (demir)', 37.93, 38.82, 'demir'],
+  ['Murgul (bakır)', 41.56, 41.27, 'bakır'], ['Küre (bakır)', 33.71, 41.80, 'bakır'], ['Ergani Madeni (bakır)', 39.67, 38.39, 'bakır'],
+  ['Seydişehir (boksit)', 31.85, 37.42, 'boksit'],
+  ['Zonguldak (taşkömürü)', 31.79, 41.45, 'kömür'], ['Afşin-Elbistan (linyit)', 37.05, 38.25, 'kömür'], ['Soma (linyit)', 27.61, 39.19, 'kömür'], ['Tunçbilek (linyit)', 29.47, 39.62, 'kömür'], ['Yatağan (linyit)', 28.14, 37.34, 'kömür'],
+  ['Batman (petrol)', 41.13, 37.88, 'petrol'], ['Adıyaman (petrol)', 38.28, 37.76, 'petrol'], ['Trakya (doğalgaz)', 27.40, 41.45, 'petrol'],
+  ['Keçiborlu (kükürt)', 30.30, 37.94, 'diğer'], ['Eskişehir (lületaşı)', 30.52, 39.78, 'diğer'], ['Tuz Gölü (tuz)', 33.38, 38.75, 'diğer'], ['Afyon İscehisar (mermer)', 30.75, 38.86, 'diğer'],
+  ['Atatürk Barajı (HES)', 38.32, 37.48, 'enerji'], ['Keban Barajı (HES)', 38.75, 38.80, 'enerji'], ['Ilısu Barajı (HES)', 41.66, 37.53, 'enerji'], ['Sarayköy (jeotermal)', 28.92, 37.93, 'enerji'], ['Akkuyu (nükleer)', 33.53, 36.14, 'enerji'],
+];
+const MCOL = { bor: '#4d7cfe', krom: '#8f5cf7', demir: '#ff5a4e', bakır: '#ff9f1c', boksit: '#ff6fae', kömür: '#1c1a17', petrol: '#6b4f2a', diğer: '#1fb5a8', enerji: '#ffd23f' };
+const YER = [
+  ['Ağrı Dağı 5137 m', 44.30, 39.70, 'dağ'], ['Süphan', 42.83, 38.93, 'dağ'], ['Nemrut (volkan)', 42.23, 38.65, 'dağ'], ['Erciyes', 35.45, 38.53, 'dağ'], ['Hasan Dağı', 34.17, 38.13, 'dağ'], ['Karacadağ', 39.83, 37.67, 'dağ'],
+  ['Kaçkar', 41.16, 40.83, 'dağ'], ['Palandöken', 41.27, 39.82, 'dağ'], ['Uludağ', 29.22, 40.07, 'dağ'], ['Kaz Dağı', 26.88, 39.70, 'dağ'], ['Aladağlar (Toroslar)', 35.15, 37.85, 'dağ'], ['Spil', 27.42, 38.57, 'dağ'],
+  ['Van Gölü', 42.90, 38.62, 'göl'], ['Tuz Gölü', 33.38, 38.75, 'göl'], ['Beyşehir Gölü', 31.52, 37.73, 'göl'], ['Eğirdir Gölü', 30.85, 38.02, 'göl'], ['Burdur Gölü', 30.17, 37.73, 'göl'], ['Salda Gölü', 29.68, 37.55, 'göl'],
+  ['Manyas (Kuş) Gölü', 27.98, 40.18, 'göl'], ['İznik Gölü', 29.53, 40.43, 'göl'], ['Sapanca Gölü', 30.25, 40.71, 'göl'], ['Çıldır Gölü', 43.23, 41.07, 'göl'], ['Hazar Gölü', 39.42, 38.48, 'göl'],
+  ['Çukurova', 35.40, 36.95, 'ova'], ['Konya Ovası', 32.80, 37.60, 'ova'], ['Bafra Ovası', 35.90, 41.55, 'ova'], ['Çarşamba Ovası', 36.70, 41.20, 'ova'], ['Harran Ovası', 39.00, 36.85, 'ova'],
+  ['Muş Ovası', 41.50, 38.80, 'ova'], ['Iğdır Ovası', 44.00, 39.92, 'ova'], ['Gediz Ovası', 27.60, 38.65, 'ova'], ['Büyük Menderes Ovası', 27.80, 37.85, 'ova'], ['Amik Ovası', 36.40, 36.30, 'ova'], ['Ergene Ovası', 27.20, 41.25, 'ova'],
+];
+const YCOL = { dağ: '#8b5a2b', göl: '#4d7cfe', ova: '#3bb273' };
+const URUN = {
+  'fındık': 'Ordu Giresun Trabzon Samsun Sakarya Düzce',
+  'çay': 'Rize Trabzon Artvin',
+  'pamuk': 'Şanlıurfa Aydın Diyarbakır Hatay Adana',
+  'zeytin': 'Aydın Muğla İzmir Balıkesir Manisa Çanakkale Bursa Hatay Gaziantep',
+  'buğday': 'Konya Ankara Şanlıurfa Diyarbakır Eskişehir Edirne Tekirdağ',
+  'şeker pancarı': 'Konya Eskişehir Kayseri Afyonkarahisar Aksaray Yozgat',
+  'ayçiçeği': 'Tekirdağ Edirne Kırklareli',
+  'tütün': 'Adıyaman Manisa İzmir Samsun Batman',
+  'turunçgiller': 'Mersin Adana Hatay Antalya Muğla',
+  'muz': 'Mersin Antalya',
+  'kayısı': 'Malatya',
+  'Antep fıstığı': 'Gaziantep Şanlıurfa Siirt Adıyaman',
+  'haşhaş': 'Afyonkarahisar Denizli Uşak Burdur Isparta',
+  'üzüm': 'Manisa Denizli İzmir',
+  'gül': 'Isparta',
+  'incir': 'Aydın İzmir',
+  'çeltik (pirinç)': 'Edirne Samsun Çorum',
+};
+const NOTES = {
+  bolge: ['Türkiye 1941\'deki Birinci Coğrafya Kongresi\'nde 7 bölgeye ayrıldı.', 'En büyük bölge Doğu Anadolu, en küçüğü Güneydoğu Anadolu\'dur.', 'En kalabalık bölge Marmara\'dır; nüfus yoğunluğu da en yüksek bölgedir.'],
+  yogunluk: ['Aritmetik nüfus yoğunluğu = nüfus / yüzölçümü (kişi/km²).', 'Yoğunluk sanayi, ticaret ve tarım olanakları olan kıyılarda ve büyük şehirlerde yüksektir.', 'Engebeli, iklimi sert iç ve doğu kesimlerde seyrektir.'],
+  maden: ['Türkiye dünya bor rezervlerinin büyük bölümüne sahiptir.', 'Taşkömürü yalnızca Zonguldak havzasında çıkarılır; linyit ise birçok ilde vardır.', 'Petrolün büyük kısmı Güneydoğu Anadolu\'dadır (Batman, Adıyaman).', 'GAP kapsamında Fırat ve Dicle üzerinde büyük barajlar kurulmuştur.'],
+  tarim: ['Fındık ve çay nemli Karadeniz iklimine bağlıdır; çay en çok Rize\'de yetişir.', 'Turunçgiller ve muz don olayı az görülen Akdeniz kıyısında yetişir.', 'Şeker pancarı ve buğday İç Anadolu\'nun başlıca ürünleridir.', 'Haşhaş ekimi devlet izniyle yapılır.'],
+  yer: ['Ağrı Dağı Türkiye\'nin en yüksek dağıdır.', 'Van Gölü sodalı, Tuz Gölü tuzlu sulu göllerimizdendir.', 'Çukurova ve Bafra-Çarşamba ovaları delta ovasıdır.', 'Erciyes, Hasan, Nemrut, Süphan ve Ağrı volkanik dağlardır.'],
+};
+const W = Math.cos(39 * Math.PI / 180), P = (x, y) => [(x * W).toFixed(3), (-y).toFixed(3)];
+let IL, POP = {}, layer = 'bolge', urun = 'fındık', sel = null;
+
+function fillOf(n) {
+  if (layer === 'bolge') return REG[regionOf(n)][0];
+  if (layer === 'yogunluk') { const d = POP[site.norm(n)]; const v = d ? d.pop / d.area : 0; const t = Math.min(1, Math.log10(Math.max(v, 10)) / Math.log10(3200) - .2); return `hsl(${30 - t * 30} 90% ${88 - t * 50}%)`; }
+  if (layer === 'tarim') return URUN[urun].split(' ').some(x => site.norm(x) === site.norm(n)) ? '#3bb273' : 'var(--soft)';
+  return 'var(--soft)';
+}
+function draw() {
+  const svg = site.$('#map');
+  let pts = '';
+  const dots = layer === 'maden' ? MADEN.map(m => [...m, MCOL[m[3]]]) : layer === 'yer' ? YER.map(m => [...m, YCOL[m[3]]]) : [];
+  for (const [ad, x, y, , c] of dots) {
+    const [px, py] = P(x, y);
+    pts += `<g class="pt"><circle cx="${px}" cy="${py}" r=".09" fill="${c}"><title>${ad}</title></circle><text x="${+px + .13}" y="${+py + .07}">${ad.replace(/ \(.*\)/, '')}</text></g>`;
+  }
+  svg.querySelector('#il').innerHTML = IL.map(il => `<path d="${il.d}" fill="${fillOf(il.n)}" data-n="${il.n}" class="${sel === il.n ? 'sel' : ''}"><title>${il.n}</title></path>`).join('');
+  svg.querySelector('#pt').innerHTML = pts;
+  site.$('#urun').hidden = layer !== 'tarim';
+  const leg = layer === 'bolge' ? Object.entries(REG).map(([r, [c]]) => [r, c])
+    : layer === 'yogunluk' ? [['seyrek', 'hsl(30 90% 85%)'], ['orta', 'hsl(15 90% 63%)'], ['yoğun', 'hsl(0 90% 40%)']]
+    : layer === 'maden' ? Object.entries(MCOL) : layer === 'yer' ? Object.entries(YCOL) : [[urun + ' (başlıca iller)', '#3bb273']];
+  site.$('#legend').innerHTML = leg.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('');
+  site.$('#notes').innerHTML = `<b>bu katmanda bilinmesi gerekenler</b><ul>${NOTES[layer].map(x => `<li>${x}</li>`).join('')}</ul>`;
+}
+function info(n) {
+  sel = n; const d = POP[site.norm(n)], r = regionOf(n);
+  const crops = Object.entries(URUN).filter(([, v]) => v.split(' ').some(x => site.norm(x) === site.norm(n))).map(([k]) => k);
+  site.$('#info').innerHTML = `<h2>${n}</h2><dl><dt>bölge</dt><dd>${r}</dd>${d ? `<dt>nüfus</dt><dd>${d.pop.toLocaleString('tr-TR')}</dd><dt>yüzölçümü</dt><dd>${d.area.toLocaleString('tr-TR')} km²</dd><dt>yoğunluk</dt><dd>${Math.round(d.pop / d.area)} kişi/km²</dd><dt>rakım (il merkezi)</dt><dd>${d.alt} m</dd>` : ''}${crops.length ? `<dt>öne çıkan ürünler</dt><dd>${crops.join(', ')}</dd>` : ''}</dl>`;
+  draw();
+}
+
+site.$('.layers').onclick = e => { const b = e.target.closest('[data-l]'); if (!b) return; layer = b.dataset.l; site.$$('[data-l]').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+site.$('#urun').innerHTML = Object.keys(URUN).map(k => `<option>${k}</option>`).join('');
+site.$('#urun').onchange = e => { urun = e.target.value; draw(); };
+site.$('#map').onclick = e => { const p = e.target.closest('path'); if (p) info(p.dataset.n); };
+
+Promise.all([fetch('/games/sehir/iller.json').then(r => r.json()), fetch('/games/kalabalik/veri.json').then(r => r.json())]).then(([iller, veri]) => {
+  veri.il.forEach(x => POP[site.norm(x.n)] = x);
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  IL = iller.map(il => ({ n: il.n, d: il.r.map(ring => 'M' + ring.map(([x, y]) => { const [a, b] = P(x, y); x0 = Math.min(x0, a); x1 = Math.max(x1, a); y0 = Math.min(y0, b); y1 = Math.max(y1, b); return a + ' ' + b; }).join('L') + 'Z').join('') }));
+  const pad = .2;
+  site.$('#map').setAttribute('viewBox', `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`);
+  site.$('#map').innerHTML = '<g id="il"></g><g id="pt"></g>';
+  draw();
+});
+</script>
+</body>
+</html>

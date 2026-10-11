@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>biyoloji kavram haritaları · YKS · fadimrak</title>
+<meta name="description" content="YKS biyoloji konuları için kavram haritaları: hücre, sınıflandırma, kalıtım, ekosistem, enerji, sistemler">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--green); }
+  .map { padding: 1.1rem 1rem 1.2rem; }
+  .root { display: inline-block; padding: .55rem 1rem; border: 2px solid var(--line); border-radius: 12px; background: var(--green); color: #fff; font-weight: 800; font-size: 1.1rem; box-shadow: 3px 3px 0 var(--sh); }
+  ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.4rem; }
+  ul.tree { padding-left: .9rem; margin-top: .3rem; }
+  ul.tree li { position: relative; padding: .45rem 0 0 1rem; }
+  ul.tree li::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--line); opacity: .45; }
+  ul.tree li:last-child::before { bottom: auto; height: 1.35rem; }
+  ul.tree li::after { content: ''; position: absolute; left: 0; top: 1.35rem; width: .8rem; border-top: 2px solid var(--line); opacity: .45; }
+  .n { display: inline-block; padding: .3rem .65rem; border: 2px solid var(--line); border-radius: 10px; background: var(--card); line-height: 1.35; }
+  .n b { font-weight: 800; }
+  ul.tree > li > .n { background: var(--c, var(--yellow)); color: #1c1a17; font-weight: 700; }
+  ul.tree > li:nth-child(4n+1) { --c: #ffe08a; } ul.tree > li:nth-child(4n+2) { --c: #9cc7ff; } ul.tree > li:nth-child(4n+3) { --c: #b9e3b0; } ul.tree > li:nth-child(4n+4) { --c: #ffc0d6; }
+  .n i { font-style: normal; color: var(--muted); font-size: .88em; }
+  ul.tree > li > .n i { color: #4a4438; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>kavram haritaları</h1><div class="acts"></div></header>
+<main class="wide">
+  <nav class="tabs" id="tabs" aria-label="haritalar"></nav>
+  <div id="maps"></div>
+  <p class="muted small">Haritalar TYT ve AYT biyoloji müfredatının ana başlıklarını özetler. Konuyu çalıştıktan sonra haritayı kapatıp kendin çizmeyi dene, eksik kalan dal tekrar edeceğin yerdir.</p>
+</main>
+<script>
+// [başlık, açıklama?, alt dallar?]  — açıklama " — " ile ayrılır
+const MAPS = {
+  hucre: ['Hücre', [
+    ['Prokaryot hücre — çekirdek ve zarlı organel yok', [['Bakteriler ve arkeler'], ['DNA sitoplazmada (nükleoit), halkasal'], ['Ribozom var; bakterilerde peptidoglikan hücre duvarı']]],
+    ['Ökaryot hücre — çekirdek ve zarlı organeller var', [
+      ['Hücre zarı — fosfolipit çift katman ve proteinler, seçici geçirgen'],
+      ['Zarsız organeller', [['Ribozom — protein sentezi'], ['Sentrozom — hayvan hücresinde, bölünmede iğ iplikleri'], ['Hücre iskeleti — şekil ve hareket']]],
+      ['Tek zarlı organeller', [['Endoplazmik retikulum — granüllü: protein, granülsüz: lipit sentezi'], ['Golgi — paketleme ve salgı'], ['Lizozom — hücre içi sindirim'], ['Koful — depolama'], ['Peroksizom — H₂O₂ yıkımı']]],
+      ['Çift zarlı organeller — kendi DNA ve ribozomları var', [['Mitokondri — oksijenli solunum, ATP üretimi'], ['Kloroplast — fotosentez, yalnızca bitki ve bazı protistlerde']]],
+      ['Çekirdek', [['Çekirdek zarı — porlu çift zar'], ['Kromatin — DNA ve protein'], ['Çekirdekçik — rRNA ve ribozom alt birimleri']]],
+    ]],
+    ['Bitki ve hayvan hücresi farkı', [['Bitkide: selüloz çeper, kloroplast, büyük merkezi koful'], ['Hayvanda: sentrozom, glikojen depolama']]],
+  ]],
+  gecis: ['Madde geçişi', [
+    ['Pasif taşıma — enerji harcanmaz, çok yoğundan az yoğuna', [['Basit difüzyon — O₂, CO₂ gibi küçük moleküller'], ['Kolaylaştırılmış difüzyon — taşıyıcı proteinle, örneğin glikoz'], ['Osmoz — suyun seçici geçirgen zardan geçişi']]],
+    ['Aktif taşıma — ATP harcanır, az yoğundan çok yoğuna', [['Na⁺-K⁺ pompası'], ['Bağırsakta glikoz emilimi']]],
+    ['Kütlesel taşıma', [['Endositoz — fagositoz (katı), pinositoz (sıvı)'], ['Ekzositoz — salgı dışarı atılır']]],
+    ['Ortama göre hücre', [['Hipotonik ortam — hücre su alır, bitkide turgor, alyuvarda hemoliz'], ['Hipertonik ortam — hücre su kaybeder, plazmoliz'], ['İzotonik ortam — net su geçişi yok']]],
+  ]],
+  siniflandirma: ['Canlıların sınıflandırılması', [
+    ['Basamaklar — âlem, şube, sınıf, takım, aile, cins, tür', [['Tür: çiftleşip verimli döl verebilen bireyler'], ['İkili adlandırma: cins adı + tür adı']]],
+    ['Bakteriler ve arkeler — prokaryot', [['Bakteriler: ayrıştırıcı, azot bağlayıcı, hastalık yapıcı'], ['Arkeler: aşırı tuzlu, sıcak, asidik ortamlar']]],
+    ['Protistler', [['Öglena, amip, paramesyum, algler'], ['Ökaryot, çoğu tek hücreli']]],
+    ['Mantarlar', [['Maya, küf, şapkalı mantar'], ['Heterotrof, kitinli hücre duvarı, sporla üreme']]],
+    ['Bitkiler', [['Tohumsuz damarsız — ciğer otu, kara yosunu'], ['Tohumsuz damarlı — eğrelti, at kuyruğu, kibrit otu'], ['Açık tohumlu — çam, ladin, ardıç'], ['Kapalı tohumlu — tek çenekli (buğday, mısır), çift çenekli (fasulye, gül)']]],
+    ['Hayvanlar', [['Omurgasızlar — süngerler, sölenterler, solucanlar, yumuşakçalar, eklembacaklılar, derisi dikenliler'], ['Omurgalılar — balıklar, iki yaşamlılar, sürüngenler, kuşlar, memeliler']]],
+    ['Virüsler — sınıflandırmaya dahil değil', [['Hücresel yapı yok, yalnızca konak hücrede çoğalır']]],
+  ]],
+  bolunme: ['Hücre bölünmesi ve üreme', [
+    ['İnterfaz — DNA eşlenir, organeller çoğalır, hücre büyür'],
+    ['Mitoz', [['Profaz → metafaz → anafaz → telofaz → sitokinez'], ['2n → 2n, iki özdeş hücre'], ['Büyüme, onarım, eşeysiz üreme']]],
+    ['Mayoz', [['Mayoz I — homolog kromozomlar ayrılır, profaz I\'de krossing-over'], ['Mayoz II — kardeş kromatitler ayrılır'], ['2n → n, dört farklı hücre, gamet oluşumu']]],
+    ['Eşeysiz üreme', [['Bölünme, tomurcuklanma, sporla üreme'], ['Rejenerasyon, vejetatif üreme, partenogenez']]],
+    ['Eşeyli üreme', [['Döllenme ile zigot oluşur'], ['Kalıtsal çeşitlilik sağlar']]],
+  ]],
+  kalitim: ['Kalıtım', [
+    ['Temel kavramlar', [['Gen, alel, genotip, fenotip'], ['Homozigot (AA, aa), heterozigot (Aa)'], ['Baskın özellik heterozigotta görünür, çekinik yalnızca aa\'da']]],
+    ['Mendel kalıtımı', [['Monohibrit Aa × Aa → fenotip 3 : 1, genotip 1 : 2 : 1'], ['Dihibrit AaBb × AaBb → 9 : 3 : 3 : 1'], ['Kontrol çaprazlaması: aa ile çaprazla']]],
+    ['Mendel dışı kalıtım', [['Eş baskınlık — AB kan grubu'], ['Eksik baskınlık — Japon gülünde pembe renk'], ['Çok alellilik — ABO kan grubu sistemi']]],
+    ['Eşeye bağlı kalıtım', [['X\'e bağlı çekinik — renk körlüğü, hemofili; erkekte daha sık'], ['Y\'ye bağlı — yalnızca babadan oğula geçer']]],
+    ['Değişkenliğin kaynakları', [['Mutasyon — kalıtsal, DNA değişimi'], ['Modifikasyon — çevre etkisi, kalıtsal değil'], ['Krossing-over ve bağımsız dağılım']]],
+  ]],
+  ekoloji: ['Ekosistem', [
+    ['Cansız bileşenler — ışık, sıcaklık, su, toprak, mineraller'],
+    ['Canlı bileşenler', [['Üreticiler — fotosentez ve kemosentez yapanlar'], ['Tüketiciler — otçul, etçil, hepçil'], ['Ayrıştırıcılar — bakteri ve mantarlar, maddeyi döngüye geri verir']]],
+    ['Enerji akışı', [['Besin zinciri ve besin ağı'], ['Her basamağa enerjinin yaklaşık %10\'u aktarılır'], ['Biyolojik birikim: zehirli madde üst basamakta yoğunlaşır']]],
+    ['Madde döngüleri', [['Su döngüsü'], ['Karbon döngüsü — fotosentez ve solunum'], ['Azot döngüsü — azot bağlama, nitrifikasyon, denitrifikasyon']]],
+    ['Popülasyon ve komünite', [['Taşıma kapasitesi, büyüme eğrileri'], ['Mutualizm (+/+), kommensalizm (+/0), parazitlik (+/−)'], ['Süksesyon: komünitenin zamanla değişimi']]],
+  ]],
+  gen: ['Genden proteine', [
+    ['Nükleik asitler', [['DNA — deoksiriboz, A-T ve G-C, çift zincir'], ['RNA — riboz, A-U ve G-C, tek zincir'], ['RNA çeşitleri: mRNA, tRNA, rRNA']]],
+    ['Replikasyon — DNA kendini eşler', [['Yarı korunumlu eşlenme'], ['Hücre bölünmesinden önce, interfazda']]],
+    ['Transkripsiyon — DNA\'dan mRNA', [['Ökaryotta çekirdekte gerçekleşir']]],
+    ['Translasyon — mRNA\'dan protein', [['Ribozomda, tRNA amino asit taşır'], ['Kodon: üç nükleotit; başlangıç AUG'], ['Bitiş kodonları: UAA, UAG, UGA']]],
+    ['Biyoteknoloji', [['Gen klonlama, PCR, rekombinant DNA'], ['GDO, gen tedavisi, kök hücre']]],
+  ]],
+  enerji: ['Canlılarda enerji', [
+    ['ATP — hücrenin enerji birimi'],
+    ['Fotosentez — kloroplastta', [['Işığa bağımlı tepkimeler — tilakoitte; su parçalanır, O₂, ATP ve NADPH oluşur'], ['Işıktan bağımsız tepkimeler — stromada Calvin döngüsü, CO₂ → glikoz'], ['Etkileyen faktörler: ışık, CO₂, sıcaklık, su, klorofil']]],
+    ['Kemosentez — inorganik maddelerin oksitlenmesiyle', [['Nitrifikasyon ve demir bakterileri']]],
+    ['Oksijenli solunum', [['Glikoliz — sitoplazmada, net 2 ATP'], ['Krebs döngüsü — mitokondri matriksinde'], ['Elektron taşıma sistemi — kristada, en çok ATP burada']]],
+    ['Oksijensiz solunum (fermantasyon)', [['Etil alkol fermantasyonu — maya, CO₂ çıkar'], ['Laktik asit fermantasyonu — kas hücresi, yoğurt bakterileri']]],
+  ]],
+  sistemler: ['İnsan fizyolojisi', [
+    ['Sinir sistemi', [['Merkezi: beyin ve omurilik'], ['Çevresel: somatik ve otonom (sempatik, parasempatik)'], ['Nöron, impuls, sinaps']]],
+    ['Endokrin sistem', [['Hipofiz, tiroit, paratiroit, böbrek üstü, pankreas, eşey bezleri'], ['İnsülin kan şekerini düşürür, glukagon yükseltir']]],
+    ['Destek ve hareket', [['Kemik, kıkırdak, eklem'], ['Çizgili, düz ve kalp kası; aktin ve miyozin']]],
+    ['Sindirim', [['Ağızda karbonhidrat, midede protein sindirimi başlar'], ['İnce bağırsakta sindirim tamamlanır, villuslarda emilim']]],
+    ['Dolaşım ve bağışıklık', [['Küçük dolaşım: kalp → akciğer → kalp'], ['Büyük dolaşım: kalp → vücut → kalp'], ['Doğal ve kazanılmış bağışıklık']]],
+    ['Solunum', [['Gaz değişimi alveollerde difüzyonla'], ['O₂ hemoglobinle, CO₂ çoğunlukla bikarbonat olarak taşınır']]],
+    ['Boşaltım', [['Nefron: süzülme, geri emilim, salgılama'], ['ADH su geri emilimini artırır']]],
+    ['Üreme', [['FSH, LH, östrojen, progesteron'], ['Zigot → blastula → gastrula; üç embriyonik tabaka']]],
+  ]],
+};
+const NAMES = { hucre: 'hücre', gecis: 'madde geçişi', siniflandirma: 'sınıflandırma', bolunme: 'bölünme', kalitim: 'kalıtım', ekoloji: 'ekosistem', gen: 'genden proteine', enerji: 'enerji', sistemler: 'sistemler' };
+const node = ([t, kids]) => {
+  const [a, b] = t.split(' — ');
+  return `<li><span class="n"><b>${a}</b>${b ? ` <i>— ${b}</i>` : ''}</span>${kids ? `<ul>${kids.map(node).join('')}</ul>` : ''}</li>`;
+};
+site.$('#tabs').innerHTML = Object.keys(MAPS).map(k => `<a href="#${k}">${NAMES[k]}</a>`).join('');
+site.$('#maps').innerHTML = Object.entries(MAPS).map(([k, [root, kids]]) => `<section class="panel map" data-tab="${k}"><span class="root">${root}</span><ul class="tree">${kids.map(node).join('')}</ul></section>`).join('');
+</script>
+</body>
+</html>

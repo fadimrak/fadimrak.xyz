@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>oyunlar · fadimrak</title>
-<meta name="description" content="günlük bulmacalar, küçük deneyler ve 3D oyunlar">
+<meta name="description" content="günlük bulmacalar ve küçük deneyler">
 <meta property="og:title" content="oyunlar · fadimrak">
-<meta property="og:description" content="günlük bulmacalar, küçük deneyler ve 3D oyunlar">
+<meta property="og:description" content="günlük bulmacalar ve küçük deneyler">
 <meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
 <script>
   // Ana sayfadan (ya da dışarıdan) gelince ekran siyahtan açılır; oyundan geri dönünce açılmaz
   try { if (!new URL(document.referrer).pathname.startsWith('/games/')) document.documentElement.classList.add('dawn'); }
@@ -21,34 +22,51 @@
   html.dawn body { animation: dawn 1.2s cubic-bezier(.6, 0, .3, 1) both; }
   @keyframes dawn { 0%, 15% { background: #0a0a0a; } 100% { background: var(--bg); } }
   html.dawn .hero, html.dawn header { animation: in .7s .55s both; }
-  .hero { text-align: center; padding: 1.5rem 0 1rem; }
+  .hero { text-align: center; padding: 1rem 0 1rem; }
   .hero h1 { margin: 0; font-size: clamp(3rem, 14vw, 5.5rem); line-height: .95; }
   .hero h1 span { display: inline-block; animation: bob 3s ease-in-out infinite; }
   .hero h1 span:nth-child(2n) { animation-delay: -1.5s; }
   @keyframes bob { 50% { transform: translateY(-6px) rotate(-2deg); } }
   .hero p { color: var(--muted); margin: .6rem 0 0; }
-  h3 { font-size: 1rem; margin: 2.25rem 0 .9rem; display: flex; align-items: center; gap: .6rem; }
-  h3::after { content: ''; flex: 1; height: 2px; background: var(--ink); opacity: .15; border-radius: 2px; }
+  .find { display: flex; flex-direction: column; gap: .7rem; margin: .5rem 0 0; }
+  .find input { width: 100%; }
+  .chips { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .chips .chip { min-height: 36px; }
+  .recent { display: flex; gap: .45rem; flex-wrap: wrap; align-items: center; font-size: .85rem; color: var(--muted); margin-top: 1rem; }
+  .recent a { text-decoration: none; color: var(--ink); }
+  h3 { font-size: 1rem; margin: 2rem 0 .9rem; display: flex; align-items: center; gap: .6rem; }
+  h3::after { content: ''; flex: 1; height: 2px; background: var(--line); opacity: .2; border-radius: 2px; }
   .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 14px; }
-  .game { position: relative; display: flex; gap: 1rem; align-items: flex-start; padding: 1.1rem 1.15rem; background: var(--c); border: 2px solid var(--ink); border-radius: 18px; box-shadow: var(--shadow); text-decoration: none; transition: transform .18s, box-shadow .18s; animation: in .5s both; overflow: hidden; }
-  .game:hover { transform: translate(-2px, -3px) rotate(-.4deg); box-shadow: 6px 7px 0 var(--ink); }
-  .game:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
-  .game .ico { flex: none; width: 56px; height: 56px; display: grid; place-items: center; font-size: 1.9rem; background: var(--card); border: 2px solid var(--ink); border-radius: 14px; transition: transform .3s; }
+  .wrap { position: relative; animation: in .5s both; }
+  .game { display: flex; gap: 1rem; align-items: flex-start; height: 100%; padding: 1.1rem 3rem 1.1rem 1.15rem; background: var(--c); color: var(--on-color); border: 2px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); text-decoration: none; transition: transform .18s, box-shadow .18s; overflow: hidden; }
+  .game:hover { transform: translate(-2px, -3px) rotate(-.4deg); box-shadow: 6px 7px 0 var(--sh); }
+  .game:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--sh); }
+  .game .ico { flex: none; width: 56px; height: 56px; display: grid; place-items: center; background: var(--card); color: var(--ink); border: 2px solid var(--line); border-radius: 14px; transition: transform .3s; }
   .game:hover .ico { transform: rotate(-8deg) scale(1.08); }
   .game h2 { margin: .1rem 0 .3rem; font-size: 1.3rem; line-height: 1.1; }
-  .game p { margin: 0; font-size: .88rem; line-height: 1.4; opacity: .85; }
-  .game .pill { position: absolute; top: .7rem; right: .7rem; font-size: .68rem; font-weight: 800; letter-spacing: .04em; padding: .2rem .55rem; border-radius: 99px; background: var(--ink); color: var(--bg); }
-  .game.light { color: #fff; } .game .ico { color: var(--ink); }
+  .game p { margin: 0; font-size: .88rem; line-height: 1.4; opacity: .9; }
+  .game .pill { display: inline-block; vertical-align: middle; margin-left: .35rem; font-family: 'Outfit', sans-serif; font-size: .64rem; font-weight: 800; letter-spacing: .04em; padding: .15rem .5rem; border-radius: 99px; background: #1c1a17; color: #f6f0e4; }
+  .game.light { color: #fff; }
+  .fav { position: absolute; top: .55rem; right: .55rem; width: 40px; height: 40px; min-height: 0; padding: 0; border-radius: 99px; box-shadow: none; border: 2px solid transparent; background: transparent; color: #1c1a17; }
+  .fav:hover:not(:disabled) { transform: none; box-shadow: none; background: rgba(255,255,255,.35); }
+  .fav svg { width: 22px; height: 22px; }
+  .fav[aria-pressed=true] svg { fill: #ffd23f; }
+  .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
   footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 3rem; }
 </style>
 </head>
 <body>
-<header><a class="back" href="/">← fadimrak</a><span></span><span></span></header>
+<header><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
 <main>
   <div class="hero">
     <h1><span>o</span><span>y</span><span>u</span><span>n</span><span>l</span><span>a</span><span>r</span></h1>
     <p>bulmacalar, deneyler, küçük dünyalar</p>
   </div>
+  <div class="find">
+    <input id="q" type="search" placeholder="oyun ara" aria-label="oyun ara">
+    <div class="chips" id="cats" role="group" aria-label="kategoriler"></div>
+  </div>
+  <div class="recent" id="recent" hidden></div>
   <div id="list"></div>
   <footer>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>
 </main>
@@ -64,25 +82,69 @@ const ICONS = {
   hafta: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" stroke-width="3"/>',
 };
 const icon = slug => `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[slug]}</svg>`;
-const GROUPS = [
-  ['günlük bulmacalar', [
-    ['kelime', 'kelime', '5 harfli kelimeyi 6 denemede bul.', 'var(--green)', 'light', 'günlük'],
-    ['baglanti', 'bağlantı', "16 kelimeyi 4'lü gruplara ayır.", 'var(--purple)', 'light', 'günlük'],
-    ['sehir', 'şehir', 'Silüetinden ili bul.', 'var(--teal)', 'light', 'günlük'],
-    ['yil', 'yıl', 'Tarihte bugün ne oldu, hangi yıl?', 'var(--orange)', '', 'günlük'],
-  ]],
-  ['deneyler', [
-    ['kalabalik', 'hangisi daha?', 'Kalabalık mı, büyük mü, yüksek mi? Seriyi bozma.', 'var(--pink)', '', ''],
-    ['robot', 'ben robot değilim', 'Giderek saçmalaşan doğrulama testleri.', 'var(--blue)', 'light', ''],
-    ['hafta', 'hayatın haftaları', 'Hayatın, kare kare.', '#ffb4a2', '', ''],
-  ]],
+const star = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
+
+// [klasör, ad, açıklama, renk, yazı rengi, kategoriler, grup]
+const GAMES = [
+  ['kelime', 'kelime', '5 harfli kelimeyi 6 denemede bul.', 'var(--green)', 'light', ['günlük', 'kelime'], 'günlük bulmacalar'],
+  ['baglanti', 'bağlantı', "16 kelimeyi 4'lü gruplara ayır.", 'var(--purple)', 'light', ['günlük', 'kelime'], 'günlük bulmacalar'],
+  ['sehir', 'şehir', 'Silüetinden ili bul.', 'var(--teal)', 'light', ['günlük', 'harita'], 'günlük bulmacalar'],
+  ['yil', 'yıl', 'Tarihte bugün ne oldu, hangi yıl?', 'var(--orange)', '', ['günlük', 'tarih'], 'günlük bulmacalar'],
+  ['kalabalik', 'hangisi daha?', 'Kalabalık mı, büyük mü, yüksek mi? Seriyi bozma.', 'var(--pink)', '', ['harita', 'sayı'], 'deneyler'],
+  ['robot', 'ben robot değilim', 'Giderek saçmalaşan doğrulama testleri.', 'var(--blue)', 'light', ['eğlence'], 'deneyler'],
+  ['hafta', 'hayatın haftaları', 'Hayatın, kare kare.', '#ffb4a2', '', ['sayı'], 'deneyler'],
 ];
-let k = 0;
-const base = document.documentElement.classList.contains('dawn') ? .6 : 0;
-document.getElementById('list').innerHTML = GROUPS.map(([title, games]) =>
-  `<h3>${title}</h3><div class="list">${games.map(([slug, name, desc, c, cls, tag]) =>
-    `<a class="game ${cls}" href="${slug}/" style="--c:${c};animation-delay:${base + k++ * .05}s">
-      <div class="ico">${icon(slug)}</div><div><h2>${name}</h2><p>${desc}</p></div>${tag ? `<span class="pill">${tag}</span>` : ''}</a>`).join('')}</div>`).join('');
+const CATS = ['tümü', 'favoriler', 'günlük', 'kelime', 'harita', 'tarih', 'sayı', 'eğlence'];
+let cat = 'tümü', favs = store.get('games-favs', []);
+
+const card = (g, i) => {
+  const [slug, name, desc, c, cls, cats] = g, on = favs.includes(slug);
+  return `<div class="wrap" style="animation-delay:${i * .04}s"><a class="game ${cls}" href="${slug}/" style="--c:${c}">
+    <div class="ico">${icon(slug)}</div><div><h2>${name}${cats.includes('günlük') ? '<span class="pill">günlük</span>' : ''}</h2><p>${desc}</p></div></a>
+    <button class="fav" data-fav="${slug}" aria-pressed="${on}" aria-label="${name}: favori">${star}</button></div>`;
+};
+
+function render() {
+  const q = site.norm(site.$('#q').value.trim());
+  const hit = g => (!q || site.norm(g[1] + ' ' + g[2] + ' ' + g[5].join(' ')).includes(q))
+    && (cat === 'tümü' || (cat === 'favoriler' ? favs.includes(g[0]) : g[5].includes(cat)));
+  const shown = GAMES.filter(hit);
+  let html = '';
+  if (!q && cat === 'tümü') {
+    const fav = GAMES.filter(g => favs.includes(g[0]));
+    if (fav.length) html += `<h3>favoriler</h3><div class="list">${fav.map(card).join('')}</div>`;
+    for (const grp of [...new Set(GAMES.map(g => g[6]))]) html += `<h3>${grp}</h3><div class="list">${GAMES.filter(g => g[6] === grp).map(card).join('')}</div>`;
+  } else {
+    html = shown.length ? `<h3>${shown.length} oyun</h3><div class="list">${shown.map(card).join('')}</div>`
+      : `<p class="empty">${cat === 'favoriler' && !q ? 'Henüz favori yok. Kartların köşesindeki yıldıza bas.' : 'Bu aramaya uyan oyun yok.'}</p>`;
+  }
+  site.$('#list').innerHTML = html;
+}
+
+site.$('#cats').innerHTML = CATS.map(c => `<button class="chip" data-cat="${c}" aria-pressed="${c === cat}">${c}</button>`).join('');
+site.$('#cats').onclick = e => {
+  const b = e.target.closest('[data-cat]'); if (!b) return;
+  cat = b.dataset.cat;
+  site.$$('#cats .chip').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
+  render();
+};
+site.$('#cats .chip').classList.add('on');
+site.$('#q').oninput = render;
+site.$('#list').onclick = e => {
+  const b = e.target.closest('[data-fav]'); if (!b) return;
+  const s = b.dataset.fav;
+  favs = favs.includes(s) ? favs.filter(x => x !== s) : [...favs, s];
+  store.set('games-favs', favs);
+  toast(favs.includes(s) ? 'favorilere eklendi' : 'favorilerden çıkarıldı');
+  render();
+};
+
+const recent = store.get('games-recent', []).map(s => GAMES.find(g => g[0] === s)).filter(Boolean);
+if (recent.length) {
+  site.$('#recent').hidden = false;
+  site.$('#recent').innerHTML = 'son oynananlar: ' + recent.map(g => `<a class="chip" href="${g[0]}/">${g[1]}</a>`).join('');
+}
+render();
 </script>
 </body>
 </html>

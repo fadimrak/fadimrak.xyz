@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>felsefe sözlüğü · YKS · fadimrak</title>
+<meta name="description" content="YKS felsefe, mantık, psikoloji ve sosyoloji kavramları sözlüğü">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .bar2 { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .bar2 input { flex: 1 1 220px; }
+  .areas { display: flex; gap: .35rem; flex-wrap: wrap; margin: .7rem 0; }
+  dl.gl { margin: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  dl.gl > div { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: .75rem .9rem; box-shadow: 2px 2px 0 var(--sh); }
+  dl.gl dt { font-weight: 800; font-size: 1.02rem; display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
+  dl.gl dt small { font-weight: 700; font-size: .68rem; padding: .1rem .45rem; border-radius: 99px; background: var(--soft); color: var(--muted); white-space: nowrap; }
+  dl.gl dd { margin: .3rem 0 0; line-height: 1.5; font-size: .93rem; }
+  dl.gl dd i { font-style: normal; color: var(--muted); }
+  .count { color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>felsefe sözlüğü</h1><div class="acts"></div></header>
+<main class="wide">
+  <div class="bar2"><input id="q" type="search" placeholder="kavram ya da filozof ara" aria-label="kavram ara"><span class="count" id="count"></span></div>
+  <div class="areas" id="areas" role="group" aria-label="alanlar"></div>
+  <dl class="gl" id="gl"></dl>
+</main>
+<script>
+// [kavram, alan, tanım, ilgili ad / örnek]
+const G = [
+  ['Felsefe', 'genel', 'Varlık, bilgi ve değer üzerine akla dayalı, sistemli ve eleştirel düşünme etkinliği.', 'Sözcük Yunanca "philosophia", bilgelik sevgisi.'],
+  ['Arkhe', 'genel', 'İlk Çağ filozoflarının evrenin temelinde aradığı ilk madde, ana ilke.', 'Thales: su, Anaksimenes: hava, Herakleitos: ateş.'],
+  ['Refleksif düşünme', 'genel', 'Düşüncenin kendi üzerine dönmesi; düşünmeyi düşünme.', ''],
+  ['Aporia', 'genel', 'Çözümsüz görünen düşünsel güçlük, çıkmaz.', 'Sokrates\'in diyaloglarında sık görülür.'],
+  ['Diyalektik', 'genel', 'Karşıt düşüncelerin çatışmasıyla gerçeğe ulaşma yöntemi.', 'Hegel: tez, antitez, sentez.'],
+  ['Doğru bilgi', 'bilgi', 'Nesnesine uygun, tutarlı ve temellendirilmiş bilgi.', ''],
+  ['Süje (özne)', 'bilgi', 'Bilen, bilme etkinliğini gerçekleştiren varlık.', ''],
+  ['Obje (nesne)', 'bilgi', 'Bilinen, bilgiye konu olan şey.', ''],
+  ['Rasyonalizm (akılcılık)', 'bilgi', 'Doğru bilginin kaynağı akıldır; doğuştan fikirler vardır.', 'Platon, Descartes, Spinoza, Leibniz.'],
+  ['Empirizm (deneycilik)', 'bilgi', 'Bilginin kaynağı deneyimdir; zihin doğuşta boş bir levhadır (tabula rasa).', 'Locke, Berkeley, Hume.'],
+  ['Kritisizm (eleştiricilik)', 'bilgi', 'Bilgi akıl ve deneyimin birlikte çalışmasıyla oluşur; aklın sınırları belirlenmelidir.', 'Kant: "Kavramsız görüler kör, görüsüz kavramlar boştur."'],
+  ['Pozitivizm (olguculuk)', 'bilgi', 'Bilgi yalnızca gözlenebilir olgulara dayanır; metafizik anlamsızdır.', 'Auguste Comte; üç hâl yasası.'],
+  ['Pragmatizm (faydacılık)', 'bilgi', 'Doğru bilgi işe yarayan, pratikte fayda sağlayan bilgidir.', 'William James, John Dewey.'],
+  ['Entüisyonizm (sezgicilik)', 'bilgi', 'Gerçeğe en iyi sezgiyle ulaşılır.', 'Henri Bergson, Gazali.'],
+  ['Septisizm (şüphecilik)', 'bilgi', 'Kesin bilgiye ulaşmanın mümkün olmadığını ya da ondan şüphe edilmesi gerektiğini savunur.', 'Pyrrhon (mutlak şüphe), Descartes (yöntemsel şüphe).'],
+  ['Dogmatizm', 'bilgi', 'Bilginin mümkün olduğunu ve sorgulanmadan kabul edilebileceğini savunan tutum.', ''],
+  ['Fenomenoloji', 'bilgi', 'Bilince görünen olguları ön yargısız betimleyerek özlere ulaşma yöntemi.', 'Edmund Husserl.'],
+  ['Analitik felsefe', 'bilgi', 'Felsefi sorunları dilin mantıksal çözümlemesiyle ele alır.', 'Wittgenstein, Russell, Viyana Çevresi.'],
+  ['Tümevarım', 'mantık', 'Tek tek durumlardan genel bir sonuca ulaşma.', 'Bilimde gözlemden yasaya.'],
+  ['Tümdengelim', 'mantık', 'Genel önermelerden zorunlu olarak özel bir sonuç çıkarma.', 'Kıyas bir tümdengelimdir.'],
+  ['Analoji', 'mantık', 'Benzerliklerden yola çıkarak bir sonuca varma.', 'Sonucu olasılıklıdır.'],
+  ['Kavram', 'mantık', 'Nesnelerin ortak özelliklerini kapsayan zihinsel tasarım.', 'İçlem ve kaplam kavramın iki yönüdür.'],
+  ['İçlem', 'mantık', 'Bir kavramın kapsadığı ortak niteliklerin tümü.', 'İçlem artarsa kaplam azalır.'],
+  ['Kaplam', 'mantık', 'Bir kavramın işaret ettiği nesnelerin tümü.', ''],
+  ['Önerme', 'mantık', 'Doğru ya da yanlış olabilen, bir yargı bildiren cümle.', 'Soru ve emir cümleleri önerme değildir.'],
+  ['Kıyas', 'mantık', 'İki öncülden zorunlu bir sonuç çıkaran akıl yürütme.', 'Aristoteles; büyük önerme, küçük önerme, sonuç.'],
+  ['Geçerlilik', 'mantık', 'Öncüller doğru kabul edildiğinde sonucun zorunlu olarak doğru olması; biçimle ilgilidir.', ''],
+  ['Tanım', 'mantık', 'Bir kavramın ne olduğunu, cins ve ayrım belirterek açıklama.', 'Gerçek, adsal, ilişkisel tanım.'],
+  ['Totoloji', 'mantık', 'Tüm olasılıklarda doğru olan önerme.', 'p ∨ ¬p'],
+  ['Çelişki', 'mantık', 'Tüm olasılıklarda yanlış olan önerme.', 'p ∧ ¬p'],
+  ['Ontoloji', 'varlık', 'Varlığı varlık olarak inceleyen felsefe dalı.', ''],
+  ['Metafizik', 'varlık', 'Duyular ötesi varlığı ve ilk nedenleri araştıran alan.', 'Aristoteles\'in "ilk felsefe" dediği alan.'],
+  ['Nihilizm', 'varlık', 'Varlığın, değerlerin ya da bilginin olmadığını savunan görüş.', 'Gorgias; ahlakta Nietzsche ile anılır.'],
+  ['İdealizm', 'varlık', 'Varlığın özü düşünce, idea ya da bilinçtir.', 'Platon (idealar), Hegel, Berkeley.'],
+  ['Materyalizm', 'varlık', 'Varlığın özü maddedir; bilinç de maddenin ürünüdür.', 'Demokritos (atomculuk), Marx.'],
+  ['Düalizm', 'varlık', 'Varlık iki ayrı tözden oluşur: madde ve ruh (düşünce).', 'Descartes.'],
+  ['Monizm', 'varlık', 'Varlığın tek bir ilkeye dayandığını savunan görüş.', 'Spinoza.'],
+  ['Oluş', 'varlık', 'Varlığın sürekli değişim içinde olması.', 'Herakleitos: "Aynı ırmakta iki kez yıkanılmaz."'],
+  ['Varoluşçuluk', 'varlık', 'İnsanın önce var olduğunu, özünü sonra kendi seçimleriyle oluşturduğunu savunur.', 'Sartre: "Varoluş özden önce gelir." Kierkegaard, Heidegger.'],
+  ['Etik (ahlak felsefesi)', 'ahlak', 'İyi ve kötüyü, doğru davranışın ölçütlerini sorgulayan felsefe dalı.', ''],
+  ['Hedonizm (hazcılık)', 'ahlak', 'En yüksek iyi hazdır; mutluluk hazla elde edilir.', 'Aristippos, Epikuros.'],
+  ['Eudaimonia', 'ahlak', 'Mutluluk; erdemle yaşanan iyi yaşam.', 'Aristoteles.'],
+  ['Ödev ahlakı', 'ahlak', 'Eylemin değeri sonucundan değil, ödev bilinciyle yapılmasından gelir.', 'Kant, kategorik buyruk.'],
+  ['Kategorik buyruk', 'ahlak', 'Koşulsuz ahlak yasası: öyle davran ki eyleminin ilkesi evrensel bir yasa olabilsin.', 'Kant.'],
+  ['Utilitarizm (faydacılık)', 'ahlak', 'Doğru eylem en çok sayıda insana en çok mutluluğu sağlayandır.', 'Bentham, J. S. Mill.'],
+  ['Egoizm', 'ahlak', 'Ahlaki eylemin temeli bireyin kendi çıkarıdır.', 'Hobbes.'],
+  ['Erdem', 'ahlak', 'İyiyi sürekli yapma eğilimi, ahlaki yetkinlik.', 'Aristoteles: iki aşırılık arasındaki orta yol.'],
+  ['Özgürlük', 'ahlak', 'İnsanın seçim yapabilme ve eylemlerinin sorumluluğunu taşıyabilme durumu.', ''],
+  ['Determinizm', 'ahlak', 'Her olayın kendinden önceki nedenlerce belirlendiğini savunan görüş.', 'Spinoza.'],
+  ['İndeterminizm', 'ahlak', 'İnsan iradesinin özgür olduğunu, her şeyin önceden belirlenmediğini savunur.', 'Sartre, Kant.'],
+  ['Vicdan', 'ahlak', 'Kişinin kendi davranışlarını ahlaki açıdan değerlendiren iç sesi.', ''],
+  ['Devlet', 'siyaset', 'Belirli bir toprak üzerinde egemenliğe sahip siyasi örgütlenme.', ''],
+  ['İktidar', 'siyaset', 'Toplum üzerinde karar alma ve uygulama gücü.', ''],
+  ['Meşruiyet', 'siyaset', 'İktidarın toplum tarafından haklı ve geçerli kabul edilmesi.', 'Weber: geleneksel, karizmatik, yasal otorite.'],
+  ['Toplum sözleşmesi', 'siyaset', 'Devletin bireyler arasındaki bir anlaşmayla kurulduğu düşüncesi.', 'Hobbes, Locke, Rousseau.'],
+  ['Ütopya', 'siyaset', 'İdeal toplum ve devlet tasarımı.', 'Platon "Devlet", Farabi "Erdemli Şehir", Thomas More "Ütopya".'],
+  ['Estetik', 'sanat', 'Güzeli ve sanatı inceleyen felsefe dalı.', 'Terimi Baumgarten kullanmıştır.'],
+  ['Taklit (mimesis)', 'sanat', 'Sanatın doğayı ya da gerçekliği taklit ettiği görüşü.', 'Platon, Aristoteles.'],
+  ['Yaratma kuramı', 'sanat', 'Sanatın sanatçının yaratıcı dehasının ürünü olduğu görüşü.', 'Kant, Bergson.'],
+  ['Teizm', 'din', 'Tanrı\'nın varlığını, evreni yarattığını ve ona müdahale ettiğini kabul eden görüş.', ''],
+  ['Deizm', 'din', 'Tanrı\'nın evreni yarattığını ama ona müdahale etmediğini savunur.', 'Voltaire, Rousseau.'],
+  ['Panteizm', 'din', 'Tanrı ile evrenin bir ve aynı olduğu görüşü.', 'Spinoza.'],
+  ['Ateizm', 'din', 'Tanrı\'nın varlığını kabul etmeyen görüş.', ''],
+  ['Agnostisizm', 'din', 'Tanrı\'nın varlığının ya da yokluğunun bilinemeyeceğini savunan görüş.', ''],
+  ['Paradigma', 'bilim', 'Bir bilim topluluğunun paylaştığı kuram, yöntem ve varsayımlar bütünü.', 'Thomas Kuhn; bilimsel devrimler.'],
+  ['Yanlışlanabilirlik', 'bilim', 'Bilimsel bir kuramın yanlışlanma olasılığına açık olması gerektiği ilkesi.', 'Karl Popper.'],
+  ['Doğrulanabilirlik', 'bilim', 'Anlamlı bir önermenin deneyimle doğrulanabilir olması gerektiği ilkesi.', 'Viyana Çevresi.'],
+  ['Hipotez', 'bilim', 'Gözlenen bir olguyu açıklamak için ileri sürülen, sınanacak geçici açıklama.', ''],
+  ['Algı', 'psikoloji', 'Duyumların beyin tarafından anlamlandırılması.', 'Gestalt ilkeleri: benzerlik, yakınlık, tamamlama.'],
+  ['Duyum', 'psikoloji', 'Duyu organlarının uyarıcıyı alması.', ''],
+  ['Klasik koşullanma', 'psikoloji', 'Nötr bir uyarıcının koşulsuz uyarıcıyla eşleşerek tepki doğurması.', 'Pavlov.'],
+  ['Edimsel koşullanma', 'psikoloji', 'Davranışın sonucundaki pekiştireç ya da cezayla öğrenme.', 'Skinner.'],
+  ['Savunma mekanizması', 'psikoloji', 'Kaygıyla başa çıkmak için bilinçdışı kullanılan yollar.', 'Bastırma, yansıtma, yüceltme, mantığa bürüme.'],
+  ['Bellek', 'psikoloji', 'Bilgiyi kodlama, depolama ve geri getirme süreci.', 'Duyusal, kısa süreli, uzun süreli bellek.'],
+  ['Sosyalleşme', 'sosyoloji', 'Bireyin toplumun değer ve normlarını öğrenerek toplumsal varlık hâline gelmesi.', ''],
+  ['Statü', 'sosyoloji', 'Bireyin toplumdaki konumu.', 'Doğuştan (verilmiş) ve kazanılmış statü.'],
+  ['Rol', 'sosyoloji', 'Bir statüden beklenen davranışlar.', ''],
+  ['Kurum', 'sosyoloji', 'Toplumsal ihtiyaçları karşılayan, kalıcı kural ve ilişkiler bütünü.', 'Aile, eğitim, ekonomi, din, siyaset.'],
+  ['Toplumsal tabakalaşma', 'sosyoloji', 'Toplumun gelir, statü ve güce göre katmanlara ayrılması.', ''],
+  ['Kültür', 'sosyoloji', 'Bir toplumun maddi ve manevi değerlerinin tümü.', ''],
+];
+const AREAS = ['hepsi', 'genel', 'bilgi', 'varlık', 'ahlak', 'siyaset', 'sanat', 'din', 'bilim', 'mantık', 'psikoloji', 'sosyoloji'];
+let area = 'hepsi';
+site.$('#areas').innerHTML = AREAS.map(a => `<button class="chip ${a === area ? 'on' : ''}" data-a="${a}">${a}</button>`).join('');
+site.$('#areas').onclick = e => { const b = e.target.closest('[data-a]'); if (!b) return; area = b.dataset.a; site.$$('#areas .chip').forEach(x => x.classList.toggle('on', x === b)); render(); };
+function render() {
+  const q = site.norm(site.$('#q').value.trim());
+  const list = G.filter(g => (area === 'hepsi' || g[1] === area) && (!q || site.norm(g.join(' ')).includes(q))).sort((a, b) => a[0].localeCompare(b[0], 'tr'));
+  site.$('#gl').innerHTML = list.map(([k, a, t, x]) => `<div><dt>${k}<small>${a}</small></dt><dd>${t}${x ? ` <i>${x}</i>` : ''}</dd></div>`).join('') || '<p class="muted">Sonuç yok.</p>';
+  site.$('#count').textContent = list.length + ' kavram';
+}
+site.$('#q').oninput = render;
+render();
+</script>
+</body>
+</html>

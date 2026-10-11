@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Türkçe · YKS · fadimrak</title>
+<meta name="description" content="TYT Türkçe dil bilgisi özetleri ve paragraf çözme teknikleri">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--red); }
+  .notes { columns: 2 340px; column-gap: 14px; }
+  .notes .panel { break-inside: avoid; margin: 0 0 14px; padding: 1rem 1.1rem; }
+  .notes h2 { margin: 0 0 .5rem; font-size: 1.15rem; }
+  .notes ul { margin: 0; padding-left: 1.1rem; }
+  .notes li { margin: .35rem 0; line-height: 1.5; }
+  .notes em { font-style: normal; background: color-mix(in srgb, var(--yellow) 45%, transparent); padding: 0 .2rem; border-radius: 4px; }
+  .notes .ex { color: var(--muted); font-size: .9em; }
+  .steps { counter-reset: s; list-style: none; padding: 0 !important; }
+  .steps li { counter-increment: s; position: relative; padding-left: 2rem; }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: .05rem; width: 1.45rem; height: 1.45rem; border-radius: 99px; background: var(--red); color: #fff; font-weight: 800; font-size: .8rem; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>Türkçe</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="bölümler"><a href="#dilbilgisi">dil bilgisi</a><a href="#paragraf">paragraf teknikleri</a></nav>
+
+<section data-tab="dilbilgisi"><div class="notes">
+  <div class="panel"><h2>Ses olayları</h2><ul>
+    <li><b>Ünlü daralması:</b> a, e ile biten fiiller -yor alınca ı, i, u, ü olur. <span class="ex">başla → başlıyor, de → diyor</span></li>
+    <li><b>Ünlü düşmesi:</b> ikinci hecedeki dar ünlü, ünlüyle başlayan ek gelince düşer. <span class="ex">ağız → ağzı, burun → burnu</span></li>
+    <li><b>Ünsüz yumuşaması:</b> p, ç, t, k ünlüyle başlayan ek alınca b, c, d, ğ/g olur. <span class="ex">kitap → kitabı, ağaç → ağacı</span></li>
+    <li><b>Ünsüz benzeşmesi (sertleşme):</b> f, s, t, k, ç, ş, h, p ile biten sözcüğe gelen c, d, g sertleşir. <span class="ex">kitapçı, sınıfta</span></li>
+    <li><b>Kaynaştırma:</b> iki ünlü yan yana gelmesin diye y, ş, s, n girer. <span class="ex">masa-y-a, iki-şer, oda-s-ı</span></li>
+    <li><b>Ulama:</b> ünsüzle biten sözcük ünlüyle başlayanla okunurken birleşir; yazıya yansımaz.</li>
+    <li><b>Ses türemesi:</b> bazı sözcüklerde ses eklenir. <span class="ex">his → hissi, hak → hakkı</span></li>
+    <li><b>Ses düşmesi (birleşik sözcükte):</b> <span class="ex">kahve altı → kahvaltı, cuma ertesi → cumartesi</span></li>
+  </ul></div>
+  <div class="panel"><h2>Ünlü uyumları</h2><ul>
+    <li><b>Büyük ünlü uyumu:</b> ilk hecede kalın ünlü (a, ı, o, u) varsa sonrakiler de kalın, ince ünlü (e, i, ö, ü) varsa ince olur.</li>
+    <li><b>Küçük ünlü uyumu:</b> düz ünlüden sonra düz, yuvarlaktan sonra dar yuvarlak (u, ü) ya da düz geniş (a, e) gelir.</li>
+    <li>-ken, -ki, -leyin, -yor, -mtırak ekleri ve alıntı sözcükler uyuma girmeyebilir. <span class="ex">gelirken, kitap, otobüs</span></li>
+  </ul></div>
+  <div class="panel"><h2>Yazım kuralları</h2><ul>
+    <li><b>de / da:</b> bağlaçsa ayrı, hâl ekiyse bitişik. Çıkarınca anlam bozulmuyorsa bağlaçtır. <span class="ex">Sen <em>de</em> gel. / Evde kaldım.</span></li>
+    <li><b>ki:</b> bağlaç ayrı, ilgi eki (-ki) ve sıfat yapan -ki bitişik. <span class="ex">Duydum <em>ki</em> … / benimki, yarınki</span></li>
+    <li><b>mi:</b> soru eki her zaman ayrı yazılır, sonrasındaki ekler ona bitişir. <span class="ex">Geldin <em>mi</em>? Geliyor <em>musunuz</em>?</span></li>
+    <li><b>Büyük harf:</b> cümle başı, özel adlar, unvanlar, kurum adlarının her sözcüğü. Ay ve gün adları belirli bir tarih bildiriyorsa büyük yazılır. <span class="ex">29 Ekim 1923</span></li>
+    <li><b>Sayılar:</b> ayrı yazılır. <span class="ex">on beş, iki yüz</span> Para ve senetlerde bitişik yazılabilir.</li>
+    <li><b>Birleşik sözcükler:</b> anlam kayması varsa bitişik. <span class="ex">hanımeli, aslanağzı</span> Etmek, olmak gibi yardımcı fiiller ses düşmesi ya da türemesi varsa bitişik, yoksa ayrı. <span class="ex">kaybetmek, hissetmek / yardım etmek</span></li>
+    <li><b>Kısaltmalar:</b> kurum kısaltmalarına gelen ekler okunuşa göre ve kesmeyle. <span class="ex">TDK'nin, THY'de</span></li>
+    <li><b>Pekiştirmeler bitişik:</b> <span class="ex">bembeyaz, sapasağlam</span>; ikilemeler ayrı: <span class="ex">yavaş yavaş, ev bark</span></li>
+  </ul></div>
+  <div class="panel"><h2>Noktalama işaretleri</h2><ul>
+    <li><b>Virgül:</b> eş görevli sözcükleri ayırır; uzun cümlelerde özneyi belirtir; sıralı cümleleri ayırır; hitaptan sonra gelir.</li>
+    <li><b>Noktalı virgül:</b> ögeleri arasında virgül bulunan sıralı cümleleri ayırır; virgülle ayrılmış tür ve takımları birbirinden ayırır.</li>
+    <li><b>İki nokta:</b> açıklama ve örnekten önce, alıntıdan önce konur. Sonrasında cümle gelirse büyük harfle başlar.</li>
+    <li><b>Üç nokta:</b> tamamlanmamış cümlenin sonunda, söylenmek istenmeyen yerde, sayılmayan örneklerde.</li>
+    <li><b>Kesme işareti:</b> özel adlara gelen çekim eklerini ayırır. Kurum, kuruluş ve yapıt adlarına gelen eklerde kullanılmaz. <span class="ex">Türk Dil Kurumunun</span></li>
+    <li><b>Soru işareti:</b> soru eki ya da soru sözcüğü olan cümlenin sonunda; parantez içinde kuşku bildirir.</li>
+    <li><b>Ünlem:</b> sevinç, korku, şaşma gibi duyguları anlatan cümlelerin sonunda; parantez içinde alay ya da küçümseme bildirir.</li>
+  </ul></div>
+  <div class="panel"><h2>Sözcük türleri</h2><ul>
+    <li><b>İsim (ad):</b> varlıkları karşılar. Özel-cins, somut-soyut, tekil-çoğul-topluluk.</li>
+    <li><b>Sıfat (ön ad):</b> adı niteler ya da belirtir. <span class="ex">kırmızı kalem, üç kitap, bu ev</span></li>
+    <li><b>Zamir (adıl):</b> adın yerini tutar. Kişi, işaret, belgisiz, soru, dönüşlülük (kendi) zamirleri.</li>
+    <li><b>Zarf (belirteç):</b> fiili, fiilimsiyi, sıfatı ya da başka zarfı niteler. Durum, zaman, miktar, yer-yön, soru zarfları.</li>
+    <li><b>Edat (ilgeç):</b> tek başına anlamı yoktur, ilişki kurar. <span class="ex">gibi, için, ile, kadar, göre</span></li>
+    <li><b>Bağlaç:</b> sözcükleri ya da cümleleri bağlar. <span class="ex">ve, ama, çünkü, ya da, de, ki</span></li>
+    <li><b>Ünlem:</b> duyguyu ya da sesi anlatır. <span class="ex">eyvah, hey, of</span></li>
+    <li><b>Fiil (eylem):</b> iş, oluş, durum bildirir; kip ve kişi eki alır.</li>
+    <li class="ex">Tür, sözcüğün cümledeki görevine bakılarak bulunur: <em>güzel</em> çocuk (sıfat), <em>güzel</em> konuştu (zarf).</li>
+  </ul></div>
+  <div class="panel"><h2>Yapı bilgisi</h2><ul>
+    <li><b>Kök:</b> sözcüğün parçalanamayan en küçük anlamlı biçimi; isim kökü ya da fiil kökü olur.</li>
+    <li><b>Yapım eki:</b> yeni sözcük türetir. İsimden isim (-lık, -cı), isimden fiil (-la, -al), fiilden isim (-gı, -ım), fiilden fiil (-dır, -ıl).</li>
+    <li><b>Çekim eki:</b> sözcüğün anlamını değiştirmez. Çoğul, iyelik, hâl, ilgi, eşitlik ekleri ve fiil çekim ekleri.</li>
+    <li><b>Yapıca sözcük:</b> basit (ek yok ya da yalnız çekim eki), türemiş (yapım eki var), birleşik (iki sözcükten).</li>
+  </ul></div>
+  <div class="panel"><h2>Fiilimsiler (eylemsiler)</h2><ul>
+    <li><b>İsim-fiil:</b> -ma, -ış, -mak. <span class="ex">Okumak güzeldir. Bu gidiş iyi değil.</span> Olumsuzluk eki -ma ile karıştırma: <span class="ex">gelme!</span> fiildir.</li>
+    <li><b>Sıfat-fiil:</b> -an, -ası, -mez, -ar, -dık, -acak, -mış. <span class="ex">koşan çocuk, okunacak kitap</span></li>
+    <li><b>Zarf-fiil:</b> -ıp, -arak, -ınca, -dıkça, -ken, -alı, -madan, -casına, -ır … -maz. <span class="ex">Eve gelince aradı.</span></li>
+    <li>Fiilimsiler yan cümle kurar; cümle içinde isim, sıfat ya da zarf görevi üstlenir.</li>
+  </ul></div>
+  <div class="panel"><h2>Cümlenin ögeleri</h2><ol class="steps">
+    <li>Yüklemi bul: işi, oluşu, durumu bildiren çekimli sözcük.</li>
+    <li>Özne: yükleme "kim, ne" sor. Edilgen cümlede sözde özne olur.</li>
+    <li>Nesne: "neyi, kimi" (belirtili) ya da "ne" (belirtisiz) sorusunun cevabı.</li>
+    <li>Dolaylı tümleç: "-e, -de, -den" hâl ekli; "nereye, nerede, nereden, kime" sorusu.</li>
+    <li>Zarf tümleci: "nasıl, ne zaman, ne kadar, niçin"; edat tümleci: "ile, için, gibi" ile kurulan öbek.</li>
+  </ol><ul><li class="ex">Ögeleri ayırırken öbekleri bölme: "Annemin dün aldığı kitabı" tek bir nesnedir.</li></ul></div>
+  <div class="panel"><h2>Cümle türleri</h2><ul>
+    <li><b>Yüklemine göre:</b> isim cümlesi (yüklem isim soylu) ve fiil cümlesi (yüklem çekimli fiil).</li>
+    <li><b>Ögelerin dizilişine göre:</b> kurallı (yüklem sonda), devrik (yüklem sonda değil), eksiltili (yüklem yok).</li>
+    <li><b>Anlamına göre:</b> olumlu, olumsuz, soru, ünlem cümlesi. "Değil" ile olumsuzluk, "-ma" ile olumsuzluk; biçimce olumsuz anlamca olumlu cümleler.</li>
+    <li><b>Yapısına göre:</b> basit (tek yargı), birleşik (yan cümleli: girişik, ki'li, şartlı, iç içe), sıralı (virgül ya da noktalı virgülle bağlı), bağlı (bağlaçla bağlı).</li>
+  </ul></div>
+  <div class="panel"><h2>Fiilde kip, kişi ve çatı</h2><ul>
+    <li><b>Haber kipleri:</b> görülen geçmiş (-dı), öğrenilen geçmiş (-mış), şimdiki zaman (-yor), gelecek (-acak), geniş zaman (-r).</li>
+    <li><b>Dilek kipleri:</b> gereklilik (-malı), dilek-şart (-sa), istek (-a), emir.</li>
+    <li><b>Ek fiil:</b> isimleri yüklem yapar (-dı, -mış, -sa, -dır); fiillerde birleşik zaman kurar. <span class="ex">gelmişti, geliyorsa</span></li>
+    <li><b>Çatı:</b> nesne alıyorsa geçişli, almıyorsa geçişsiz; özne belliyse etken, değilse edilgen; dönüşlü (-ın, -ıl) ve işteş (-ış) çatı.</li>
+  </ul></div>
+  <div class="panel"><h2>Anlatım bozuklukları</h2><ul>
+    <li><b>Gereksiz sözcük:</b> aynı anlamı veren iki sözcük. <span class="ex">"geri iade etmek", "yaklaşık 50 kadar"</span></li>
+    <li><b>Yanlış anlamda sözcük:</b> <span class="ex">"Kalabalık çok yüksekti" (yoğundu)</span></li>
+    <li><b>Mantık hatası ve çelişki:</b> <span class="ex">"Kesinlikle gelebilir" (kesinlik ve olasılık bir arada)</span></li>
+    <li><b>Özne-yüklem uyumsuzluğu:</b> kişi ya da tekil-çoğul uyumu bozuk. <span class="ex">"Sen ve ben gideceğiz" doğru</span></li>
+    <li><b>Eksik öge:</b> ortak kullanılan öge iki yükleme uymuyorsa. <span class="ex">"Bu işe inanıyor ve destekliyorum" → "bu işi" eksik</span></li>
+    <li><b>Ek yanlışları:</b> yanlış hâl eki ya da ek eksikliği; tamlama yanlışları.</li>
+  </ul></div>
+</div></section>
+
+<section data-tab="paragraf"><div class="notes">
+  <div class="panel"><h2>Genel yol</h2><ol class="steps">
+    <li>Önce soru kökünü oku. "değildir, ulaşılamaz, yoktur" gibi olumsuz kökleri işaretle.</li>
+    <li>Paragrafı bir kez, dikkatle oku. İkinci okuma zaman kaybettirir; ilkinde anahtar sözcükleri yakala.</li>
+    <li>Seçenekleri metinle tek tek karşılaştır. Metinde olmayan bilgiyi içeren seçeneği ele.</li>
+    <li>Genel geçer, doğru ama metinde söylenmeyen seçeneklere kanma. Doğru cevap metne dayanmalı.</li>
+    <li>Takıldığın soruyu işaretleyip geç; TYT Türkçede soru başına ortalama 1 dakikan var.</li>
+  </ol></div>
+  <div class="panel"><h2>Ana düşünce ve konu</h2><ul>
+    <li><b>Konu:</b> paragrafın neden söz ettiği. "Ne anlatılıyor?" sorusunun kısa cevabı.</li>
+    <li><b>Ana düşünce:</b> yazarın okura iletmek istediği asıl mesaj. Çoğunlukla ilk ya da son cümlede.</li>
+    <li>"Ama, ancak, oysa, aslında, kısacası, demek ki, bu yüzden" sonrasında gelen cümleye dikkat et; ana düşünce çoğu kez buradadır.</li>
+    <li>Ana düşünce seçeneği paragrafın tamamını kapsar; yalnızca bir cümleyi karşılayan seçenek yardımcı düşüncedir.</li>
+  </ul></div>
+  <div class="panel"><h2>Yardımcı düşünce ve "değinilmemiştir"</h2><ul>
+    <li>Her seçeneği paragrafta ara ve kanıtını bul. Kanıtı olmayan seçenek cevaptır.</li>
+    <li>Eş anlamlı ifadelerle yazılmış seçenekler doğrudur; birebir aynı sözcüğü arama.</li>
+    <li>"Her zaman, asla, hiç, tüm" gibi kesin ifadeler metindeki "bazen, çoğu" ile çelişiyorsa yanlıştır.</li>
+  </ul></div>
+  <div class="panel"><h2>Paragraf tamamlama</h2><ul>
+    <li>Boşluk sondaysa: sonuç ya da ana düşünce cümlesi gelir; önceki cümlelerin toparlaması.</li>
+    <li>Boşluk baştaysa: konuyu açan, genel bir giriş cümlesi gelir; bağlaçla ("çünkü, bu nedenle") başlamaz.</li>
+    <li>Boşluk ortadaysa: önceki ve sonraki cümleyle hem anlam hem bağlaç uyumuna bak.</li>
+  </ul></div>
+  <div class="panel"><h2>Cümle yerleştirme ve akışı bozan cümle</h2><ul>
+    <li>Zamirleri (bu, onlar, böyle) ve bağlaçları izle: bir cümle "bu durum" diyorsa öncesinde o durum anlatılmış olmalı.</li>
+    <li>Akışı bozan cümle konuyla ilgili görünür ama düşüncenin ilerleyişine katkı sağlamaz; çoğu kez başka bir yöne sapar.</li>
+    <li>Cümleyi çıkar, paragrafı yeniden oku: akış düzeliyorsa doğru seçtin.</li>
+  </ul></div>
+  <div class="panel"><h2>Paragrafı ikiye bölme</h2><ul>
+    <li>Konunun ya da bakış açısının değiştiği cümleyi ara.</li>
+    <li>Zaman ya da mekân değişimi, "öte yandan, buna karşın" gibi geçiş ifadeleri yeni paragrafın işaretidir.</li>
+    <li>İkinci paragraf bağlaçla başlıyorsa önceki cümleye bağlıdır; bölünme orada olmaz.</li>
+  </ul></div>
+  <div class="panel"><h2>Anlatım biçimleri</h2><ul>
+    <li><b>Öyküleme:</b> olay, kişi, zaman, mekân; hareket ve oluş anlatılır.</li>
+    <li><b>Betimleme:</b> görüntü çizilir, duyulara seslenir; sıfatlar yoğundur.</li>
+    <li><b>Açıklama:</b> bilgi verir, öğretir; nesnel ve sade.</li>
+    <li><b>Tartışma:</b> bir düşünceyi savunur, karşı görüşü çürütmeye çalışır; okuru ikna etmeyi amaçlar.</li>
+  </ul></div>
+  <div class="panel"><h2>Düşünceyi geliştirme yolları</h2><ul>
+    <li><b>Tanımlama:</b> "… budur, … denir".</li>
+    <li><b>Örneklendirme:</b> "örneğin, mesela" ya da somut bir durum.</li>
+    <li><b>Karşılaştırma:</b> iki şeyin benzer ve farklı yönleri.</li>
+    <li><b>Tanık gösterme:</b> ünlü birinin sözüne başvurma.</li>
+    <li><b>Sayısal verilerden yararlanma:</b> istatistik, yüzde, rakam.</li>
+    <li><b>Benzetme:</b> soyut bir durumu somut bir şeye benzetme.</li>
+  </ul></div>
+  <div class="panel"><h2>Sözel mantık ve grafik</h2><ul>
+    <li>Bilgileri bir tabloya dök; kesin bilgileri önce yerleştir.</li>
+    <li>"Kesinlikle doğrudur" ile "doğru olabilir" farkına dikkat et.</li>
+    <li>Grafik sorularında eksenleri ve birimleri okumadan seçeneklere geçme.</li>
+  </ul></div>
+</div></section>
+</main>
+</body>
+</html>

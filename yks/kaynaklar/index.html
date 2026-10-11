@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ücretsiz kaynaklar · YKS · fadimrak</title>
+<meta name="description" content="YKS için ücretsiz kaynaklar: ÖSYM çıkmış sorular, MEB konu özetleri ve soru bankaları, ders videoları">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .res { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  .res a { display: block; text-decoration: none; background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: .8rem .95rem; box-shadow: 2px 2px 0 var(--sh); transition: transform .15s, box-shadow .15s; }
+  .res a:hover { transform: translate(-1px, -2px); box-shadow: 4px 4px 0 var(--sh); }
+  .res b { display: block; }
+  .res span { display: block; color: var(--muted); font-size: .86rem; margin-top: .2rem; }
+  .res small { display: inline-block; margin-top: .4rem; font-size: .72rem; font-weight: 700; padding: .1rem .45rem; border-radius: 99px; background: var(--soft); }
+  .years { display: flex; gap: .4rem; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>ücretsiz kaynaklar</h1><div class="acts"></div></header>
+<main class="wide">
+  <h2 class="sec">ÖSYM çıkmış sorular</h2>
+  <div class="panel">
+    <p style="margin-top:0">ÖSYM her yıl TYT, AYT ve YDT temel soru kitapçıklarını cevap anahtarlarıyla yayımlar. Deneme gibi süre tutarak çöz, sonra <a href="/araclar/optik/">optik formla</a> kontrol et.</p>
+    <div class="years" id="years"></div>
+    <p class="muted small" style="margin-bottom:0">Tüm liste: <a href="https://www.osym.gov.tr/SinavGrubu/Menu/323" target="_blank" rel="noopener">ÖSYM, Yükseköğretim Kurumları Sınavı</a></p>
+  </div>
+
+  <h2 class="sec">MEB kaynakları</h2>
+  <div class="res">
+    <a href="https://ogmmateryal.eba.gov.tr/konu-ozetleri" target="_blank" rel="noopener"><b>Konu özetleri</b><span>Lise dersleri için PDF konu özetleri, içinde örnek sorular.</span><small>OGM Materyal · PDF</small></a>
+    <a href="https://ogmmateryal.eba.gov.tr/mebi-konu-ozetleri" target="_blank" rel="noopener"><b>MEBİ konu özetleri</b><span>TYT ve AYT için hazırlanmış özet kitapları.</span><small>OGM Materyal · PDF</small></a>
+    <a href="https://ogmmateryal.eba.gov.tr/soru-bankasi" target="_blank" rel="noopener"><b>Soru bankaları</b><span>Ders ve konu bazında soru bankaları.</span><small>OGM Materyal · PDF</small></a>
+    <a href="https://ogmmateryal.eba.gov.tr/yks-konu-pekistirme" target="_blank" rel="noopener"><b>Dört dörtlük konu pekiştirme testleri</b><span>YKS konularına göre kısa testler.</span><small>OGM Materyal · PDF</small></a>
+    <a href="https://ogmmateryal.eba.gov.tr/yks-kampi" target="_blank" rel="noopener"><b>YKS kampı</b><span>Kamp videoları, konu anlatımları ve mini denemeler.</span><small>OGM Materyal · video</small></a>
+    <a href="https://mebi.eba.gov.tr/" target="_blank" rel="noopener"><b>MEBİ</b><span>MEB'in YKS hazırlık platformu: soru çözümleri, denemeler, videolar.</span><small>platform</small></a>
+    <a href="https://www.youtube.com/@mebi" target="_blank" rel="noopener"><b>MEBİ YouTube kanalı</b><span>Ders ve konu anlatım videoları.</span><small>video</small></a>
+    <a href="https://www.eba.gov.tr/" target="_blank" rel="noopener"><b>EBA</b><span>Eğitim Bilişim Ağı, ders içerikleri.</span><small>platform</small></a>
+  </div>
+
+  <h2 class="sec">diğer ücretsiz kaynaklar</h2>
+  <div class="res">
+    <a href="https://tr.khanacademy.org/" target="_blank" rel="noopener"><b>Khan Academy Türkçe</b><span>Matematik ve fen konularında video ve alıştırmalar.</span><small>video · alıştırma</small></a>
+    <a href="https://yokatlas.yok.gov.tr/" target="_blank" rel="noopener"><b>YÖK Atlas</b><span>Bölümlerin taban puanları, başarı sıraları ve kontenjanları. Hedef belirlerken kullan.</span><small>tercih</small></a>
+  </div>
+
+  <h2 class="sec">ders videoları</h2>
+  <p class="muted small">Her ders için YouTube'da oynatma listesi araması açılır. Konuya özel listeler <a href="/yks/konular/">konu listesinde</a> her konunun altında.</p>
+  <div class="res" id="vids"></div>
+
+  <h2 class="sec">PDF bağlantıları</h2>
+  <div class="panel">
+    <p style="margin-top:0">Konu listesinde her konunun altında iki PDF bağlantısı var: MEB konu özetleri ve kendi eklediğin bağlantı. Kendi PDF'lerini başkaları göremeden saklamak istersen <a href="/yks/kasa/">şifreli arşivi</a> kullan.</p>
+    <a class="btn sm" href="/yks/konular/">konu listesine git</a>
+  </div>
+  <p class="muted small">Bu sayfadaki bağlantılar ilgili kurumların kendi sitelerine gider; içerikler o kurumlara aittir.</p>
+</main>
+<script>
+const Y = { 2026: '2026yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2025: '2025yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2024: '2024yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2023: '2023yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2022: '2022yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2021: '2021yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2020: '2020yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2019: '2019yks-tyt-ayt-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari', 2018: '2018yks-tyt-ayt-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari' };
+site.$('#years').innerHTML = Object.keys(Y).sort((a, b) => b - a).map(y => `<a class="btn sm" href="https://www.osym.gov.tr/${Y[y]}" target="_blank" rel="noopener">${y} YKS</a>`).join('');
+fetch('/yks/konular.json').then(r => r.json()).then(d => {
+  site.$('#vids').innerHTML = d.dersler.map(s => {
+    const name = `${s.sinav.toUpperCase()} ${s.ad.replace(/\s*\(.*\)/, '')}`;
+    return `<a href="https://www.youtube.com/results?sp=EgIQAw%3D%3D&search_query=${encodeURIComponent(name + ' kampı')}" target="_blank" rel="noopener"><b>${name}</b><span>oynatma listeleri</span><small>YouTube</small></a>`;
+  }).join('');
+});
+</script>
+</body>
+</html>

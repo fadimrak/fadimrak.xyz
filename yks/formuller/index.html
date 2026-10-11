@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>formüller · YKS · fadimrak</title>
+<meta name="description" content="YKS matematik, geometri, fizik ve kimya formül sayfası">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .fx { columns: 3 300px; column-gap: 14px; }
+  .fc { break-inside: avoid; margin: 0 0 14px; background: var(--card); border: 2px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--sh); padding: .9rem 1rem; }
+  .fc h3 { margin: 0 0 .5rem; font-size: 1.02rem; display: flex; align-items: center; gap: .5rem; }
+  .fc h3::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--purple)); border: 2px solid var(--line); flex: none; }
+  .fc dl { margin: 0; display: grid; gap: .45rem; }
+  .fc dt { font-size: .76rem; color: var(--muted); font-weight: 600; }
+  .fc dd { margin: 0 0 .15rem; font-family: 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif; font-size: 1.05rem; line-height: 1.45; overflow-wrap: anywhere; }
+  .fc table { width: 100%; border-collapse: collapse; font-family: 'Cambria Math', 'Times New Roman', serif; text-align: center; font-size: .95rem; }
+  .fc td, .fc th { border: 1px solid var(--soft); padding: .25rem; }
+  .fc th { font-family: 'Outfit', sans-serif; font-size: .78rem; }
+  .tools { display: flex; justify-content: flex-end; margin-bottom: .6rem; }
+  @media print { .fx { columns: 2; } .fc { box-shadow: none; } }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>formüller</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="dersler"><a href="#matematik">matematik</a><a href="#geometri">geometri</a><a href="#fizik">fizik</a><a href="#kimya">kimya</a></nav>
+<div class="tools noprint"><button class="sm" onclick="print()">yazdır / PDF</button></div>
+
+<section data-tab="matematik"><div class="fx" style="--c:var(--blue)">
+  <div class="fc"><h3>Üslü ve köklü sayılar</h3><dl>
+    <dt>aynı taban</dt><dd>a<sup>m</sup> · a<sup>n</sup> = a<sup>m+n</sup> &nbsp; a<sup>m</sup> / a<sup>n</sup> = a<sup>m−n</sup></dd>
+    <dt>kuvvetin kuvveti</dt><dd>(a<sup>m</sup>)<sup>n</sup> = a<sup>m·n</sup> &nbsp; (a·b)<sup>n</sup> = a<sup>n</sup>·b<sup>n</sup></dd>
+    <dt>negatif ve sıfır üs</dt><dd>a<sup>−n</sup> = 1 / a<sup>n</sup> &nbsp; a<sup>0</sup> = 1 (a ≠ 0)</dd>
+    <dt>kesirli üs</dt><dd>a<sup>m/n</sup> = <sup>n</sup>√(a<sup>m</sup>)</dd>
+    <dt>kök çarpımı</dt><dd>√a · √b = √(a·b) &nbsp; √a / √b = √(a/b)</dd>
+    <dt>eşlenik</dt><dd>(√a − √b)(√a + √b) = a − b</dd>
+  </dl></div>
+  <div class="fc"><h3>Özdeşlikler</h3><dl>
+    <dt>tam kare</dt><dd>(a ± b)<sup>2</sup> = a<sup>2</sup> ± 2ab + b<sup>2</sup></dd>
+    <dt>iki kare farkı</dt><dd>a<sup>2</sup> − b<sup>2</sup> = (a − b)(a + b)</dd>
+    <dt>tam küp</dt><dd>(a + b)<sup>3</sup> = a<sup>3</sup> + 3a<sup>2</sup>b + 3ab<sup>2</sup> + b<sup>3</sup></dd>
+    <dt>küp toplamı ve farkı</dt><dd>a<sup>3</sup> ± b<sup>3</sup> = (a ± b)(a<sup>2</sup> ∓ ab + b<sup>2</sup>)</dd>
+    <dt>üç terimli kare</dt><dd>(a + b + c)<sup>2</sup> = a<sup>2</sup> + b<sup>2</sup> + c<sup>2</sup> + 2(ab + ac + bc)</dd>
+  </dl></div>
+  <div class="fc"><h3>Sayılar</h3><dl>
+    <dt>ardışık sayılar toplamı</dt><dd>1 + 2 + … + n = n(n + 1) / 2</dd>
+    <dt>kareler toplamı</dt><dd>1<sup>2</sup> + 2<sup>2</sup> + … + n<sup>2</sup> = n(n + 1)(2n + 1) / 6</dd>
+    <dt>ilk n tek sayı / ilk n çift sayı</dt><dd>1 + 3 + … = n<sup>2</sup> &nbsp; 2 + 4 + … = n(n + 1)</dd>
+    <dt>terim sayısı</dt><dd>(son − ilk) / artış + 1</dd>
+    <dt>EBOB ve EKOK</dt><dd>a · b = EBOB(a, b) · EKOK(a, b)</dd>
+    <dt>pozitif bölen sayısı (a<sup>x</sup>·b<sup>y</sup>·c<sup>z</sup>)</dt><dd>(x + 1)(y + 1)(z + 1)</dd>
+    <dt>bölme</dt><dd>bölünen = bölen · bölüm + kalan, &nbsp; 0 ≤ kalan &lt; bölen</dd>
+  </dl></div>
+  <div class="fc"><h3>Problemler</h3><dl>
+    <dt>yol</dt><dd>x = v · t</dd>
+    <dt>karşılaşma / yetişme süresi</dt><dd>t = x / (v<sub>1</sub> + v<sub>2</sub>) &nbsp; t = x / (v<sub>1</sub> − v<sub>2</sub>)</dd>
+    <dt>eşit yollarda ortalama hız</dt><dd>2v<sub>1</sub>v<sub>2</sub> / (v<sub>1</sub> + v<sub>2</sub>)</dd>
+    <dt>birlikte iş</dt><dd>1/t<sub>1</sub> + 1/t<sub>2</sub> = 1/t</dd>
+    <dt>kâr yüzdesi</dt><dd>kâr % = (satış − maliyet) / maliyet · 100</dd>
+    <dt>karışım</dt><dd>yüzde = madde / karışım · 100</dd>
+    <dt>basit faiz</dt><dd>faiz = anapara · yüzde · süre / 100</dd>
+  </dl></div>
+  <div class="fc"><h3>Sayma ve olasılık</h3><dl>
+    <dt>permütasyon</dt><dd>P(n, r) = n! / (n − r)!</dd>
+    <dt>kombinasyon</dt><dd>C(n, r) = n! / (r! · (n − r)!) &nbsp; C(n, r) = C(n, n − r)</dd>
+    <dt>dairesel sıralama</dt><dd>(n − 1)!</dd>
+    <dt>tekrarlı permütasyon</dt><dd>n! / (a! · b! · …)</dd>
+    <dt>binom açılımı genel terim</dt><dd>C(n, r) · x<sup>n−r</sup> · y<sup>r</sup>, &nbsp; terim sayısı n + 1</dd>
+    <dt>olasılık</dt><dd>P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</dd>
+    <dt>koşullu olasılık</dt><dd>P(A | B) = P(A ∩ B) / P(B)</dd>
+  </dl></div>
+  <div class="fc"><h3>İkinci derece ve parabol</h3><dl>
+    <dt>diskriminant</dt><dd>Δ = b<sup>2</sup> − 4ac</dd>
+    <dt>kökler</dt><dd>x = (−b ± √Δ) / 2a</dd>
+    <dt>kökler toplamı ve çarpımı</dt><dd>x<sub>1</sub> + x<sub>2</sub> = −b/a &nbsp; x<sub>1</sub> · x<sub>2</sub> = c/a</dd>
+    <dt>tepe noktası T(r, k)</dt><dd>r = −b / 2a &nbsp; k = f(r) = (4ac − b<sup>2</sup>) / 4a</dd>
+    <dt>kökleri verilen denklem</dt><dd>x<sup>2</sup> − (x<sub>1</sub> + x<sub>2</sub>)x + x<sub>1</sub>x<sub>2</sub> = 0</dd>
+  </dl></div>
+  <div class="fc"><h3>Logaritma</h3><dl>
+    <dt>tanım</dt><dd>log<sub>a</sub>b = c ⇔ a<sup>c</sup> = b &nbsp; (a &gt; 0, a ≠ 1, b &gt; 0)</dd>
+    <dt>çarpım ve bölüm</dt><dd>log<sub>a</sub>(xy) = log<sub>a</sub>x + log<sub>a</sub>y &nbsp; log<sub>a</sub>(x/y) = log<sub>a</sub>x − log<sub>a</sub>y</dd>
+    <dt>kuvvet</dt><dd>log<sub>a</sub>(x<sup>n</sup>) = n · log<sub>a</sub>x &nbsp; log<sub>a<sup>m</sup></sub>x = (1/m) log<sub>a</sub>x</dd>
+    <dt>taban değiştirme</dt><dd>log<sub>a</sub>b = log b / log a = 1 / log<sub>b</sub>a</dd>
+    <dt>özel değerler</dt><dd>log<sub>a</sub>a = 1 &nbsp; log<sub>a</sub>1 = 0 &nbsp; a<sup>log<sub>a</sub>x</sup> = x &nbsp; ln x = log<sub>e</sub>x</dd>
+  </dl></div>
+  <div class="fc"><h3>Diziler</h3><dl>
+    <dt>aritmetik dizi</dt><dd>a<sub>n</sub> = a<sub>1</sub> + (n − 1)d &nbsp; S<sub>n</sub> = n(a<sub>1</sub> + a<sub>n</sub>) / 2</dd>
+    <dt>geometrik dizi</dt><dd>a<sub>n</sub> = a<sub>1</sub> · r<sup>n−1</sup> &nbsp; S<sub>n</sub> = a<sub>1</sub>(r<sup>n</sup> − 1) / (r − 1)</dd>
+    <dt>sonsuz geometrik toplam (|r| &lt; 1)</dt><dd>S = a<sub>1</sub> / (1 − r)</dd>
+    <dt>ortadaki terim</dt><dd>aritmetikte a<sub>n</sub> = (a<sub>n−k</sub> + a<sub>n+k</sub>) / 2 &nbsp; geometrikte a<sub>n</sub><sup>2</sup> = a<sub>n−k</sub> · a<sub>n+k</sub></dd>
+  </dl></div>
+  <div class="fc"><h3>Trigonometri</h3><dl>
+    <dt>temel bağıntılar</dt><dd>sin<sup>2</sup>x + cos<sup>2</sup>x = 1 &nbsp; tan x = sin x / cos x &nbsp; cot x = 1 / tan x</dd>
+    <dt>toplam ve fark</dt><dd>sin(a ± b) = sin a cos b ± cos a sin b<br>cos(a ± b) = cos a cos b ∓ sin a sin b<br>tan(a + b) = (tan a + tan b) / (1 − tan a tan b)</dd>
+    <dt>iki kat açı</dt><dd>sin 2x = 2 sin x cos x<br>cos 2x = cos<sup>2</sup>x − sin<sup>2</sup>x = 1 − 2sin<sup>2</sup>x = 2cos<sup>2</sup>x − 1</dd>
+    <dt>sinüs ve kosinüs teoremi</dt><dd>a / sin A = b / sin B = 2R &nbsp; a<sup>2</sup> = b<sup>2</sup> + c<sup>2</sup> − 2bc cos A</dd>
+    <dt>periyot</dt><dd>sin(ax), cos(ax): 2π / |a| &nbsp; tan(ax), cot(ax): π / |a|</dd>
+    <dt>radyan</dt><dd>D / 180 = R / π</dd>
+    <dt>özel açılar</dt><dd><table><tr><th></th><th>0°</th><th>30°</th><th>45°</th><th>60°</th><th>90°</th></tr><tr><th>sin</th><td>0</td><td>1/2</td><td>√2/2</td><td>√3/2</td><td>1</td></tr><tr><th>cos</th><td>1</td><td>√3/2</td><td>√2/2</td><td>1/2</td><td>0</td></tr><tr><th>tan</th><td>0</td><td>√3/3</td><td>1</td><td>√3</td><td>—</td></tr></table></dd>
+  </dl></div>
+  <div class="fc"><h3>Karmaşık sayılar</h3><dl>
+    <dt>sanal birim</dt><dd>i<sup>2</sup> = −1 &nbsp; i<sup>4</sup> = 1 (kuvvetler 4'te bir tekrar eder)</dd>
+    <dt>z = a + bi</dt><dd>eşlenik z̄ = a − bi &nbsp; |z| = √(a<sup>2</sup> + b<sup>2</sup>) &nbsp; z · z̄ = |z|<sup>2</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Limit ve türev</h3><dl>
+    <dt>kuvvet ve sabit</dt><dd>(x<sup>n</sup>)′ = n·x<sup>n−1</sup> &nbsp; (c)′ = 0</dd>
+    <dt>çarpım ve bölüm</dt><dd>(f·g)′ = f′g + fg′ &nbsp; (f/g)′ = (f′g − fg′) / g<sup>2</sup></dd>
+    <dt>zincir kuralı</dt><dd>[f(g(x))]′ = f′(g(x)) · g′(x)</dd>
+    <dt>temel türevler</dt><dd>(sin x)′ = cos x &nbsp; (cos x)′ = −sin x &nbsp; (tan x)′ = 1 + tan<sup>2</sup>x<br>(e<sup>x</sup>)′ = e<sup>x</sup> &nbsp; (a<sup>x</sup>)′ = a<sup>x</sup> ln a &nbsp; (ln x)′ = 1/x</dd>
+    <dt>teğet denklemi</dt><dd>y − f(a) = f′(a)(x − a)</dd>
+    <dt>L'Hospital (0/0, ∞/∞)</dt><dd>lim f/g = lim f′/g′</dd>
+  </dl></div>
+  <div class="fc"><h3>İntegral</h3><dl>
+    <dt>kuvvet</dt><dd>∫x<sup>n</sup> dx = x<sup>n+1</sup> / (n + 1) + C &nbsp; (n ≠ −1)</dd>
+    <dt>temel integraller</dt><dd>∫(1/x) dx = ln|x| + C &nbsp; ∫e<sup>x</sup> dx = e<sup>x</sup> + C<br>∫sin x dx = −cos x + C &nbsp; ∫cos x dx = sin x + C</dd>
+    <dt>doğrusal iç fonksiyon</dt><dd>∫f(ax + b) dx = F(ax + b) / a + C</dd>
+    <dt>kısmi integrasyon</dt><dd>∫u dv = u·v − ∫v du</dd>
+    <dt>belirli integral ve alan</dt><dd>∫<sub>a</sub><sup>b</sup> f(x) dx = F(b) − F(a) &nbsp; alan = ∫<sub>a</sub><sup>b</sup> |f(x)| dx</dd>
+  </dl></div>
+</div></section>
+
+<section data-tab="geometri"><div class="fx" style="--c:var(--teal)">
+  <div class="fc"><h3>Üçgen alanı</h3><dl>
+    <dt>taban ve yükseklik</dt><dd>A = a · h<sub>a</sub> / 2</dd>
+    <dt>iki kenar ve aradaki açı</dt><dd>A = (1/2) · b · c · sin A</dd>
+    <dt>Heron (u = çevrenin yarısı)</dt><dd>A = √(u(u − a)(u − b)(u − c))</dd>
+    <dt>iç ve çevrel çember</dt><dd>A = r · u &nbsp; A = abc / 4R</dd>
+    <dt>eşkenar üçgen</dt><dd>A = a<sup>2</sup>√3 / 4 &nbsp; h = a√3 / 2</dd>
+  </dl></div>
+  <div class="fc"><h3>Dik üçgen</h3><dl>
+    <dt>Pisagor</dt><dd>a<sup>2</sup> + b<sup>2</sup> = c<sup>2</sup></dd>
+    <dt>Öklid (h: hipotenüse ait yükseklik, p ve k: ayırdığı parçalar)</dt><dd>h<sup>2</sup> = p · k &nbsp; a<sup>2</sup> = p · c &nbsp; b<sup>2</sup> = k · c &nbsp; a · b = c · h</dd>
+    <dt>özel üçgenler</dt><dd>30-60-90 → 1 : √3 : 2 &nbsp; 45-45-90 → 1 : 1 : √2</dd>
+    <dt>sık çıkan üçlüler</dt><dd>3-4-5 &nbsp; 5-12-13 &nbsp; 8-15-17 &nbsp; 7-24-25</dd>
+    <dt>hipotenüse ait kenarortay</dt><dd>V<sub>c</sub> = c / 2</dd>
+  </dl></div>
+  <div class="fc"><h3>Açıortay, kenarortay, benzerlik</h3><dl>
+    <dt>iç açıortay teoremi</dt><dd>|BD| / |DC| = c / b</dd>
+    <dt>kenarortay uzunluğu</dt><dd>V<sub>a</sub><sup>2</sup> = (2b<sup>2</sup> + 2c<sup>2</sup> − a<sup>2</sup>) / 4</dd>
+    <dt>ağırlık merkezi</dt><dd>kenarortayı köşeden 2 : 1 oranında böler</dd>
+    <dt>benzerlik oranı k</dt><dd>çevre oranı k &nbsp; alan oranı k<sup>2</sup> &nbsp; hacim oranı k<sup>3</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Çokgen ve dörtgenler</h3><dl>
+    <dt>iç açılar toplamı</dt><dd>(n − 2) · 180° &nbsp; dış açılar toplamı 360°</dd>
+    <dt>köşegen sayısı</dt><dd>n(n − 3) / 2</dd>
+    <dt>yamuk</dt><dd>A = (a + c) / 2 · h &nbsp; orta taban = (a + c) / 2</dd>
+    <dt>paralelkenar</dt><dd>A = a · h = a · b · sin α</dd>
+    <dt>eşkenar dörtgen ve deltoid</dt><dd>A = e · f / 2</dd>
+    <dt>dikdörtgen ve kare</dt><dd>A = a · b &nbsp; kare köşegeni a√2</dd>
+    <dt>düzgün altıgen</dt><dd>A = 6 · a<sup>2</sup>√3 / 4</dd>
+  </dl></div>
+  <div class="fc"><h3>Çember ve daire</h3><dl>
+    <dt>çevre ve alan</dt><dd>Ç = 2πr &nbsp; A = πr<sup>2</sup></dd>
+    <dt>yay uzunluğu ve dilim alanı</dt><dd>2πr · α / 360 &nbsp; πr<sup>2</sup> · α / 360</dd>
+    <dt>çevre açı</dt><dd>gördüğü yayın yarısıdır</dd>
+    <dt>teğet-kiriş açı</dt><dd>gördüğü yayın yarısıdır</dd>
+    <dt>kuvvet (kesen ve teğet)</dt><dd>|PT|<sup>2</sup> = |PA| · |PB|</dd>
+  </dl></div>
+  <div class="fc"><h3>Katı cisimler</h3><dl>
+    <dt>dikdörtgenler prizması</dt><dd>V = a·b·c &nbsp; A = 2(ab + bc + ac) &nbsp; köşegen √(a<sup>2</sup> + b<sup>2</sup> + c<sup>2</sup>)</dd>
+    <dt>küp</dt><dd>V = a<sup>3</sup> &nbsp; A = 6a<sup>2</sup> &nbsp; köşegen a√3</dd>
+    <dt>prizma ve silindir</dt><dd>V = taban alanı · h &nbsp; silindir yanal alanı 2πrh</dd>
+    <dt>piramit ve koni</dt><dd>V = taban alanı · h / 3 &nbsp; koni yanal alanı πrl</dd>
+    <dt>küre</dt><dd>V = (4/3)πr<sup>3</sup> &nbsp; A = 4πr<sup>2</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Analitik geometri</h3><dl>
+    <dt>iki nokta arası uzaklık</dt><dd>√((x<sub>2</sub> − x<sub>1</sub>)<sup>2</sup> + (y<sub>2</sub> − y<sub>1</sub>)<sup>2</sup>)</dd>
+    <dt>orta nokta</dt><dd>((x<sub>1</sub> + x<sub>2</sub>)/2, (y<sub>1</sub> + y<sub>2</sub>)/2)</dd>
+    <dt>eğim</dt><dd>m = (y<sub>2</sub> − y<sub>1</sub>) / (x<sub>2</sub> − x<sub>1</sub>) = tan α</dd>
+    <dt>doğru denklemi</dt><dd>y − y<sub>1</sub> = m(x − x<sub>1</sub>)</dd>
+    <dt>paralel / dik doğrular</dt><dd>m<sub>1</sub> = m<sub>2</sub> &nbsp; m<sub>1</sub> · m<sub>2</sub> = −1</dd>
+    <dt>noktanın doğruya uzaklığı</dt><dd>|ax<sub>0</sub> + by<sub>0</sub> + c| / √(a<sup>2</sup> + b<sup>2</sup>)</dd>
+    <dt>paralel iki doğru arası</dt><dd>|c<sub>1</sub> − c<sub>2</sub>| / √(a<sup>2</sup> + b<sup>2</sup>)</dd>
+    <dt>çember</dt><dd>(x − a)<sup>2</sup> + (y − b)<sup>2</sup> = r<sup>2</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Dönüşümler</h3><dl>
+    <dt>x eksenine / y eksenine göre yansıma</dt><dd>(x, y) → (x, −y) &nbsp; (x, y) → (−x, y)</dd>
+    <dt>orijine göre yansıma</dt><dd>(x, y) → (−x, −y)</dd>
+    <dt>y = x doğrusuna göre</dt><dd>(x, y) → (y, x)</dd>
+    <dt>orijin etrafında 90° (saat yönünün tersi)</dt><dd>(x, y) → (−y, x)</dd>
+    <dt>öteleme</dt><dd>(x, y) → (x + a, y + b)</dd>
+  </dl></div>
+</div></section>
+
+<section data-tab="fizik"><div class="fx" style="--c:var(--purple)">
+  <div class="fc"><h3>Madde ve hareket</h3><dl>
+    <dt>özkütle</dt><dd>d = m / V &nbsp; karışım: d = (m<sub>1</sub> + m<sub>2</sub>) / (V<sub>1</sub> + V<sub>2</sub>)</dd>
+    <dt>sabit hız</dt><dd>x = v · t</dd>
+    <dt>sabit ivme</dt><dd>v = v<sub>0</sub> + a·t &nbsp; x = v<sub>0</sub>t + (1/2)at<sup>2</sup> &nbsp; v<sup>2</sup> = v<sub>0</sub><sup>2</sup> + 2ax</dd>
+    <dt>serbest düşme</dt><dd>h = (1/2)gt<sup>2</sup> &nbsp; v = g·t</dd>
+    <dt>grafikler</dt><dd>x-t eğimi = hız &nbsp; v-t eğimi = ivme &nbsp; v-t alanı = yer değiştirme</dd>
+  </dl></div>
+  <div class="fc"><h3>Kuvvet ve dinamik</h3><dl>
+    <dt>Newton'un 2. yasası</dt><dd>F<sub>net</sub> = m · a &nbsp; ağırlık G = m · g</dd>
+    <dt>sürtünme</dt><dd>f<sub>s</sub> = k · N</dd>
+    <dt>eğik düzlem (α)</dt><dd>paralel bileşen mg·sin α &nbsp; dik bileşen mg·cos α</dd>
+    <dt>tork</dt><dd>τ = F · d &nbsp; denge: ΣF = 0, Στ = 0</dd>
+  </dl></div>
+  <div class="fc"><h3>İş, enerji, güç, momentum</h3><dl>
+    <dt>iş</dt><dd>W = F · x · cos θ</dd>
+    <dt>enerji</dt><dd>E<sub>k</sub> = (1/2)mv<sup>2</sup> &nbsp; E<sub>p</sub> = mgh &nbsp; E<sub>yay</sub> = (1/2)kx<sup>2</sup></dd>
+    <dt>güç ve verim</dt><dd>P = W / t &nbsp; verim = yararlı iş / harcanan enerji</dd>
+    <dt>momentum ve itme</dt><dd>p = m · v &nbsp; I = F · Δt = Δp</dd>
+    <dt>momentumun korunumu</dt><dd>m<sub>1</sub>v<sub>1</sub> + m<sub>2</sub>v<sub>2</sub> = m<sub>1</sub>v<sub>1</sub>′ + m<sub>2</sub>v<sub>2</sub>′</dd>
+  </dl></div>
+  <div class="fc"><h3>Çembersel hareket ve kütle çekimi</h3><dl>
+    <dt>çizgisel ve açısal hız</dt><dd>v = 2πr / T &nbsp; ω = 2π / T = 2πf &nbsp; v = ω · r</dd>
+    <dt>merkezcil ivme ve kuvvet</dt><dd>a = v<sup>2</sup> / r &nbsp; F = mv<sup>2</sup> / r</dd>
+    <dt>kütle çekimi</dt><dd>F = G · m<sub>1</sub>m<sub>2</sub> / d<sup>2</sup> &nbsp; g = G · M / R<sup>2</sup></dd>
+    <dt>Kepler'in 3. yasası</dt><dd>T<sup>2</sup> / r<sup>3</sup> = sabit</dd>
+    <dt>açısal momentum</dt><dd>L = I · ω</dd>
+  </dl></div>
+  <div class="fc"><h3>Basit harmonik hareket ve dalgalar</h3><dl>
+    <dt>yay ve basit sarkaç</dt><dd>T = 2π√(m / k) &nbsp; T = 2π√(L / g)</dd>
+    <dt>dalga hızı</dt><dd>v = λ · f &nbsp; f = 1 / T</dd>
+    <dt>gergin ip</dt><dd>v = √(F / μ)</dd>
+    <dt>çift yarık saçak aralığı</dt><dd>Δx = λ · L / d</dd>
+    <dt>kırılma (Snell)</dt><dd>n<sub>1</sub> · sin θ<sub>1</sub> = n<sub>2</sub> · sin θ<sub>2</sub></dd>
+  </dl></div>
+  <div class="fc"><h3>Isı ve basınç</h3><dl>
+    <dt>ısı</dt><dd>Q = m · c · ΔT &nbsp; hal değişimi Q = m · L</dd>
+    <dt>boyca genleşme</dt><dd>ΔL = L<sub>0</sub> · λ · ΔT</dd>
+    <dt>katı ve sıvı basıncı</dt><dd>P = F / A &nbsp; P = h · d · g</dd>
+    <dt>kaldırma kuvveti</dt><dd>F<sub>k</sub> = V<sub>batan</sub> · d<sub>sıvı</sub> · g</dd>
+    <dt>gazlar</dt><dd>P<sub>1</sub>V<sub>1</sub> / T<sub>1</sub> = P<sub>2</sub>V<sub>2</sub> / T<sub>2</sub></dd>
+  </dl></div>
+  <div class="fc"><h3>Elektrik</h3><dl>
+    <dt>Coulomb</dt><dd>F = k · q<sub>1</sub>q<sub>2</sub> / d<sup>2</sup></dd>
+    <dt>alan ve potansiyel</dt><dd>E = k · q / d<sup>2</sup> &nbsp; V = k · q / d &nbsp; W = q · V</dd>
+    <dt>Ohm ve direnç</dt><dd>V = I · R &nbsp; R = ρ · L / A</dd>
+    <dt>bağlama</dt><dd>seri R = R<sub>1</sub> + R<sub>2</sub> &nbsp; paralel 1/R = 1/R<sub>1</sub> + 1/R<sub>2</sub></dd>
+    <dt>güç</dt><dd>P = V · I = I<sup>2</sup>R = V<sup>2</sup> / R</dd>
+    <dt>paralel levhalar ve sığa</dt><dd>E = V / d &nbsp; C = q / V = ε · A / d &nbsp; E<sub>depo</sub> = (1/2)CV<sup>2</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Manyetizma ve indüksiyon</h3><dl>
+    <dt>yüklü parçacığa ve tele kuvvet</dt><dd>F = q · v · B · sin θ &nbsp; F = B · I · L · sin θ</dd>
+    <dt>düz telin alanı</dt><dd>B = 2k · I / d &nbsp; (k = 10<sup>−7</sup>)</dd>
+    <dt>manyetik akı</dt><dd>Φ = B · A · cos θ</dd>
+    <dt>indüksiyon emk'sı</dt><dd>ε = −N · ΔΦ / Δt &nbsp; hareketli çubuk ε = B · L · v</dd>
+    <dt>transformatör</dt><dd>V<sub>p</sub> / V<sub>s</sub> = N<sub>p</sub> / N<sub>s</sub> = I<sub>s</sub> / I<sub>p</sub></dd>
+  </dl></div>
+  <div class="fc"><h3>Optik</h3><dl>
+    <dt>küresel ayna ve ince mercek</dt><dd>1/f = 1/d<sub>c</sub> + 1/d<sub>g</sub> &nbsp; aynada f = r / 2</dd>
+    <dt>büyütme</dt><dd>h<sub>g</sub> / h<sub>c</sub> = d<sub>g</sub> / d<sub>c</sub></dd>
+    <dt>mercek gücü</dt><dd>P = 1 / f (diyoptri, f metre cinsinden)</dd>
+  </dl></div>
+  <div class="fc"><h3>Modern fizik</h3><dl>
+    <dt>foton enerjisi</dt><dd>E = h · f = h · c / λ</dd>
+    <dt>fotoelektrik</dt><dd>E<sub>k,max</sub> = h · f − W<sub>0</sub></dd>
+    <dt>de Broglie</dt><dd>λ = h / p = h / (m · v)</dd>
+    <dt>kütle-enerji</dt><dd>E = m · c<sup>2</sup></dd>
+    <dt>hidrojen enerji seviyeleri</dt><dd>E<sub>n</sub> = −13,6 / n<sup>2</sup> eV</dd>
+    <dt>yarılanma</dt><dd>N = N<sub>0</sub> · (1/2)<sup>t / T</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Sabitler</h3><dl>
+    <dt>yer çekimi ivmesi</dt><dd>g ≈ 10 m/s<sup>2</sup></dd>
+    <dt>ışık hızı</dt><dd>c = 3 · 10<sup>8</sup> m/s</dd>
+    <dt>Planck sabiti</dt><dd>h ≈ 6,6 · 10<sup>−34</sup> J·s</dd>
+    <dt>Coulomb sabiti</dt><dd>k = 9 · 10<sup>9</sup> N·m<sup>2</sup>/C<sup>2</sup></dd>
+    <dt>temel yük</dt><dd>e = 1,6 · 10<sup>−19</sup> C &nbsp; 1 eV = 1,6 · 10<sup>−19</sup> J</dd>
+    <dt>evrensel çekim sabiti</dt><dd>G ≈ 6,67 · 10<sup>−11</sup> N·m<sup>2</sup>/kg<sup>2</sup></dd>
+  </dl></div>
+</div></section>
+
+<section data-tab="kimya"><div class="fx" style="--c:var(--green)">
+  <div class="fc"><h3>Atom ve mol</h3><dl>
+    <dt>kütle numarası</dt><dd>A = p + n &nbsp; iyon yükü = p − e</dd>
+    <dt>mol</dt><dd>n = m / M<sub>A</sub> = N / N<sub>A</sub> = V / 22,4 (normal koşullarda)</dd>
+    <dt>Avogadro sayısı</dt><dd>N<sub>A</sub> = 6,02 · 10<sup>23</sup></dd>
+    <dt>katmandaki en çok elektron</dt><dd>2n<sup>2</sup> &nbsp; orbital alt kabukları s<sup>2</sup> p<sup>6</sup> d<sup>10</sup> f<sup>14</sup></dd>
+    <dt>yüzde verim</dt><dd>gerçek ürün / teorik ürün · 100</dd>
+  </dl></div>
+  <div class="fc"><h3>Gazlar</h3><dl>
+    <dt>ideal gaz</dt><dd>P · V = n · R · T &nbsp; R = 0,082 L·atm / (mol·K) = 22,4 / 273</dd>
+    <dt>birleşik gaz denklemi</dt><dd>P<sub>1</sub>V<sub>1</sub> / (n<sub>1</sub>T<sub>1</sub>) = P<sub>2</sub>V<sub>2</sub> / (n<sub>2</sub>T<sub>2</sub>)</dd>
+    <dt>sıcaklık</dt><dd>T (K) = t (°C) + 273</dd>
+    <dt>kısmi basınç (Dalton)</dt><dd>P<sub>toplam</sub> = P<sub>A</sub> + P<sub>B</sub> &nbsp; P<sub>A</sub> = X<sub>A</sub> · P<sub>toplam</sub></dd>
+    <dt>Graham yayılma</dt><dd>v<sub>1</sub> / v<sub>2</sub> = √(M<sub>2</sub> / M<sub>1</sub>)</dd>
+  </dl></div>
+  <div class="fc"><h3>Çözeltiler</h3><dl>
+    <dt>kütlece yüzde</dt><dd>% = m<sub>çözünen</sub> / m<sub>çözelti</sub> · 100</dd>
+    <dt>molarite ve molalite</dt><dd>M = n / V(L) &nbsp; m = n / kg çözücü</dd>
+    <dt>seyreltme ve karıştırma</dt><dd>M<sub>1</sub>V<sub>1</sub> = M<sub>2</sub>V<sub>2</sub> &nbsp; M<sub>son</sub> = (M<sub>1</sub>V<sub>1</sub> + M<sub>2</sub>V<sub>2</sub>) / (V<sub>1</sub> + V<sub>2</sub>)</dd>
+    <dt>ppm</dt><dd>m<sub>çözünen</sub> / m<sub>çözelti</sub> · 10<sup>6</sup></dd>
+    <dt>koligatif (i: tanecik sayısı)</dt><dd>ΔT<sub>k</sub> = K<sub>k</sub> · m · i &nbsp; ΔT<sub>d</sub> = K<sub>d</sub> · m · i</dd>
+  </dl></div>
+  <div class="fc"><h3>Enerji ve hız</h3><dl>
+    <dt>tepkime entalpisi</dt><dd>ΔH = ΣΔH<sub>f</sub>(ürünler) − ΣΔH<sub>f</sub>(girenler)</dd>
+    <dt>bağ enerjileriyle</dt><dd>ΔH = Σ(kırılan bağlar) − Σ(oluşan bağlar)</dd>
+    <dt>ısı</dt><dd>Q = m · c · ΔT</dd>
+    <dt>hız bağıntısı</dt><dd>r = k · [A]<sup>x</sup> · [B]<sup>y</sup> &nbsp; derece = x + y</dd>
+  </dl></div>
+  <div class="fc"><h3>Denge</h3><dl>
+    <dt>aA + bB ⇌ cC + dD</dt><dd>K<sub>c</sub> = [C]<sup>c</sup>[D]<sup>d</sup> / ([A]<sup>a</sup>[B]<sup>b</sup>)</dd>
+    <dt>K<sub>p</sub> ile K<sub>c</sub></dt><dd>K<sub>p</sub> = K<sub>c</sub> · (RT)<sup>Δn</sup></dd>
+    <dt>tepkime yönü</dt><dd>Q &lt; K → ürünler yönüne &nbsp; Q &gt; K → girenler yönüne</dd>
+    <dt>katı ve saf sıvılar</dt><dd>denge ifadesine yazılmaz</dd>
+  </dl></div>
+  <div class="fc"><h3>Asit, baz, çözünürlük</h3><dl>
+    <dt>pH</dt><dd>pH = −log[H<sup>+</sup>] &nbsp; pOH = −log[OH<sup>−</sup>]</dd>
+    <dt>25 °C'de su</dt><dd>K<sub>w</sub> = [H<sup>+</sup>][OH<sup>−</sup>] = 10<sup>−14</sup> &nbsp; pH + pOH = 14</dd>
+    <dt>zayıf asit</dt><dd>[H<sup>+</sup>] = √(K<sub>a</sub> · C<sub>a</sub>) &nbsp; K<sub>a</sub> · K<sub>b</sub> = K<sub>w</sub></dd>
+    <dt>tam nötrleşme</dt><dd>n<sub>H<sup>+</sup></sub> = n<sub>OH<sup>−</sup></sub></dd>
+    <dt>çözünürlük çarpımı (s: çözünürlük)</dt><dd>AB: K<sub>çç</sub> = s<sup>2</sup> &nbsp; AB<sub>2</sub>: K<sub>çç</sub> = 4s<sup>3</sup></dd>
+  </dl></div>
+  <div class="fc"><h3>Elektrokimya</h3><dl>
+    <dt>pil potansiyeli (indirgenme potansiyelleriyle)</dt><dd>E°<sub>pil</sub> = E°<sub>katot</sub> − E°<sub>anot</sub></dd>
+    <dt>yük</dt><dd>Q = I · t &nbsp; 1 F = 96 500 C = 1 mol elektron</dd>
+    <dt>elektrolizde biriken madde</dt><dd>m = M · I · t / (n · 96 500)</dd>
+    <dt>hatırlatma</dt><dd>anotta yükseltgenme, katotta indirgenme</dd>
+  </dl></div>
+  <div class="fc"><h3>Organik kimya</h3><dl>
+    <dt>alkan / alken / alkin</dt><dd>C<sub>n</sub>H<sub>2n+2</sub> &nbsp; C<sub>n</sub>H<sub>2n</sub> &nbsp; C<sub>n</sub>H<sub>2n−2</sub></dd>
+    <dt>alkol ve karboksilik asit</dt><dd>C<sub>n</sub>H<sub>2n+1</sub>OH &nbsp; C<sub>n</sub>H<sub>2n+1</sub>COOH</dd>
+    <dt>tam yanma</dt><dd>C<sub>x</sub>H<sub>y</sub> + (x + y/4) O<sub>2</sub> → x CO<sub>2</sub> + (y/2) H<sub>2</sub>O</dd>
+    <dt>fonksiyonel gruplar</dt><dd>−OH alkol &nbsp; −O− eter &nbsp; −CHO aldehit &nbsp; −CO− keton &nbsp; −COOH asit &nbsp; −COO− ester</dd>
+  </dl></div>
+</div></section>
+<p class="muted small">Formüller TYT ve AYT müfredatındaki gösterimlere göre sadeleştirilmiştir. Yazdırırken yalnızca açık sekme basılır.</p>
+</main>
+</body>
+</html>

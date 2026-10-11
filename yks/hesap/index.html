@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hesaplayıcılar · YKS · fadimrak</title>
+<meta name="description" content="TYT ve AYT net hesaplama, OBP dahil puan hesaplama, hedefe kaç net lazım, kaç gün kaldı">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--teal); }
+  .nets { display: grid; gap: .45rem; }
+  .nets .r { display: grid; grid-template-columns: 1fr 76px 76px 64px; gap: .5rem; align-items: center; }
+  .nets .r.h { font-size: .75rem; color: var(--muted); font-weight: 700; }
+  .nets input { width: 100%; text-align: center; padding: .45rem .3rem; min-height: 40px; }
+  .nets .net { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .nets .nm small { color: var(--muted); font-weight: 400; }
+  .nets input.err { border-color: var(--bad); }
+  .out { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: .7rem; margin-top: 1rem; }
+  .out .panel { padding: .8rem 1rem; box-shadow: 3px 3px 0 var(--sh); }
+  .out .panel.main { background: var(--teal); color: #fff; }
+  .out .panel.main .muted { color: #e8fffb; }
+  .out b { display: block; font-family: var(--head); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+  .note { font-size: .82rem; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .7rem; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>hesaplayıcılar</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="hesaplayıcılar"><a href="#tyt">TYT net</a><a href="#ayt">AYT net</a><a href="#puan">puan</a><a href="#hedef">hedef</a><a href="#gun">kaç gün</a></nav>
+
+<section data-tab="tyt" class="panel">
+  <h2>TYT net</h2>
+  <div class="nets" id="tytNets"></div>
+  <div class="out" id="tytOut"></div>
+  <p class="note">Net = doğru − yanlış ÷ 4. Boş bırakılan soru neti etkilemez.</p>
+</section>
+
+<section data-tab="ayt" class="panel">
+  <h2>AYT net</h2>
+  <div class="row l" id="alanSel" role="group" aria-label="alan"></div>
+  <div class="nets" id="aytNets" style="margin-top:.8rem"></div>
+  <div class="out" id="aytOut"></div>
+</section>
+
+<section data-tab="puan" class="panel">
+  <h2>puan (OBP dahil)</h2>
+  <p class="note" style="margin-top:0">Netler TYT ve AYT sekmelerinden alınır. Önce oraya netlerini gir.</p>
+  <div class="grid2">
+    <label class="f">diploma notu (50-100)<input id="dip" type="number" min="50" max="100" step="0.01" inputmode="decimal" placeholder="ör. 85"></label>
+    <label class="f">geçen yıl bir programa yerleştim<select id="kirik"><option value="0">hayır</option><option value="1">evet (OBP yarıya iner)</option></select></label>
+  </div>
+  <div class="out" id="puanOut"></div>
+  <p class="note">Puanlar geçmiş yılların sonuçlarından çıkarılan yaklaşık katsayılarla hesaplanır; gerçek puan o yılın ortalama ve standart sapmalarına göre birkaç puan değişebilir. OBP = diploma notu × 5, yerleştirme puanına katkısı OBP × 0,12 (geçen yıl yerleşenler için × 0,06). TYT puanı 150'nin altındaysa yerleştirme puanı hesaplanmaz. Baraj ve başarı sırası şartları için o yılın ÖSYM kılavuzuna bak.</p>
+</section>
+
+<section data-tab="hedef" class="panel">
+  <h2>hedefe kaç net lazım</h2>
+  <div class="grid2">
+    <label class="f">hedef yerleştirme puanı<input id="hp" type="number" min="100" max="560" step="0.1" placeholder="ör. 420"></label>
+    <label class="f">puan türü<select id="ht"><option value="tyt">TYT</option><option value="say" selected>SAY</option><option value="ea">EA</option><option value="soz">SÖZ</option><option value="dil">DİL</option></select></label>
+  </div>
+  <div class="out" id="hedefOut"></div>
+  <p class="note">TYT netlerin ve diploma notun diğer sekmelerden alınır. Gereken AYT neti, testlerin soru sayısına göre orantılı dağıtılır; bir testte güçlüysen oradan fazlası diğerlerinin yükünü azaltır. Bölümlerin geçen yılki puanlarına <a href="https://yokatlas.yok.gov.tr/" target="_blank" rel="noopener">YÖK Atlas</a>'tan bakabilirsin.</p>
+</section>
+
+<section data-tab="gun" class="panel">
+  <h2>kaç gün kaldı, günde kaç konu</h2>
+  <div class="grid2">
+    <label class="f">sınav tarihi<input id="gd" type="date"></label>
+    <label class="f">haftada çalışma günü<input id="gw" type="number" min="1" max="7" value="6"></label>
+    <label class="f">sona ayrılan tekrar günü<input id="gr" type="number" min="0" max="120" value="30"></label>
+  </div>
+  <div class="out" id="gunOut"></div>
+  <p class="note">Kalan konu sayısı <a href="/yks/konular/">konu listesinde</a> işaretlemediğin konulardır. Sınav tarihi YKS sayfasındaki geri sayımla ortaktır.</p>
+</section>
+</main>
+<script>
+const TYT = [['tr', 'Türkçe', 40, 3.3], ['sos', 'Sosyal Bilimler', 20, 3.4], ['mat', 'Temel Matematik', 40, 3.3], ['fen', 'Fen Bilimleri', 20, 3.4]];
+const AYT = { mat: ['Matematik', 40, 3], fiz: ['Fizik', 14, 2.85], kim: ['Kimya', 13, 3.07], bio: ['Biyoloji', 13, 3.07], ede: ['Edebiyat', 24, 3], t1: ['Tarih-1', 10, 2.8], c1: ['Coğrafya-1', 6, 3.33], t2: ['Tarih-2', 11, 2.91], c2: ['Coğrafya-2', 11, 2.91], fel: ['Felsefe Grubu', 12, 3], din: ['Din Kültürü', 6, 3.33], ydt: ['Yabancı Dil', 80, 3] };
+const ALAN = { say: ['SAY', ['mat', 'fiz', 'kim', 'bio']], ea: ['EA', ['mat', 'ede', 't1', 'c1']], soz: ['SÖZ', ['ede', 't1', 'c1', 't2', 'c2', 'fel', 'din']], dil: ['DİL', ['ydt']] };
+const TYT_W = 0.4; // AYT puan türlerinde TYT katsayıları TYT puanınınkilerin yaklaşık %40'ı
+let S = store.get('hesap', { d: {}, y: {}, alan: 'say', dip: '', kirik: '0' });
+const save = () => store.set('hesap', S);
+const net = k => Math.max(-99, (+S.d[k] || 0) - (+S.y[k] || 0) / 4);
+const n2 = v => site.fmt(v, 2);
+
+function rows(el, list) {
+  el.innerHTML = '<div class="r h"><span>test</span><span>doğru</span><span>yanlış</span><span style="text-align:right">net</span></div>' +
+    list.map(([k, name, q]) => `<div class="r"><span class="nm">${name} <small>${q}</small></span><input type="number" min="0" max="${q}" inputmode="numeric" data-k="${k}" data-f="d" value="${S.d[k] ?? ''}" aria-label="${name} doğru"><input type="number" min="0" max="${q}" inputmode="numeric" data-k="${k}" data-f="y" value="${S.y[k] ?? ''}" aria-label="${name} yanlış"><span class="net" data-net="${k}">${n2(net(k))}</span></div>`).join('');
+}
+function check(k, q) {
+  const bad = (+S.d[k] || 0) + (+S.y[k] || 0) > q;
+  site.$$(`input[data-k="${k}"]`).forEach(i => i.classList.toggle('err', bad));
+  return bad;
+}
+const box = (label, value, main) => `<div class="panel ${main ? 'main' : ''}"><span class="muted small">${label}</span><b>${value}</b></div>`;
+
+function tytPoints() { return TYT.reduce((a, [k, , , w]) => a + net(k) * w, 0); }
+function aytPoints(alan) { return ALAN[alan][1].reduce((a, k) => a + net(k) * AYT[k][2], 0); }
+function score(type) {
+  const t = tytPoints();
+  if (type === 'tyt') return 100 + t;
+  return 100 + t * TYT_W + aytPoints(type);
+}
+function obp() {
+  const d = Math.min(100, Math.max(50, +S.dip || 0));
+  return S.dip ? d * 5 * (S.kirik === '1' ? .06 : .12) : 0;
+}
+
+function renderTyt() {
+  const tot = TYT.reduce((a, [k]) => a + net(k), 0);
+  site.$('#tytOut').innerHTML = box('toplam net', n2(tot), true) + box('tahmini TYT ham puanı', n2(score('tyt'))) +
+    box('boş', TYT.reduce((a, [k, , q]) => a + Math.max(0, q - (+S.d[k] || 0) - (+S.y[k] || 0)), 0));
+}
+function renderAyt() {
+  site.$('#alanSel').innerHTML = Object.entries(ALAN).map(([k, [n]]) => `<button class="chip ${S.alan === k ? 'on' : ''}" data-alan="${k}">${n}</button>`).join('');
+  rows(site.$('#aytNets'), ALAN[S.alan][1].map(k => [k, AYT[k][0], AYT[k][1]]));
+  renderAytOut();
+}
+function renderAytOut() {
+  const tot = ALAN[S.alan][1].reduce((a, k) => a + net(k), 0);
+  site.$('#aytOut').innerHTML = box('AYT toplam net', n2(tot), true) + box(`tahmini ${ALAN[S.alan][0]} ham puanı`, n2(score(S.alan)));
+}
+function renderPuan() {
+  site.$('#dip').value = S.dip; site.$('#kirik').value = S.kirik;
+  const o = obp(), tytHam = score('tyt');
+  let h = box('OBP katkısı', '+' + n2(o));
+  if (tytHam < 150) h += box('TYT puanı', n2(tytHam) + ' (150 altı)');
+  else h += ['tyt', 'say', 'ea', 'soz', 'dil'].map(t => box(`${t === 'tyt' ? 'TYT' : ALAN[t][0]} yerleştirme`, n2(score(t) + o), t === S.alan)).join('');
+  site.$('#puanOut').innerHTML = h;
+}
+function renderHedef() {
+  const target = +site.$('#hp').value, type = site.$('#ht').value;
+  if (!target) { site.$('#hedefOut').innerHTML = box('hedef puanını gir', '—'); return; }
+  const o = obp();
+  if (type === 'tyt') {
+    const need = target - o - 100, max = TYT.reduce((a, [, , q, w]) => a + q * w, 0), r = need / max;
+    site.$('#hedefOut').innerHTML = r > 1 ? box('bu hedef', 'tam puanın üstünde', true) :
+      box('gereken TYT neti', n2(Math.max(0, TYT.reduce((a, [, , q]) => a + q * r, 0))), true) + TYT.map(([, n, q]) => box(n, n2(Math.max(0, q * r)))).join('');
+    return;
+  }
+  const keys = ALAN[type][1], have = 100 + tytPoints() * TYT_W + o, need = target - have, max = keys.reduce((a, k) => a + AYT[k][1] * AYT[k][2], 0), r = need / max;
+  site.$('#hedefOut').innerHTML = box('TYT ve OBP ile gelen', n2(have)) + (r > 1 ? box('bu hedef', 'AYT tam olsa da yetmiyor', true) :
+    box('gereken AYT neti', n2(Math.max(0, keys.reduce((a, k) => a + AYT[k][1] * r, 0))), true) + keys.map(k => box(AYT[k][0], n2(Math.max(0, AYT[k][1] * r)))).join(''));
+}
+async function renderGun() {
+  const date = store.get('yks-date', '2027-06-19T10:15');
+  site.$('#gd').value = date.slice(0, 10);
+  const days = Math.max(0, Math.ceil((new Date(date) - Date.now()) / 864e5));
+  const perWeek = Math.min(7, Math.max(1, +site.$('#gw').value || 6)), rev = Math.max(0, +site.$('#gr').value || 0);
+  const study = Math.max(0, Math.round((days - rev) * perWeek / 7));
+  let rest = 0;
+  try { const d = await (await fetch('/yks/konular.json')).json(), done = store.get('konu-done', {}); rest = d.dersler.flatMap(s => s.konular.map(k => s.id + ':' + k.ad)).filter(k => !done[k]).length; } catch {}
+  site.$('#gunOut').innerHTML = box('kalan gün', days, true) + box('kalan hafta', site.fmt(days / 7, 1)) + box('konu çalışma günü', study) + box('kalan konu', rest) +
+    box('günde konu', study ? site.fmt(rest / study, 1) : '—') + box('haftada konu', study ? site.fmt(rest / study * perWeek, 1) : '—');
+}
+
+document.addEventListener('input', e => {
+  const k = e.target.dataset.k;
+  if (k) {
+    S[e.target.dataset.f][k] = e.target.value; save();
+    const q = TYT.find(t => t[0] === k)?.[2] ?? AYT[k][1];
+    check(k, q);
+    site.$(`[data-net="${k}"]`).textContent = n2(net(k));
+    renderTyt(); renderAytOut();
+  }
+  if (e.target.id === 'dip' || e.target.id === 'kirik') { S.dip = site.$('#dip').value; S.kirik = site.$('#kirik').value; save(); renderPuan(); }
+  if (e.target.id === 'hp' || e.target.id === 'ht') renderHedef();
+  if (e.target.id === 'gw' || e.target.id === 'gr') renderGun();
+  if (e.target.id === 'gd' && e.target.value) { store.set('yks-date', e.target.value + 'T10:15'); renderGun(); }
+});
+site.$('#alanSel').onclick = e => { const b = e.target.closest('[data-alan]'); if (b) { S.alan = b.dataset.alan; save(); renderAyt(); } };
+site.$('#ht').value = S.alan;
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => ({ tyt: renderTyt, ayt: renderAyt, puan: renderPuan, hedef: renderHedef, gun: renderGun })[s.dataset.tab]()));
+rows(site.$('#tytNets'), TYT); TYT.forEach(([k, , q]) => check(k, q));
+renderTyt(); renderAyt();
+</script>
+</body>
+</html>

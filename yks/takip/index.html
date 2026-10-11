@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>takip · YKS · fadimrak</title>
+<meta name="description" content="Deneme netleri, çalışma süresi, soru sayısı, seri, tekrar hatırlatıcı, yanlış defteri, haftalık program ve yedekleme">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--pink); }
+  section > h2:first-child { margin-top: 0; }
+  .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: .6rem; align-items: end; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: .6rem; margin: 1rem 0; }
+  .kpis div { background: var(--soft); border-radius: 12px; padding: .65rem .8rem; }
+  .kpis b { display: block; font-family: var(--head); font-size: 1.5rem; }
+  .kpis span { font-size: .8rem; color: var(--muted); }
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  svg.chart text { font: 600 11px Outfit, sans-serif; fill: var(--muted); }
+  svg.chart .grid { stroke: var(--soft); }
+  .list { display: grid; gap: .45rem; margin-top: .8rem; }
+  .item { display: flex; gap: .7rem; align-items: center; justify-content: space-between; padding: .55rem .75rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); }
+  .item small { color: var(--muted); }
+  .item .acts2 { display: flex; gap: .35rem; flex: none; }
+  .quick { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .heat { display: grid; grid-template-rows: repeat(7, 14px); grid-auto-flow: column; grid-auto-columns: 14px; gap: 3px; overflow-x: auto; padding: 4px 0; }
+  .heat i { border-radius: 3px; background: var(--soft); }
+  .heat i[data-l="1"] { background: color-mix(in srgb, var(--green) 40%, var(--soft)); }
+  .heat i[data-l="2"] { background: color-mix(in srgb, var(--green) 70%, var(--soft)); }
+  .heat i[data-l="3"] { background: var(--green); }
+  .gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; margin-top: 1rem; }
+  .card { border: 2px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; box-shadow: 2px 2px 0 var(--sh); display: flex; flex-direction: column; }
+  .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; cursor: zoom-in; background: var(--soft); }
+  .card .b { padding: .55rem .7rem; display: grid; gap: .35rem; font-size: .85rem; flex: 1; }
+  .tags { display: flex; gap: .25rem; flex-wrap: wrap; }
+  .tags span { font-size: .7rem; font-weight: 700; padding: .05rem .45rem; border-radius: 99px; background: var(--soft); }
+  .card.done { opacity: .55; }
+  dialog.view { max-width: min(96vw, 1100px); padding: 0; border: 2px solid var(--line); border-radius: 14px; background: var(--card); }
+  dialog.view img { display: block; max-width: 100%; max-height: 85vh; }
+  dialog.view::backdrop { background: rgba(0,0,0,.6); }
+  table.prog { width: 100%; border-collapse: separate; border-spacing: 4px; table-layout: fixed; min-width: 640px; }
+  table.prog th { font-size: .78rem; color: var(--muted); }
+  table.prog td { padding: 0; }
+  table.prog td input { width: 100%; min-height: 40px; padding: .3rem .4rem; font-size: .82rem; border-radius: 8px; border-width: 1.5px; background: var(--c, var(--card)); }
+  table.prog td.slot input { font-weight: 700; background: var(--soft); }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>takip</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="takip araçları"><a href="#deneme">denemeler</a><a href="#sure">süre</a><a href="#soru">soru</a><a href="#seri">seri</a><a href="#tekrar">tekrar</a><a href="#yanlis">yanlış defteri</a><a href="#program">program</a><a href="#yedek">yedek</a></nav>
+<p class="muted small" style="margin-top:0">Her şey bu tarayıcıda saklanır, hiçbir yere gönderilmez. Cihaz değiştirirken <a href="#yedek">yedek</a> sekmesini kullan.</p>
+
+<section data-tab="deneme" class="panel">
+  <h2>deneme kaydı</h2>
+  <div class="form">
+    <label class="f">tür<select id="dTur"></select></label>
+    <label class="f">tarih<input id="dTarih" type="date"></label>
+    <label class="f" style="grid-column:span 2">ad (yayın, deneme no)<input id="dAd" placeholder="ör. 3. genel deneme"></label>
+  </div>
+  <div class="form" id="dNets" style="margin-top:.6rem"></div>
+  <div class="row l" style="margin-top:.8rem"><button class="primary" id="dEkle">kaydet</button><a class="btn" href="/araclar/optik/">optik formla çöz</a></div>
+  <div class="kpis" id="dKpi"></div>
+  <div id="dChart"></div>
+  <div class="list" id="dList"></div>
+</section>
+
+<section data-tab="sure" class="panel">
+  <h2>çalışma süresi</h2>
+  <div class="quick"><button data-min="15">+15 dk</button><button data-min="30">+30 dk</button><button data-min="60">+1 saat</button><input id="sMin" type="number" min="1" max="900" placeholder="dakika" style="width:110px" aria-label="dakika"><button id="sEkle">ekle</button><button class="ghost" id="sGeri">son eklemeyi geri al</button></div>
+  <div class="kpis" id="sKpi"></div>
+  <div id="sChart"></div>
+  <p class="muted small"><a href="/araclar/calisma/#pomodoro">Pomodoro</a> ile çalıştığın süre buraya kendiliğinden eklenir.</p>
+</section>
+
+<section data-tab="soru" class="panel">
+  <h2>soru sayısı</h2>
+  <div class="form">
+    <label class="f">ders<select id="qDers"></select></label>
+    <label class="f">kaç soru<input id="qN" type="number" min="1" max="2000" placeholder="ör. 40"></label>
+    <button class="primary" id="qEkle">ekle</button>
+  </div>
+  <div class="kpis" id="qKpi"></div>
+  <div id="qChart"></div>
+  <div class="list" id="qToday"></div>
+</section>
+
+<section data-tab="seri" class="panel">
+  <h2>çalışma serisi</h2>
+  <div class="kpis" id="rKpi"></div>
+  <p class="muted small">Süre ya da soru kaydı olan her gün seriye sayılır. Son 20 hafta:</p>
+  <div class="heat" id="heat" aria-label="son 20 haftanın çalışma takvimi"></div>
+</section>
+
+<section data-tab="tekrar" class="panel">
+  <h2>tekrar hatırlatıcı (1-7-30)</h2>
+  <p class="muted small" style="margin-top:0">Bir konuyu bitirdiğin günden 1, 7 ve 30 gün sonra tekrar etmen hatırlatılır. Konular <a href="/yks/konular/">konu listesinde</a> işaretleyince buraya düşer; listede olmayan bir başlığı aşağıdan da ekleyebilirsin.</p>
+  <div class="form"><label class="f" style="grid-column:span 2">başlık<input id="tAd" placeholder="ör. trigonometri soru tipleri"></label><button id="tEkle">bugün bitirdim</button></div>
+  <h3 class="sec">bugün</h3><div class="list" id="tDue"></div>
+  <h3 class="sec">yaklaşanlar</h3><div class="list" id="tNext"></div>
+</section>
+
+<section data-tab="yanlis" class="panel">
+  <h2>yanlış defteri</h2>
+  <div class="form">
+    <label class="f">fotoğraf<input id="yImg" type="file" accept="image/*" capture="environment"></label>
+    <label class="f">ders<select id="yDers"></select></label>
+    <label class="f">etiketler (virgülle)<input id="yTag" placeholder="ör. türev, işlem hatası"></label>
+    <label class="f">not<input id="yNot" placeholder="neden yanlış yaptın?"></label>
+  </div>
+  <div class="row l" style="margin-top:.8rem"><button class="primary" id="yEkle">ekle</button></div>
+  <div class="row l" style="margin-top:1rem"><select id="yF" aria-label="ders filtresi"></select><input id="yQ" type="search" placeholder="etiket ya da not ara" aria-label="ara" style="flex:1 1 160px"><label class="c"><input type="checkbox" id="yHide"> çözülenleri gizle</label></div>
+  <div class="gal" id="yGal"></div>
+  <dialog class="view" id="yView"><img alt=""></dialog>
+</section>
+
+<section data-tab="program" class="panel">
+  <h2>haftalık program</h2>
+  <p class="muted small" style="margin-top:0">Hücreye dersi yaz; aynı ders aynı renge boyanır. Saatleri soldaki sütundan değiştirebilirsin.</p>
+  <div class="tw"><table class="prog" id="prog"></table></div>
+  <div class="row l" style="margin-top:.8rem"><button id="pSatir">satır ekle</button><button id="pSil" class="ghost">son satırı sil</button><button onclick="print()">yazdır</button></div>
+</section>
+
+<section data-tab="yedek" class="panel">
+  <h2>verileri dışa / içe aktar</h2>
+  <p>Konu takibi, denemeler, süreler, soru sayıları, tekrarlar, program, notlar, kartlar, oyun istatistikleri ve yanlış defterindeki fotoğraflar tek bir JSON dosyasına yazılır. Yeni cihazda aynı dosyayı içe aktar.</p>
+  <div class="row l"><button class="primary" id="xOut">dışa aktar (JSON)</button><button id="xIn">içe aktar</button><input type="file" id="xFile" accept="application/json,.json" hidden></div>
+  <p class="muted small" id="xInfo"></p>
+</section>
+</main>
+<script>
+const today = () => new Date().toLocaleDateString('sv');
+const dayStr = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x.toLocaleDateString('sv'); };
+const trDate = s => new Date(s).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+const DERS = ['Türkçe', 'Matematik', 'Geometri', 'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Felsefe', 'Din Kültürü', 'Edebiyat', 'Yabancı Dil'];
+const TURLER = { TYT: [['Türkçe', 40], ['Sosyal', 20], ['Matematik', 40], ['Fen', 20]], 'AYT SAY': [['Matematik', 40], ['Fizik', 14], ['Kimya', 13], ['Biyoloji', 13]], 'AYT EA': [['Matematik', 40], ['Edebiyat', 24], ['Tarih-1', 10], ['Coğrafya-1', 6]], 'AYT SÖZ': [['Edebiyat', 24], ['Tarih-1', 10], ['Coğrafya-1', 6], ['Tarih-2', 11], ['Coğrafya-2', 11], ['Felsefe', 12], ['Din', 6]], 'AYT DİL': [['Yabancı Dil', 80]] };
+const opts = (list, sel) => list.map(x => `<option ${x === sel ? 'selected' : ''}>${x}</option>`).join('');
+const kpi = list => list.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('');
+
+// Basit SVG grafikler
+function bars(data, unit = '') {
+  const W = 640, H = 170, max = Math.max(1, ...data.map(d => d[1])), bw = W / data.length;
+  return `<svg class="chart" viewBox="0 -14 ${W} ${H + 34}" role="img" aria-label="grafik">${[0, .5, 1].map(f => `<line class="grid" x1="0" x2="${W}" y1="${H - f * H}" y2="${H - f * H}"/><text x="0" y="${H - f * H - 3}">${Math.round(max * f)}${unit}</text>`).join('')}
+    ${data.map(([l, v], i) => `<rect x="${i * bw + bw * .18}" y="${H - v / max * H}" width="${bw * .64}" height="${v / max * H}" rx="4" fill="var(--accent)" stroke="var(--line)" stroke-width="1.5"><title>${l}: ${v}${unit}</title></rect><text x="${i * bw + bw / 2}" y="${H + 16}" text-anchor="middle">${l}</text>`).join('')}</svg>`;
+}
+function line(pts) {
+  if (pts.length < 2) return '<p class="muted small">Grafik için en az iki deneme gerekli.</p>';
+  const W = 640, H = 180, ys = pts.map(p => p[1]), lo = Math.floor(Math.min(...ys) - 2), hi = Math.ceil(Math.max(...ys) + 2), X = i => 20 + i * (W - 40) / (pts.length - 1), Y = v => H - (v - lo) / (hi - lo) * H;
+  return `<svg class="chart" viewBox="0 -14 ${W} ${H + 34}" role="img" aria-label="net grafiği">${[0, .5, 1].map(f => { const v = lo + (hi - lo) * f; return `<line class="grid" x1="0" x2="${W}" y1="${Y(v)}" y2="${Y(v)}"/><text x="0" y="${Y(v) - 3}">${site.fmt(v, 1)}</text>`; }).join('')}
+    <polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" points="${pts.map((p, i) => X(i) + ',' + Y(p[1])).join(' ')}"/>
+    ${pts.map((p, i) => `<circle cx="${X(i)}" cy="${Y(p[1])}" r="5" fill="var(--card)" stroke="var(--line)" stroke-width="2"><title>${p[0]}: ${site.fmt(p[1])} net</title></circle>${pts.length <= 12 ? `<text x="${X(i)}" y="${H + 16}" text-anchor="middle">${p[2]}</text>` : ''}`).join('')}</svg>`;
+}
+
+// ---- denemeler
+let D = store.get('deneme-log', []);
+site.$('#dTur').innerHTML = opts(Object.keys(TURLER));
+site.$('#dTarih').value = today();
+const dNets = () => site.$('#dNets').innerHTML = TURLER[site.$('#dTur').value].map(([n, q]) => `<label class="f">${n} neti<input type="number" step="0.25" min="-${q / 4}" max="${q}" data-ders="${n}" placeholder="0"></label>`).join('');
+site.$('#dTur').onchange = () => { dNets(); renderDeneme(); };
+site.$('#dEkle').onclick = () => {
+  const netler = {}; site.$$('#dNets input').forEach(i => netler[i.dataset.ders] = +i.value || 0);
+  const toplam = Object.values(netler).reduce((a, b) => a + b, 0);
+  D.push({ id: Date.now(), tur: site.$('#dTur').value, tarih: site.$('#dTarih').value || today(), ad: site.$('#dAd').value.trim(), netler, toplam });
+  store.set('deneme-log', D); toast('deneme kaydedildi'); site.$('#dAd').value = ''; dNets(); renderDeneme();
+};
+function renderDeneme() {
+  D = store.get('deneme-log', []);
+  const tur = site.$('#dTur').value, list = D.filter(d => d.tur === tur).sort((a, b) => a.tarih.localeCompare(b.tarih) || a.id - b.id);
+  const ts = list.map(d => d.toplam);
+  site.$('#dKpi').innerHTML = list.length ? kpi([[list.length, tur + ' denemesi'], [site.fmt(ts.at(-1)), 'son net'], [site.fmt(Math.max(...ts)), 'en yüksek'], [site.fmt(ts.reduce((a, b) => a + b, 0) / ts.length), 'ortalama']]) : '';
+  site.$('#dChart').innerHTML = line(list.map(d => [d.ad || trDate(d.tarih), d.toplam, trDate(d.tarih)]));
+  site.$('#dList').innerHTML = list.slice().reverse().map(d => `<div class="item"><div><b>${site.fmt(d.toplam)} net</b> · ${site.esc(d.ad || 'deneme')} <small>${trDate(d.tarih)}</small><br><small>${Object.entries(d.netler).map(([k, v]) => `${k} ${site.fmt(v)}`).join(' · ')}</small></div><div class="acts2"><button class="sm ghost" data-del-d="${d.id}" aria-label="sil">sil</button></div></div>`).join('');
+}
+site.$('#dList').onclick = e => { const b = e.target.closest('[data-del-d]'); if (b && confirm('Bu deneme silinsin mi?')) { D = D.filter(d => d.id != b.dataset.delD); store.set('deneme-log', D); renderDeneme(); } };
+
+// ---- süre
+const addMin = m => { const s = store.get('sure-log', {}); s[today()] = (s[today()] || 0) + m; store.set('sure-log', s); store.set('sure-son', m); toast(`+${m} dk`); renderSure(); };
+site.$$('[data-min]').forEach(b => b.onclick = () => addMin(+b.dataset.min));
+site.$('#sEkle').onclick = () => { const m = +site.$('#sMin').value; if (m > 0) { addMin(m); site.$('#sMin').value = ''; } };
+site.$('#sGeri').onclick = () => { const m = store.get('sure-son', 0), s = store.get('sure-log', {}); if (!m || !s[today()]) return toast('geri alınacak kayıt yok'); s[today()] = Math.max(0, s[today()] - m); store.set('sure-log', s); store.set('sure-son', 0); renderSure(); };
+const hm = m => m >= 60 ? `${Math.floor(m / 60)} sa ${m % 60 ? (m % 60) + ' dk' : ''}` : `${m} dk`;
+function renderSure() {
+  const s = store.get('sure-log', {}), days = [...Array(14)].map((_, i) => dayStr(today(), i - 13));
+  const week = days.slice(-7).reduce((a, d) => a + (s[d] || 0), 0), all = Object.values(s).reduce((a, b) => a + b, 0);
+  site.$('#sKpi').innerHTML = kpi([[hm(s[today()] || 0), 'bugün'], [hm(week), 'son 7 gün'], [hm(Math.round(week / 7)), 'günlük ortalama'], [hm(all), 'toplam']]);
+  site.$('#sChart').innerHTML = bars(days.map(d => [new Date(d).getDate(), s[d] || 0]), '');
+}
+
+// ---- soru
+site.$('#qDers').innerHTML = opts(DERS);
+site.$('#qEkle').onclick = () => {
+  const n = +site.$('#qN').value; if (!(n > 0)) return toast('soru sayısını gir');
+  const q = store.get('soru-log', {}), d = today(), ders = site.$('#qDers').value;
+  q[d] ||= {}; q[d][ders] = (q[d][ders] || 0) + n; store.set('soru-log', q); site.$('#qN').value = ''; toast(`+${n} ${ders}`); renderSoru();
+};
+function renderSoru() {
+  const q = store.get('soru-log', {}), sum = o => Object.values(o || {}).reduce((a, b) => a + b, 0), days = [...Array(14)].map((_, i) => dayStr(today(), i - 13));
+  const week = days.slice(-7).reduce((a, d) => a + sum(q[d]), 0), all = Object.values(q).reduce((a, o) => a + sum(o), 0);
+  site.$('#qKpi').innerHTML = kpi([[sum(q[today()]), 'bugün'], [week, 'son 7 gün'], [Math.round(week / 7), 'günlük ortalama'], [all.toLocaleString('tr-TR'), 'toplam']]);
+  site.$('#qChart').innerHTML = bars(days.map(d => [new Date(d).getDate(), sum(q[d])]));
+  site.$('#qToday').innerHTML = Object.entries(q[today()] || {}).map(([k, v]) => `<div class="item"><span>${k}</span><b>${v}</b></div>`).join('');
+}
+
+// ---- seri
+function renderSeri() {
+  const sure = store.get('sure-log', {}), soru = store.get('soru-log', {});
+  const lvl = d => { const m = (sure[d] || 0) + Object.values(soru[d] || {}).reduce((a, b) => a + b, 0) * 2; return m <= 0 ? 0 : m < 60 ? 1 : m < 180 ? 2 : 3; };
+  const days = Object.keys({ ...sure, ...soru }).filter(d => lvl(d)).sort();
+  let best = 0, run = 0, prev = null;
+  for (const d of days) { run = prev && dayStr(prev, 1) === d ? run + 1 : 1; best = Math.max(best, run); prev = d; }
+  site.$('#rKpi').innerHTML = kpi([[site.streak() + ' gün', 'şu anki seri'], [best + ' gün', 'en uzun seri'], [days.length, 'çalışılan gün']]);
+  // 20 hafta: bu haftanın pazartesisinden 19 hafta geriye, her sütun bir hafta
+  const off = (new Date().getDay() + 6) % 7, start = dayStr(today(), -off - 133);
+  site.$('#heat').innerHTML = [...Array(134 + off)].map((_, i) => { const d = dayStr(start, i); return `<i data-l="${lvl(d)}" title="${trDate(d)}"></i>`; }).join('');
+}
+
+// ---- tekrar (1-7-30)
+const STEPS = [1, 7, 30];
+const label = k => k.startsWith('ozel:') ? k.slice(5) : k.split(':').slice(1).join(':');
+function reviews() {
+  const done = store.get('konu-done', {}), rep = store.get('tekrar', {});
+  return Object.entries(done).map(([k, d]) => { const i = (rep[k] || []).length; return i >= 3 ? null : { k, due: dayStr(d, STEPS[i]), step: i }; }).filter(Boolean).sort((a, b) => a.due.localeCompare(b.due));
+}
+function renderTekrar() {
+  const r = reviews(), t = today();
+  const row = x => `<div class="item"><div><b>${site.esc(label(x.k))}</b><br><small>${STEPS[x.step]}. gün tekrarı · ${trDate(x.due)}</small></div><div class="acts2">${x.due <= t ? `<button class="sm primary" data-rev="${site.esc(x.k)}">tekrar ettim</button>` : ''}</div></div>`;
+  site.$('#tDue').innerHTML = r.filter(x => x.due <= t).map(row).join('') || '<p class="muted small">Bugün tekrar edilecek konu yok.</p>';
+  site.$('#tNext').innerHTML = r.filter(x => x.due > t).slice(0, 15).map(row).join('') || '<p class="muted small">Yaklaşan tekrar yok.</p>';
+}
+site.$('#tEkle').onclick = () => { const a = site.$('#tAd').value.trim(); if (!a) return; const d = store.get('konu-done', {}); d['ozel:' + a] = today(); store.set('konu-done', d); site.$('#tAd').value = ''; toast('1, 7 ve 30 gün sonra hatırlatılacak'); renderTekrar(); };
+site.$('#tDue').onclick = e => { const b = e.target.closest('[data-rev]'); if (!b) return; const rep = store.get('tekrar', {}); (rep[b.dataset.rev] ||= []).push(today()); store.set('tekrar', rep); toast('harika, sıradaki tekrar planlandı'); renderTekrar(); };
+
+// ---- yanlış defteri (fotoğraflar IndexedDB'de)
+const idb = (() => {
+  let db;
+  const open = () => db ||= new Promise((ok, no) => { const r = indexedDB.open('fadimrak', 1); r.onupgradeneeded = () => r.result.createObjectStore('yanlis', { keyPath: 'id' }); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+  const tx = async (mode, fn) => { const d = await open(); return new Promise((ok, no) => { const t = d.transaction('yanlis', mode), req = fn(t.objectStore('yanlis')); t.oncomplete = () => ok(req.result); t.onerror = () => no(t.error); }); };
+  return { all: () => tx('readonly', s => s.getAll()), put: v => tx('readwrite', s => s.put(v)), del: id => tx('readwrite', s => s.delete(id)), clear: () => tx('readwrite', s => s.clear()) };
+})();
+async function shrink(file, max = 1400) {
+  const img = await createImageBitmap(file), k = Math.min(1, max / Math.max(img.width, img.height));
+  const c = Object.assign(document.createElement('canvas'), { width: Math.round(img.width * k), height: Math.round(img.height * k) });
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return new Promise(ok => c.toBlob(ok, 'image/jpeg', .82));
+}
+site.$('#yDers').innerHTML = opts(DERS);
+site.$('#yF').innerHTML = '<option value="">tüm dersler</option>' + opts(DERS);
+site.$('#yEkle').onclick = async () => {
+  const f = site.$('#yImg').files[0]; if (!f) return toast('önce fotoğraf seç');
+  try {
+    await idb.put({ id: Date.now(), img: await shrink(f), ders: site.$('#yDers').value, tags: site.$('#yTag').value.split(',').map(s => s.trim()).filter(Boolean), not: site.$('#yNot').value.trim(), tarih: today(), cozuldu: false });
+    site.$('#yImg').value = ''; site.$('#yTag').value = ''; site.$('#yNot').value = ''; toast('eklendi'); renderYanlis();
+  } catch { toast('kaydedilemedi, tarayıcı depolaması dolu olabilir'); }
+};
+let urls = [];
+async function renderYanlis() {
+  urls.forEach(URL.revokeObjectURL); urls = [];
+  const f = site.$('#yF').value, q = site.norm(site.$('#yQ').value.trim()), hide = site.$('#yHide').checked;
+  const all = (await idb.all()).sort((a, b) => b.id - a.id).filter(x => (!f || x.ders === f) && (!hide || !x.cozuldu) && (!q || site.norm(x.tags.join(' ') + ' ' + x.not).includes(q)));
+  site.$('#yGal').innerHTML = all.map(x => { const u = URL.createObjectURL(x.img); urls.push(u); return `<div class="card ${x.cozuldu ? 'done' : ''}"><img src="${u}" alt="${site.esc(x.ders)} sorusu" data-big="${u}" loading="lazy"><div class="b"><b>${site.esc(x.ders)} <small class="muted">${trDate(x.tarih)}</small></b>${x.tags.length ? `<div class="tags">${x.tags.map(t => `<span>${site.esc(t)}</span>`).join('')}</div>` : ''}${x.not ? `<span>${site.esc(x.not)}</span>` : ''}<div class="row l"><button class="sm" data-solve="${x.id}">${x.cozuldu ? 'geri al' : 'çözdüm'}</button><button class="sm ghost" data-del-y="${x.id}">sil</button></div></div></div>`; }).join('') || '<p class="muted small">Henüz kayıt yok. Yanlış yaptığın sorunun fotoğrafını çek, dersini ve etiketini seç.</p>';
+}
+site.$('#yGal').onclick = async e => {
+  const big = e.target.closest('[data-big]'); if (big) { site.$('#yView img').src = big.dataset.big; return site.$('#yView').showModal(); }
+  const s = e.target.closest('[data-solve]'); if (s) { const x = (await idb.all()).find(r => r.id == s.dataset.solve); x.cozuldu = !x.cozuldu; await idb.put(x); return renderYanlis(); }
+  const d = e.target.closest('[data-del-y]'); if (d && confirm('Bu kayıt silinsin mi?')) { await idb.del(+d.dataset.delY); renderYanlis(); }
+};
+site.$('#yView').onclick = () => site.$('#yView').close();
+['#yF', '#yQ', '#yHide'].forEach(s => site.$(s).addEventListener('input', renderYanlis));
+
+// ---- haftalık program
+const GUN = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+let P = store.get('program', { slots: ['09:00', '10:30', '13:00', '14:30', '16:00', '19:00', '20:30'], cells: {} });
+const hue = s => { let h = 0; for (const c of site.norm(s.trim())) h = (h * 31 + c.charCodeAt(0)) % 360; return s.trim() ? `hsl(${h} 80% 85%)` : ''; };
+function renderProgram() {
+  site.$('#prog').innerHTML = `<thead><tr><th style="width:84px">saat</th>${GUN.map(g => `<th>${g}</th>`).join('')}</tr></thead><tbody>` +
+    P.slots.map((s, r) => `<tr><td class="slot"><input value="${site.esc(s)}" data-slot="${r}" aria-label="${r + 1}. satır saati"></td>${GUN.map((g, c) => { const v = P.cells[r + '-' + c] || ''; return `<td><input value="${site.esc(v)}" data-cell="${r}-${c}" style="--c:${hue(v) || 'var(--card)'};color:${v ? '#1c1a17' : 'inherit'}" aria-label="${g} ${s}"></td>`; }).join('')}</tr>`).join('') + '</tbody>';
+}
+site.$('#prog').oninput = e => {
+  const t = e.target;
+  if (t.dataset.slot) P.slots[t.dataset.slot] = t.value;
+  if (t.dataset.cell) { P.cells[t.dataset.cell] = t.value; t.style.setProperty('--c', hue(t.value) || 'var(--card)'); t.style.color = t.value ? '#1c1a17' : 'inherit'; }
+  store.set('program', P);
+};
+site.$('#pSatir').onclick = () => { P.slots.push(''); store.set('program', P); renderProgram(); };
+site.$('#pSil').onclick = () => { if (P.slots.length > 1) { const r = P.slots.length - 1; P.slots.pop(); GUN.forEach((_, c) => delete P.cells[r + '-' + c]); store.set('program', P); renderProgram(); } };
+
+// ---- yedek
+const toData = b => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
+site.$('#xOut').onclick = async () => {
+  const ls = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
+  const yanlis = await Promise.all((await idb.all()).map(async x => ({ ...x, img: await toData(x.img) })));
+  site.dl(new Blob([JSON.stringify({ site: 'fadimrak.xyz', surum: 1, tarih: new Date().toISOString(), localStorage: ls, yanlis })], { type: 'application/json' }), `fadimrak-yedek-${today()}.json`);
+  site.$('#xInfo').textContent = `${Object.keys(ls).length} kayıt ve ${yanlis.length} fotoğraf dışa aktarıldı.`;
+};
+site.$('#xIn').onclick = () => site.$('#xFile').click();
+site.$('#xFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  let j; try { j = JSON.parse(await f.text()); } catch { return toast('dosya okunamadı'); }
+  if (j.site !== 'fadimrak.xyz' || !j.localStorage) return toast('bu bir fadimrak.xyz yedeği değil');
+  if (!confirm(`${new Date(j.tarih).toLocaleString('tr-TR')} tarihli yedek yüklenecek. Bu tarayıcıdaki mevcut veriler yedektekilerle değiştirilecek. Devam edilsin mi?`)) return;
+  try {
+    localStorage.clear(); Object.entries(j.localStorage).forEach(([k, v]) => localStorage.setItem(k, v));
+    await idb.clear();
+    for (const x of j.yanlis || []) await idb.put({ ...x, img: await (await fetch(x.img)).blob() });
+    site.$('#xInfo').textContent = 'Yedek yüklendi.'; toast('yedek yüklendi'); setTimeout(() => location.reload(), 800);
+  } catch { toast('yükleme sırasında hata oldu'); }
+};
+
+dNets();
+const R = { deneme: renderDeneme, sure: renderSure, soru: renderSoru, seri: renderSeri, tekrar: renderTekrar, yanlis: renderYanlis, program: renderProgram, yedek: () => {} };
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => R[s.dataset.tab]()));
+</script>
+</body>
+</html>

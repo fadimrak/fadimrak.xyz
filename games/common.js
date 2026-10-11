@@ -1,4 +1,4 @@
-// Oyunların ortak yardımcıları
+// Oyunların ortak yardımcıları (store ve toast /assets/site.js içinde)
 
 // 2026-01-01'den bu yana geçen gün (yerel saat) — günlük bulmacaların numarası
 function dayIndex() {
@@ -29,25 +29,6 @@ function shuffle(arr, rand = Math.random) {
 function nthOf(list, n, salt = 1) {
   const len = list.length, cycle = Math.floor(n / len);
   return shuffle(list, rng(salt * 7919 + cycle))[((n % len) + len) % len];
-}
-
-const store = {
-  get(key, fallback) {
-    try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; }
-  },
-  set(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-  }
-};
-
-let toastTimer;
-function toast(msg, ms = 1800) {
-  let el = document.querySelector('.toast');
-  if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.append(el); }
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
 function shake(el) {
@@ -97,5 +78,8 @@ function confetti(n = 80) {
   })();
 }
 
-// Sayfa altı imza
-document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot">fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
+// Son oynananlar (oyunlar sayfasında gösterilir)
+{
+  const slug = location.pathname.split('/')[2];
+  if (slug) store.set('games-recent', [slug, ...store.get('games-recent', []).filter(x => x !== slug)].slice(0, 6));
+}

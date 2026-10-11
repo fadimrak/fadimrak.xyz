@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tarih kronolojisi · YKS · fadimrak</title>
+<meta name="description" content="YKS tarih için kronoloji: ilk Türk devletlerinden günümüze önemli olaylar">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--orange); }
+  .filters { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .6rem; }
+  .filters .chip { background: var(--c); color: #1c1a17; }
+  .filters .chip.on { outline: 3px solid var(--ink); background: var(--c); color: #1c1a17; }
+  .tl { list-style: none; margin: 1rem 0 0; padding: 0; position: relative; }
+  .tl::before { content: ''; position: absolute; left: 6.2rem; top: 0; bottom: 0; width: 2px; background: var(--line); opacity: .35; }
+  .tl li { display: grid; grid-template-columns: 5.6rem 1.2rem 1fr; gap: .5rem; align-items: start; padding: .4rem 0; }
+  .tl .y { text-align: right; font-family: var(--head); font-weight: 900; font-variant-numeric: tabular-nums; padding-top: .35rem; }
+  .tl .dot { width: 14px; height: 14px; margin: .5rem 0 0 .1rem; border-radius: 99px; background: var(--c); border: 2px solid var(--line); position: relative; z-index: 1; }
+  .tl .t { background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: .5rem .75rem; box-shadow: 2px 2px 0 var(--sh); }
+  .tl .t small { display: block; color: var(--muted); font-size: .76rem; margin-top: .15rem; }
+  .tl li.hide-y .y { visibility: hidden; }
+  .quiz { margin-top: 1rem; }
+  @media (max-width: 480px) { .tl::before { left: 4.6rem; } .tl li { grid-template-columns: 4rem 1.2rem 1fr; } .tl .y { font-size: .85rem; } }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>kronoloji</h1><div class="acts"></div></header>
+<main class="wide">
+  <div class="filters" id="eras" role="group" aria-label="dönemler"></div>
+  <input id="q" type="search" placeholder="olay ya da yıl ara (ör. 1071, Lozan)" aria-label="olay ara" style="width:100%">
+  <ol class="tl" id="tl"></ol>
+  <p class="muted small">Tarihler YKS müfredatında kullanılan biçimdedir. Bazı olaylarda kaynaklar bir yıl farklı tarih verebilir.</p>
+</main>
+<script>
+const ERAS = {
+  ilk: ['İlk Çağ ve ilk Türk devletleri', '#ffd9a0'],
+  islam: ['İslam ve Türk-İslam devletleri', '#b9e3b0'],
+  ok: ['Osmanlı: kuruluş ve yükselme', '#9cc7ff'],
+  od: ['Osmanlı: duraklama ve dağılma', '#c9b6ff'],
+  dunya: ['Dünya tarihi', '#e0e0d0'],
+  mm: ['Milli Mücadele', '#ff9f8f'],
+  cum: ['Atatürk dönemi ve inkılaplar', '#ffe08a'],
+  cag: ['Çağdaş Türkiye ve dünya', '#8fe0d5'],
+};
+// [yıl (sıralama için sayı), gösterilen tarih, olay, açıklama, dönem]
+const EV = [
+  [-3200, 'MÖ 3200', 'Sümerler yazıyı buldu', 'Çivi yazısı; tarih çağları başladı.', 'ilk'],
+  [-1259, 'MÖ 1259', 'Kadeş Antlaşması', 'Hititler ile Mısır arasında, bilinen ilk yazılı antlaşma.', 'ilk'],
+  [-209, 'MÖ 209', 'Mete Han Asya Hun tahtına çıktı', 'Onlu sistemle düzenli ordu kuruldu.', 'ilk'],
+  [375, '375', 'Kavimler Göçü başladı', 'Avrupa Hunları Karadeniz kuzeyine ilerledi; Avrupa\'da İlk Çağ\'ın sonu.', 'ilk'],
+  [552, '552', 'Kök Türk Devleti kuruldu', 'Bumin Kağan; Türk adıyla kurulan ilk devlet.', 'ilk'],
+  [682, '682', 'II. Kök Türk (Kutluk) Devleti', 'İlteriş Kutluk Kağan Çin egemenliğine son verdi.', 'ilk'],
+  [732, '732-735', 'Kül Tigin ve Bilge Kağan yazıtları dikildi', 'Orhun Yazıtları; Türk adının geçtiği ilk Türkçe yazılı belgeler.', 'ilk'],
+  [744, '744', 'Uygur Devleti kuruldu', 'Yerleşik hayata geçen ilk Türk devleti.', 'ilk'],
+  [622, '622', 'Hicret', 'Hz. Muhammed Mekke\'den Medine\'ye göç etti; Hicri takvimin başlangıcı.', 'islam'],
+  [632, '632', 'Dört Halife dönemi başladı', 'Hz. Muhammed\'in vefatı.', 'islam'],
+  [661, '661', 'Emeviler', 'Halifelik saltanata dönüştü.', 'islam'],
+  [750, '750', 'Abbasiler', 'Türklerin İslam devletlerinde görev almaya başladığı dönem.', 'islam'],
+  [751, '751', 'Talas Savaşı', 'Abbasiler ile Türkler Çin\'e karşı birlikte savaştı; Türklerin İslamiyet\'e geçişi hızlandı.', 'islam'],
+  [840, '840', 'Karahanlı Devleti kuruldu', 'Satuk Buğra Han döneminde İslamiyet\'i kabul eden ilk Türk devletlerinden.', 'islam'],
+  [963, '963', 'Gazneli Devleti kuruldu', 'Gazneli Mahmut Hindistan seferleri düzenledi.', 'islam'],
+  [1040, '1040', 'Dandanakan Savaşı', 'Gazneliler yenildi, Büyük Selçuklu Devleti resmen kuruldu.', 'islam'],
+  [1048, '1048', 'Pasinler Savaşı', 'Selçukluların Bizans ile ilk büyük savaşı.', 'islam'],
+  [1071, '1071', 'Malazgirt Savaşı', 'Alparslan Bizans\'ı yendi; Anadolu\'nun kapıları açıldı.', 'islam'],
+  [1075, '1075', 'Türkiye Selçuklu Devleti kuruldu', 'Süleyman Şah, başkent İznik.', 'islam'],
+  [1096, '1096', 'I. Haçlı Seferi', 'İznik kaybedildi, başkent Konya\'ya taşındı.', 'islam'],
+  [1141, '1141', 'Katvan Savaşı', 'Büyük Selçuklu Karahıtaylara yenildi.', 'islam'],
+  [1176, '1176', 'Miryokefalon Savaşı', 'Bizans Anadolu\'yu geri alma umudunu yitirdi.', 'islam'],
+  [1243, '1243', 'Kösedağ Savaşı', 'Türkiye Selçukluları Moğol egemenliğine girdi.', 'islam'],
+  [1299, '1299', 'Osmanlı Beyliği kuruldu', 'Osman Bey.', 'ok'],
+  [1302, '1302', 'Koyunhisar (Bafeus) Savaşı', 'Bizans ile ilk savaş.', 'ok'],
+  [1326, '1326', 'Bursa alındı', 'Orhan Bey döneminde başkent oldu.', 'ok'],
+  [1353, '1353', 'Çimpe Kalesi alındı', 'Rumeli\'ye geçildi.', 'ok'],
+  [1364, '1364', 'Sırpsındığı Savaşı', 'Haçlılarla ilk savaş.', 'ok'],
+  [1389, '1389', 'I. Kosova Savaşı', 'Balkanlarda Osmanlı egemenliği güçlendi.', 'ok'],
+  [1396, '1396', 'Niğbolu Savaşı', 'Haçlı ordusu yenildi.', 'ok'],
+  [1402, '1402', 'Ankara Savaşı', 'Timur Yıldırım Bayezid\'i yendi; Fetret Devri (1402-1413).', 'ok'],
+  [1444, '1444', 'Edirne-Segedin Antlaşması ve Varna Savaşı', 'Haçlılar antlaşmayı bozdu, Varna\'da yenildi.', 'ok'],
+  [1448, '1448', 'II. Kosova Savaşı', 'Balkanlar kesin olarak Türk yurdu oldu.', 'ok'],
+  [1453, '1453', 'İstanbul\'un fethi', 'Fatih Sultan Mehmet; Orta Çağ\'ın sonu.', 'ok'],
+  [1473, '1473', 'Otlukbeli Savaşı', 'Akkoyunlular yenildi.', 'ok'],
+  [1492, '1492', 'Amerika\'ya ulaşıldı', 'Coğrafi Keşifler hızlandı.', 'dunya'],
+  [1514, '1514', 'Çaldıran Savaşı', 'Yavuz Sultan Selim Safevileri yendi.', 'ok'],
+  [1516, '1516-1517', 'Mercidabık ve Ridaniye savaşları', 'Memlükler yıkıldı, halifelik Osmanlıya geçti.', 'ok'],
+  [1517, '1517', 'Reform hareketi başladı', 'Martin Luther; mezhep savaşlarına yol açtı.', 'dunya'],
+  [1526, '1526', 'Mohaç Meydan Muharebesi', 'Macaristan Osmanlı egemenliğine girdi.', 'ok'],
+  [1529, '1529', 'I. Viyana Kuşatması', 'Kanuni dönemi.', 'ok'],
+  [1538, '1538', 'Preveze Deniz Savaşı', 'Barbaros Hayrettin Paşa; Akdeniz Türk gölü oldu.', 'ok'],
+  [1571, '1571', 'İnebahtı Deniz Savaşı', 'Osmanlı donanması ilk büyük yenilgiyi aldı.', 'ok'],
+  [1606, '1606', 'Zitvatorok Antlaşması', 'Avusturya Osmanlıyla eşit sayıldı.', 'od'],
+  [1639, '1639', 'Kasr-ı Şirin Antlaşması', 'İran sınırı büyük ölçüde bugünkü hâlini aldı.', 'od'],
+  [1648, '1648', 'Vestfalya Barışı', 'Otuz Yıl Savaşları bitti; modern devletler sistemi.', 'dunya'],
+  [1683, '1683', 'II. Viyana Kuşatması', 'Başarısız oldu; Kutsal İttifak savaşları başladı.', 'od'],
+  [1699, '1699', 'Karlofça Antlaşması', 'Osmanlının ilk büyük toprak kaybı.', 'od'],
+  [1718, '1718', 'Pasarofça Antlaşması', 'Lale Devri başladı (1718-1730).', 'od'],
+  [1727, '1727', 'İlk Türk matbaası', 'İbrahim Müteferrika.', 'od'],
+  [1739, '1739', 'Belgrat Antlaşması', 'Fransa\'nın aracılığıyla; kapitülasyonlar sürekli hâle geldi (1740).', 'od'],
+  [1774, '1774', 'Küçük Kaynarca Antlaşması', 'Kırım bağımsız oldu, Rusya Ortodoksların hamisi sayıldı.', 'od'],
+  [1789, '1789', 'Fransız İhtilali', 'Milliyetçilik, eşitlik, özgürlük düşünceleri yayıldı.', 'dunya'],
+  [1808, '1808', 'Sened-i İttifak', 'Padişahın yetkileri ilk kez sınırlandı.', 'od'],
+  [1826, '1826', 'Yeniçeri Ocağı kaldırıldı', 'Vaka-i Hayriye; yerine Asakir-i Mansure-i Muhammediye.', 'od'],
+  [1829, '1829', 'Edirne Antlaşması', 'Yunanistan\'ın bağımsızlığına giden süreç.', 'od'],
+  [1838, '1838', 'Balta Limanı Ticaret Antlaşması', 'İngiltere\'ye geniş ticari ayrıcalıklar.', 'od'],
+  [1839, '1839', 'Tanzimat Fermanı', 'Kanun üstünlüğü ilkesi.', 'od'],
+  [1856, '1856', 'Islahat Fermanı ve Paris Antlaşması', 'Kırım Savaşı (1853-1856) sona erdi.', 'od'],
+  [1876, '1876', 'I. Meşrutiyet', 'Kanun-i Esasi, ilk anayasa.', 'od'],
+  [1878, '1877-1878', '93 Harbi, Ayastefanos ve Berlin antlaşmaları', 'Balkanlarda büyük toprak kayıpları.', 'od'],
+  [1881, '1881', 'Duyun-u Umumiye kuruldu', 'Muharrem Kararnamesi ile borçlar için.', 'od'],
+  [1908, '1908', 'II. Meşrutiyet', 'Kanun-i Esasi yeniden yürürlüğe girdi.', 'od'],
+  [1912, '1911-1912', 'Trablusgarp Savaşı ve Uşi Antlaşması', 'Kuzey Afrika\'daki son toprak kaybedildi.', 'od'],
+  [1913, '1912-1913', 'Balkan Savaşları', 'Edirne geri alındı; Balkanlarda büyük kayıp.', 'od'],
+  [1914, '1914', 'I. Dünya Savaşı', 'Osmanlı İttifak devletleri yanında savaşa girdi.', 'od'],
+  [1915, '1915', 'Çanakkale Savaşları', '18 Mart deniz zaferi; kara savaşları 1916\'ya kadar sürdü.', 'od'],
+  [1917, '1917', 'Rus Devrimi', 'Rusya savaştan çekildi.', 'dunya'],
+  [1918, '30 Ekim 1918', 'Mondros Ateşkes Antlaşması', '7. madde ile işgallerin önü açıldı.', 'od'],
+  [1919.2, '15 Mayıs 1919', 'İzmir\'in işgali', 'Kuvayımilliye hareketi başladı.', 'mm'],
+  [1919.3, '19 Mayıs 1919', 'Mustafa Kemal Samsun\'a çıktı', 'Milli Mücadele başladı.', 'mm'],
+  [1919.4, '22 Haziran 1919', 'Amasya Genelgesi', '"Milletin istiklalini yine milletin azim ve kararı kurtaracaktır."', 'mm'],
+  [1919.5, '23 Temmuz 1919', 'Erzurum Kongresi', 'Toplanış bakımından bölgesel, alınan kararlar bakımından ulusal.', 'mm'],
+  [1919.6, '4 Eylül 1919', 'Sivas Kongresi', 'Cemiyetler Anadolu ve Rumeli Müdafaa-i Hukuk Cemiyeti adıyla birleşti.', 'mm'],
+  [1919.8, '22 Ekim 1919', 'Amasya Görüşmeleri', 'İstanbul hükümeti Temsil Heyeti\'ni tanıdı.', 'mm'],
+  [1920.1, '28 Ocak 1920', 'Misakımilli', 'Son Osmanlı Mebusan Meclisi kabul etti.', 'mm'],
+  [1920.2, '16 Mart 1920', 'İstanbul resmen işgal edildi', 'Mebusan Meclisi dağıtıldı.', 'mm'],
+  [1920.3, '23 Nisan 1920', 'TBMM açıldı', 'Ulusal egemenliğe dayanan meclis.', 'mm'],
+  [1920.6, '10 Ağustos 1920', 'Sevr Antlaşması', 'Osmanlı hükümetince imzalandı, yürürlüğe girmedi.', 'mm'],
+  [1920.9, '3 Aralık 1920', 'Gümrü Antlaşması', 'TBMM\'nin ilk askeri ve siyasi başarısı.', 'mm'],
+  [1921.0, 'Ocak 1921', 'I. İnönü Savaşı ve Teşkilat-ı Esasiye', 'Düzenli ordunun ilk zaferi; ilk anayasa (20 Ocak).', 'mm'],
+  [1921.2, '12 Mart 1921', 'İstiklal Marşı kabul edildi', 'Mehmet Akif Ersoy.', 'mm'],
+  [1921.21, '16 Mart 1921', 'Moskova Antlaşması', 'Sovyet Rusya Misakımilliyi tanıdı.', 'mm'],
+  [1921.25, 'Mart-Nisan 1921', 'II. İnönü Savaşı', '', 'mm'],
+  [1921.5, 'Temmuz 1921', 'Kütahya-Eskişehir savaşları', 'Ordu Sakarya\'nın doğusuna çekildi; Başkomutanlık Kanunu (5 Ağustos).', 'mm'],
+  [1921.6, '23 Ağustos 1921', 'Sakarya Meydan Muharebesi', '13 Eylül\'e kadar sürdü; Mustafa Kemal\'e mareşallik ve gazilik.', 'mm'],
+  [1921.8, '13 Ekim 1921', 'Kars Antlaşması', 'Doğu sınırı kesinleşti.', 'mm'],
+  [1921.81, '20 Ekim 1921', 'Ankara Antlaşması', 'Fransa ile; Güney Cephesi kapandı.', 'mm'],
+  [1922.6, '26 Ağustos 1922', 'Büyük Taarruz', '30 Ağustos Başkomutan Meydan Muharebesi; 9 Eylül\'de İzmir kurtuldu.', 'mm'],
+  [1922.8, '11 Ekim 1922', 'Mudanya Ateşkes Antlaşması', 'Doğu Trakya savaşmadan alındı.', 'mm'],
+  [1922.85, '1 Kasım 1922', 'Saltanat kaldırıldı', '', 'cum'],
+  [1923.5, '24 Temmuz 1923', 'Lozan Barış Antlaşması', 'Yeni Türk devleti uluslararası alanda tanındı.', 'mm'],
+  [1923.8, '13 Ekim 1923', 'Ankara başkent oldu', '', 'cum'],
+  [1923.82, '29 Ekim 1923', 'Cumhuriyet ilan edildi', 'Mustafa Kemal ilk cumhurbaşkanı.', 'cum'],
+  [1924.2, '3 Mart 1924', 'Halifelik kaldırıldı, Tevhid-i Tedrisat Kanunu', 'Eğitim birleştirildi.', 'cum'],
+  [1924.3, '20 Nisan 1924', '1924 Anayasası', '', 'cum'],
+  [1925.1, '1925', 'Aşar vergisi kaldırıldı', 'Köylünün üzerindeki yük hafifletildi.', 'cum'],
+  [1925.8, '1925', 'Şapka Kanunu, tekke ve zaviyelerin kapatılması', 'Kasım 1925.', 'cum'],
+  [1925.9, '1925', 'Uluslararası takvim ve saat kabul edildi', '1 Ocak 1926\'dan itibaren uygulandı.', 'cum'],
+  [1926, '1926', 'Türk Medeni Kanunu', 'Kadın-erkek eşitliği, tek eşlilik, resmî nikâh.', 'cum'],
+  [1928.3, '1928', 'Anayasadan "devletin dini İslam\'dır" ibaresi çıkarıldı', '', 'cum'],
+  [1928.8, '1 Kasım 1928', 'Harf İnkılabı', 'Latin harflerine dayalı yeni Türk alfabesi.', 'cum'],
+  [1929, '1929', 'Büyük Buhran', 'Dünya ekonomik krizi; devletçilik politikasına geçişi etkiledi.', 'dunya'],
+  [1930, '1930', 'Kadınlara belediye seçimlerinde seçme ve seçilme hakkı', 'Serbest Cumhuriyet Fırkası kuruldu ve kapandı.', 'cum'],
+  [1931, '1931', 'Türk Tarih Kurumu', 'Türk Tarihi Tetkik Cemiyeti adıyla kuruldu.', 'cum'],
+  [1932, '1932', 'Türk Dil Kurumu ve Milletler Cemiyeti üyeliği', '', 'cum'],
+  [1933, '1933', 'Üniversite reformu ve I. Beş Yıllık Sanayi Planı', 'Darülfünun kapatıldı, İstanbul Üniversitesi kuruldu.', 'cum'],
+  [1934.1, '9 Şubat 1934', 'Balkan Antantı', 'Türkiye, Yunanistan, Romanya, Yugoslavya.', 'cum'],
+  [1934.5, '21 Haziran 1934', 'Soyadı Kanunu', 'Mustafa Kemal\'e "Atatürk" soyadı verildi.', 'cum'],
+  [1934.9, '5 Aralık 1934', 'Kadınlara milletvekili seçme ve seçilme hakkı', '', 'cum'],
+  [1936, '1936', 'Montrö Boğazlar Sözleşmesi', 'Boğazlarda tam egemenlik.', 'cum'],
+  [1937.1, '1937', 'Laiklik anayasaya girdi', 'Altı ilke anayasaya eklendi.', 'cum'],
+  [1937.5, '1937', 'Sadabat Paktı', 'Türkiye, İran, Irak, Afganistan.', 'cum'],
+  [1938, '10 Kasım 1938', 'Atatürk\'ün vefatı', 'İsmet İnönü cumhurbaşkanı oldu.', 'cum'],
+  [1939.5, '1939', 'Hatay Türkiye\'ye katıldı', '', 'cum'],
+  [1939.7, '1939-1945', 'II. Dünya Savaşı', 'Türkiye savaş dışı kalmaya çalıştı.', 'dunya'],
+  [1945, '1945', 'Birleşmiş Milletler', 'Türkiye kurucu üyelerden.', 'cag'],
+  [1946, '1946', 'İlk çok partili seçim', '', 'cag'],
+  [1947, '1947', 'Truman Doktrini ve Marshall Planı', 'ABD yardımları; Soğuk Savaş başladı.', 'cag'],
+  [1950, '1950', 'Demokrat Parti iktidara geldi; Kore Savaşı', 'Türkiye Kore\'ye asker gönderdi.', 'cag'],
+  [1952, '1952', 'Türkiye NATO\'ya katıldı', '', 'cag'],
+  [1955, '1955', 'Bağdat Paktı', 'Sonradan CENTO adını aldı.', 'cag'],
+  [1960, '1960', '27 Mayıs askerî darbesi; Kıbrıs Cumhuriyeti kuruldu', '', 'cag'],
+  [1962, '1962', 'Küba Füze Krizi', 'Türkiye\'deki Jüpiter füzeleri pazarlık konusu oldu.', 'cag'],
+  [1963, '1963', 'Ankara Antlaşması', 'Avrupa Ekonomik Topluluğu ile ortaklık.', 'cag'],
+  [1974, '1974', 'Kıbrıs Barış Harekâtı', '', 'cag'],
+  [1980, '1980', '12 Eylül askerî darbesi', '', 'cag'],
+  [1982, '1982', '1982 Anayasası', '', 'cag'],
+  [1983, '1983', 'KKTC kuruldu', '15 Kasım 1983.', 'cag'],
+  [1989, '1989', 'Berlin Duvarı yıkıldı', '', 'cag'],
+  [1991, '1991', 'Sovyetler Birliği dağıldı', 'Türk cumhuriyetleri bağımsızlığını kazandı.', 'cag'],
+  [1999, '1999', 'Türkiye AB aday ülkesi oldu', 'Helsinki Zirvesi.', 'cag'],
+  [2005, '2005', 'AB katılım müzakereleri başladı', '', 'cag'],
+].sort((a, b) => a[0] - b[0]);
+
+let era = null;
+site.$('#eras').innerHTML = Object.entries(ERAS).map(([k, [n, c]]) => `<button class="chip" data-e="${k}" style="--c:${c}" aria-pressed="false">${n}</button>`).join('');
+site.$('#eras').onclick = e => {
+  const b = e.target.closest('[data-e]'); if (!b) return;
+  era = era === b.dataset.e ? null : b.dataset.e;
+  site.$$('#eras .chip').forEach(x => { x.classList.toggle('on', x.dataset.e === era); x.setAttribute('aria-pressed', x.dataset.e === era); });
+  render();
+};
+function render() {
+  const q = site.norm(site.$('#q').value.trim());
+  let last = '';
+  site.$('#tl').innerHTML = EV.filter(e => (!era || e[4] === era) && (!q || site.norm(e[1] + ' ' + e[2] + ' ' + e[3]).includes(q))).map(e => {
+    const y = (e[1].match(/(MÖ )?\d+(-\d+)?$/) || [e[1]])[0], full = e[1] !== y ? e[1] : '', same = y === last; last = y;
+    const sub = [full, site.esc(e[3])].filter(Boolean).join(' · ');
+    return `<li class="${same ? 'hide-y' : ''}" style="--c:${ERAS[e[4]][1]}"><span class="y">${y}</span><span class="dot"></span><div class="t"><b>${site.esc(e[2])}</b>${sub ? `<small>${sub}</small>` : ''}</div></li>`;
+  }).join('') || '<li><span></span><span></span><p class="muted">Sonuç yok.</p></li>';
+}
+site.$('#q').oninput = render;
+render();
+</script>
+</body>
+</html>

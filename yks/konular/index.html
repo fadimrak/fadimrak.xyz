@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>konular · YKS · fadimrak</title>
+<meta name="description" content="TYT ve AYT konu listesi, kısa özetler, video ve PDF bağlantıları, konu takibi">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .top { display: grid; gap: .8rem; }
+  .sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: .75rem; }
+  .sum .panel { padding: .9rem 1rem; }
+  .sum b { font-size: 1.5rem; font-family: var(--head); }
+  .filters { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+  .filters input { flex: 1 1 200px; }
+  details.ders { margin-top: .8rem; background: var(--card); border: 2px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--sh); overflow: hidden; }
+  details.ders > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 12px 1fr auto; gap: .8rem; align-items: center; padding: .85rem 1rem; }
+  details.ders > summary::-webkit-details-marker { display: none; }
+  details.ders > summary .dot { width: 12px; height: 12px; border-radius: 4px; background: var(--c); border: 2px solid var(--line); }
+  details.ders > summary h2 { margin: 0; font-size: 1.05rem; }
+  details.ders > summary small { color: var(--muted); font-weight: 600; }
+  details.ders > summary .p { text-align: right; font-weight: 700; font-size: .85rem; min-width: 90px; }
+  details.ders > summary .bar { margin-top: .3rem; height: 8px; }
+  details.ders[open] > summary { border-bottom: 2px solid var(--soft); }
+  .tools { display: flex; gap: .4rem; flex-wrap: wrap; padding: .7rem 1rem; border-bottom: 1px solid var(--soft); font-size: .85rem; }
+  ul.k { list-style: none; margin: 0; padding: 0; }
+  ul.k > li { border-bottom: 1px solid var(--soft); }
+  ul.k > li:last-child { border-bottom: 0; }
+  .kr { display: flex; align-items: center; gap: .7rem; padding: .55rem 1rem; }
+  .kr label { flex: 1; display: flex; align-items: center; gap: .65rem; cursor: pointer; min-height: 36px; }
+  .kr input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+  .kr .x { width: 36px; height: 36px; min-height: 0; padding: 0; box-shadow: none; border-color: transparent; background: transparent; transition: transform .2s; }
+  .kr .x:hover:not(:disabled) { background: var(--soft); box-shadow: none; transform: none; }
+  .kr .x[aria-expanded=true] svg { transform: rotate(180deg); }
+  .kr .x svg { width: 18px; height: 18px; transition: transform .2s; }
+  .det { padding: 0 1rem .9rem 2.85rem; font-size: .92rem; }
+  .det ul { margin: 0 0 .7rem; padding-left: 1.1rem; }
+  .det li { margin: .25rem 0; }
+  .det .links { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+  .det .own { display: flex; gap: .4rem; margin-top: .55rem; }
+  .det .own input { flex: 1; min-height: 38px; padding: .4rem .7rem; font-size: .88rem; }
+  .rv { font-size: .72rem; font-weight: 700; padding: .1rem .45rem; border-radius: 99px; background: var(--yellow); color: #1c1a17; white-space: nowrap; }
+  .empty { text-align: center; color: var(--muted); padding: 2rem 0; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>konular</h1><div class="acts"></div></header>
+<main class="wide">
+  <div class="top">
+    <div class="sum" id="sum"></div>
+    <div class="filters" role="group" aria-label="filtre">
+      <button class="chip on" data-f="hepsi">hepsi</button>
+      <button class="chip" data-f="tyt">TYT</button>
+      <button class="chip" data-f="say">AYT sayısal</button>
+      <button class="chip" data-f="ea">AYT eşit ağırlık</button>
+      <button class="chip" data-f="soz">AYT sözel</button>
+      <input id="q" type="search" placeholder="konu ara" aria-label="konu ara">
+    </div>
+    <p class="muted small" style="margin:0">Bitirdiğin konuyu işaretle. İşaretlediğin gün 1, 7 ve 30 gün sonrası için <a href="/yks/takip/#tekrar">tekrar listesine</a> eklenir. Kayıtlar yalnızca bu tarayıcıda tutulur.</p>
+  </div>
+  <div id="list"></div>
+</main>
+<script>
+const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+const MEB = 'https://ogmmateryal.eba.gov.tr/konu-ozetleri';
+let D, filter = 'hepsi', done = store.get('konu-done', {}), own = store.get('konu-pdf', {}), open = new Set();
+const key = (s, k) => s.id + ':' + k.ad;
+const today = () => new Date().toLocaleDateString('sv');
+const yt = (s, k) => 'https://www.youtube.com/results?sp=EgIQAw%3D%3D&search_query=' + encodeURIComponent(`${s.sinav.toUpperCase()} ${s.ad.replace(/\s*\(.*\)/, '')} ${k.ad} konu anlatımı`);
+
+// 1-7-30 tekrarı: bugün tekrarı gelen konu var mı?
+function due(k) {
+  const d = done[k]; if (!d) return false;
+  const reps = store.get('tekrar', {})[k] || [];
+  const age = Math.floor((new Date(today()) - new Date(d)) / 864e5);
+  return [1, 7, 30].some((n, i) => age >= n && reps.length <= i);
+}
+
+function summary() {
+  const part = sinav => {
+    const ks = D.dersler.filter(s => s.sinav === sinav).flatMap(s => s.konular.map(k => key(s, k)));
+    const n = ks.filter(k => done[k]).length;
+    return `<div class="panel"><span class="muted small">${sinav.toUpperCase()}</span><br><b>%${Math.round(n / ks.length * 100)}</b> <span class="muted small">${n} / ${ks.length} konu</span><div class="bar" style="margin-top:.4rem"><i style="width:${n / ks.length * 100}%"></i></div></div>`;
+  };
+  const dueN = Object.keys(done).filter(due).length;
+  site.$('#sum').innerHTML = part('tyt') + part('ayt') + `<a class="panel" href="/yks/takip/#tekrar" style="text-decoration:none"><span class="muted small">bugünkü tekrar</span><br><b>${dueN}</b> <span class="muted small">konu</span></a>`;
+}
+
+function render() {
+  const q = site.norm(site.$('#q').value.trim());
+  const shown = D.dersler.filter(s => filter === 'hepsi' || (filter === 'tyt' ? s.sinav === 'tyt' : (s.alan || []).includes(filter)));
+  let html = '';
+  for (const s of shown) {
+    const ks = s.konular.filter(k => !q || site.norm(k.ad + ' ' + k.o.join(' ')).includes(q));
+    if (!ks.length) continue;
+    const n = s.konular.filter(k => done[key(s, k)]).length;
+    html += `<details class="ders" id="${s.id}" style="--c:${s.renk}" ${q || open.has(s.id) ? 'open' : ''}>
+      <summary><span class="dot"></span><div><h2>${s.sinav.toUpperCase()} ${s.ad}</h2><small>${s.soru} soru · ${s.konular.length} konu</small></div>
+      <div class="p">${n} / ${s.konular.length}<div class="bar"><i style="width:${n / s.konular.length * 100}%;background:${s.renk}"></i></div></div></summary>
+      <div class="tools"><button class="sm" data-all="${s.id}">özetleri aç / kapat</button><a class="btn sm" href="/yks/dagilim/#${s.id}">soru dağılımı</a><a class="btn sm" href="${MEB}" target="_blank" rel="noopener">MEB konu özetleri (PDF)</a></div>
+      <ul class="k">${ks.map(k => {
+        const id = key(s, k), i = s.konular.indexOf(k);
+        return `<li><div class="kr"><label><input type="checkbox" data-k="${site.esc(id)}" ${done[id] ? 'checked' : ''}><span>${site.esc(k.ad)}</span></label>${due(id) ? '<span class="rv">tekrar</span>' : ''}
+          <button class="x" aria-expanded="false" aria-controls="d-${s.id}-${i}" aria-label="${site.esc(k.ad)}: özet ve bağlantılar">${chev}</button></div>
+          <div class="det" id="d-${s.id}-${i}" hidden><ul>${k.o.map(x => `<li>${site.esc(x)}</li>`).join('')}</ul>
+          <div class="links"><a class="btn sm" href="${yt(s, k)}" target="_blank" rel="noopener">video listeleri</a>${own[id] ? `<a class="btn sm primary" href="${site.esc(own[id])}" target="_blank" rel="noopener">kendi PDF'im</a>` : ''}</div>
+          <div class="own"><input type="url" placeholder="kendi PDF bağlantını ekle (https://…)" value="${site.esc(own[id] || '')}" aria-label="${site.esc(k.ad)}: PDF bağlantısı"><button class="sm" data-pdf="${site.esc(id)}">kaydet</button></div></div></li>`;
+      }).join('')}</ul></details>`;
+  }
+  site.$('#list').innerHTML = html || '<p class="empty">Bu aramaya uyan konu yok.</p>';
+  summary();
+}
+
+site.$('.filters').onclick = e => {
+  const b = e.target.closest('[data-f]'); if (!b) return;
+  filter = b.dataset.f;
+  site.$$('.filters .chip').forEach(x => x.classList.toggle('on', x === b));
+  render();
+};
+site.$('#q').oninput = render;
+site.$('#list').addEventListener('toggle', e => { if (e.target.matches('details.ders')) e.target.open ? open.add(e.target.id) : open.delete(e.target.id); }, true);
+site.$('#list').onchange = e => {
+  const k = e.target.dataset.k; if (!k) return;
+  if (e.target.checked) done[k] = today(); else { delete done[k]; const t = store.get('tekrar', {}); delete t[k]; store.set('tekrar', t); }
+  store.set('konu-done', done);
+  render();
+};
+site.$('#list').onclick = e => {
+  const x = e.target.closest('.x');
+  if (x) { const d = document.getElementById(x.getAttribute('aria-controls')); d.hidden = !d.hidden; x.setAttribute('aria-expanded', !d.hidden); return; }
+  const all = e.target.closest('[data-all]');
+  if (all) { const xs = site.$$('.x', all.closest('details')); const show = xs.some(b => b.getAttribute('aria-expanded') === 'false'); xs.forEach(b => { document.getElementById(b.getAttribute('aria-controls')).hidden = !show; b.setAttribute('aria-expanded', show); }); return; }
+  const p = e.target.closest('[data-pdf]');
+  if (p) {
+    const v = p.previousElementSibling.value.trim();
+    if (v && !/^https?:\/\//.test(v)) { toast('bağlantı http ile başlamalı'); return; }
+    if (v) own[p.dataset.pdf] = v; else delete own[p.dataset.pdf];
+    store.set('konu-pdf', own); toast(v ? 'kaydedildi' : 'silindi');
+    const det = p.closest('.det').id; render();
+    const d = document.getElementById(det); d.hidden = false; d.previousElementSibling.querySelector('.x').setAttribute('aria-expanded', true);
+  }
+};
+
+fetch('/yks/konular.json').then(r => r.json()).then(d => {
+  D = d;
+  const h = location.hash.slice(1);
+  if (h) open.add(h);
+  render();
+  if (h) document.getElementById(h)?.scrollIntoView({ block: 'start' });
+});
+addEventListener('hashchange', () => { const h = location.hash.slice(1); open.add(h); render(); document.getElementById(h)?.scrollIntoView({ block: 'start' }); });
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>soru dağılımı · YKS · fadimrak</title>
+<meta name="description" content="TYT ve AYT'de yıllara göre konu başına çıkan soru sayıları (2018-2026)">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .pick { display: grid; gap: .5rem; }
+  .pick div { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+  .pick span { font-weight: 800; font-size: .8rem; width: 2.6rem; }
+  td.h { text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; min-width: 2.4rem; }
+  td.h[data-v="0"] { color: var(--muted); font-weight: 400; }
+  th.y { text-align: center; }
+  tr.tot td { font-weight: 800; border-top: 2px solid var(--line); }
+  td.avg { font-weight: 800; text-align: right; }
+  td.nm { min-width: 12rem; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/yks/">← YKS</a><h1>soru dağılımı</h1><div class="acts"></div></header>
+<main class="wide">
+  <div class="panel pick" id="pick"></div>
+  <div class="panel">
+    <h2 id="title" style="margin:0 0 .25rem"></h2>
+    <p class="muted small" id="note" style="margin:0 0 .8rem"></p>
+    <div class="tw"><table class="t" id="tab"></table></div>
+  </div>
+  <p class="muted small">Sayılar <a href="https://www.unirehberi.com/yks-tyt-ayt-konulari/" target="_blank" rel="noopener">ÜniRehberi</a>'nin yıllara göre derlediği tablolardan alındı. Bir soru birden çok konuya dokunabildiği için yayınevleri aynı yılı 1-2 soru farkla sınıflandırabilir. Asıl sorulara <a href="/yks/kaynaklar/">ÖSYM'nin yayımladığı kitapçıklardan</a> bakabilirsin.</p>
+</main>
+<script>
+let D, K;
+const color = (v, max) => v ? `background:color-mix(in srgb, var(--purple) ${Math.round(15 + 70 * v / max)}%, transparent);${v / max > .5 ? 'color:#fff' : ''}` : '';
+
+function show() {
+  const id = location.hash.slice(1) in D.tablolar ? location.hash.slice(1) : 'tyt-mat';
+  const rows = D.tablolar[id], ders = K.find(s => s.id === id), Y = D.yillar;
+  site.$$('#pick a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + id));
+  site.$('#title').textContent = `${ders.sinav.toUpperCase()} ${ders.ad}`;
+  site.$('#note').textContent = id === 'ayt-mat' ? '2020 ve 2023 sütunlarında kaynak tabloda limit, türev ve integral hiç görünmüyor; sınıflandırma hatalı olduğu için bu iki yıl gösterilmedi.' : `${ders.soru} soru. Ortalama, gösterilen yılların ortalamasıdır.`;
+  const max = Math.max(...rows.flatMap(r => r.slice(1).filter(v => v != null)));
+  const avg = r => { const v = r.slice(1).filter(x => x != null); return v.reduce((a, b) => a + b, 0) / v.length; };
+  const sorted = rows.slice().sort((a, b) => avg(b) - avg(a));
+  const tot = Y.map((_, i) => rows.every(r => r[i + 1] == null) ? null : rows.reduce((a, r) => a + (r[i + 1] || 0), 0));
+  site.$('#tab').innerHTML = `<thead><tr><th>konu</th>${Y.map(y => `<th class="y">${y}</th>`).join('')}<th class="n">ort.</th></tr></thead><tbody>` +
+    sorted.map(r => `<tr><td class="nm">${site.esc(r[0])}</td>${r.slice(1).map(v => v == null ? '<td class="h">·</td>' : `<td class="h" data-v="${v}" style="${color(v, max)}">${v || '–'}</td>`).join('')}<td class="avg">${site.fmt(avg(r), 1)}</td></tr>`).join('') +
+    `<tr class="tot"><td>toplam</td>${tot.map(v => `<td class="h">${v ?? '·'}</td>`).join('')}<td></td></tr></tbody>`;
+}
+
+Promise.all([fetch('/yks/dagilim.json').then(r => r.json()), fetch('/yks/konular.json').then(r => r.json())]).then(([d, k]) => {
+  D = d; K = k.dersler;
+  site.$('#pick').innerHTML = ['tyt', 'ayt'].map(s => `<div><span>${s.toUpperCase()}</span>${K.filter(x => x.sinav === s).map(x => `<a class="chip" href="#${x.id}">${x.ad.replace(/\s*\(.*\)/, '')}</a>`).join('')}</div>`).join('');
+  show();
+  addEventListener('hashchange', show);
+});
+</script>
+</body>
+</html>

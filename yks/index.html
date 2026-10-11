@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YKS · fadimrak</title>
+<meta name="description" content="YKS geri sayım, konu listeleri, formüller, hesaplayıcılar ve çalışma takibi">
+<meta property="og:title" content="YKS · fadimrak">
+<meta property="og:description" content="YKS geri sayım, konu listeleri, formüller, hesaplayıcılar ve çalışma takibi">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .count { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; text-align: center; margin: .5rem 0 .25rem; }
+  .count div { background: var(--purple); color: #fff; border: 2px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: .9rem .25rem .7rem; }
+  .count b { display: block; font-family: var(--head); font-weight: 900; font-size: clamp(1.8rem, 8vw, 3rem); line-height: 1; font-variant-numeric: tabular-nums; }
+  .count span { font-size: .8rem; font-weight: 700; opacity: .9; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: .6rem; margin-top: 1rem; }
+  .facts .panel { padding: .8rem 1rem; }
+  .facts b { font-family: var(--head); font-size: 1.4rem; }
+  .when { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: .9rem; font-size: .85rem; color: var(--muted); }
+  .when input { min-height: 36px; padding: .3rem .6rem; font-size: .85rem; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
+<main class="wide">
+  <div class="intro">
+    <h1>YKS</h1>
+    <p id="target">TYT'ye kalan süre</p>
+  </div>
+  <div class="count" aria-live="off">
+    <div><b id="d">0</b><span>gün</span></div>
+    <div><b id="h">0</b><span>saat</span></div>
+    <div><b id="m">0</b><span>dakika</span></div>
+    <div><b id="s">0</b><span>saniye</span></div>
+  </div>
+  <div class="when">
+    <label for="date">sınav tarihi</label><input id="date" type="datetime-local">
+    <button class="sm" id="reset">varsayılan</button>
+  </div>
+  <p class="hint small">2027 tarihi ÖSYM takvimi açıklanınca kesinleşir; şimdilik geçen yılların düzenine göre 19 Haziran 2027 alındı. Kendi tarihini girebilirsin.</p>
+  <div class="facts" id="facts"></div>
+  <div id="tiles"></div>
+</main>
+<script>
+const DEF = '2027-06-19T10:15';
+const I = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ic = {
+  list: I('<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>'),
+  chart: I('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+  sigma: I('<path d="M18 5H6l6 7-6 7h12"/>'),
+  atom: I('<circle cx="12" cy="12" r="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>'),
+  flask: I('<path d="M9 3h6M10 3v6l-5.5 9.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>'),
+  table: I('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/>'),
+  leaf: I('<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19 14 10"/>'),
+  book: I('<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/>'),
+  para: I('<path d="M13 4v16M17 4v16M19 4H10a4 4 0 0 0 0 8h3"/>'),
+  clock: I('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  map: I('<path d="m9 4-6 2.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>'),
+  owl: I('<circle cx="8.5" cy="10" r="3"/><circle cx="15.5" cy="10" r="3"/><path d="M12 13v2M5 6l2 1.5M19 6l-2 1.5M6 19c2 1.5 10 1.5 12 0"/>'),
+  link: I('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  lock: I('<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'),
+  calc: I('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>'),
+  target: I('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'),
+  cal: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+  line: I('<path d="M3 17 9 11l4 4 8-8"/><path d="M15 7h6v6"/>'),
+  flame: I('<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-2 1-6 1-9z"/>'),
+  repeat: I('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>'),
+  x: I('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/>'),
+  grid: I('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>'),
+  save: I('<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>'),
+  timer: I('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/>'),
+};
+const GROUPS = [
+  ['içerik', 'var(--yellow)', [
+    ['konu listesi ve takip', 'TYT, AYT konuları, özetler, video ve PDF', '/yks/konular/', 'list'],
+    ['soru dağılımı', '2018-2026 yıllara göre konu başına soru', '/yks/dagilim/', 'chart'],
+    ['formüller', 'matematik, fizik, kimya', '/yks/formuller/', 'sigma'],
+    ['periyodik tablo', 'tıkla, elementi tanı', '/yks/periyodik/', 'table'],
+    ['biyoloji kavram haritaları', 'konuların iskeleti', '/yks/biyoloji/', 'leaf'],
+    ['Türkçe dil bilgisi', 'kısa ve örnekli özetler', '/yks/turkce/', 'book'],
+    ['paragraf teknikleri', 'soru tipine göre yol haritası', '/yks/turkce/#paragraf', 'para'],
+    ['tarih kronolojisi', 'olaylar sırasıyla', '/yks/tarih/', 'clock'],
+    ['coğrafya haritaları', 'bölgeler, madenler, tarım', '/yks/cografya/', 'map'],
+    ['felsefe sözlüğü', 'kavramlar ve filozoflar', '/yks/felsefe/', 'owl'],
+    ['ücretsiz kaynaklar', 'MEB, ÖSYM çıkmış sorular, videolar', '/yks/kaynaklar/', 'link'],
+    ['şifreli PDF arşivi', 'parolayla açılan dosyalar', '/yks/kasa/', 'lock'],
+  ]],
+  ['hesaplama', 'var(--teal)', [
+    ['TYT net', 'doğru, yanlış, net', '/yks/hesap/#tyt', 'calc'],
+    ['AYT net', 'alanına göre', '/yks/hesap/#ayt', 'calc'],
+    ['puan (OBP dahil)', 'tahmini yerleştirme puanı', '/yks/hesap/#puan', 'chart'],
+    ['hedefe kaç net', 'hedef puandan geriye', '/yks/hesap/#hedef', 'target'],
+    ['günde kaç konu', 'kalan süre ve konu planı', '/yks/hesap/#gun', 'cal'],
+  ]],
+  ['takip', 'var(--pink)', [
+    ['deneme kaydı', 'netler ve grafik', '/yks/takip/#deneme', 'line'],
+    ['çalışma süresi', 'günlük dakika', '/yks/takip/#sure', 'timer'],
+    ['soru sayısı', 'günlük çözülen soru', '/yks/takip/#soru', 'chart'],
+    ['çalışma serisi', 'kaç gündür aralıksız', '/yks/takip/#seri', 'flame'],
+    ['tekrar hatırlatıcı', '1, 7 ve 30 gün', '/yks/takip/#tekrar', 'repeat'],
+    ['yanlış defteri', 'fotoğraf ve etiket', '/yks/takip/#yanlis', 'x'],
+    ['haftalık program', 'ders programı oluştur', '/yks/takip/#program', 'grid'],
+    ['yedekle', 'cihaz değiştirirken JSON', '/yks/takip/#yedek', 'save'],
+  ]],
+  ['çalışma araçları', 'var(--orange)', [
+    ['pomodoro', '25 dakika çalış, 5 dakika dinlen', '/araclar/calisma/#pomodoro', 'timer'],
+    ['odak modu', 'tam ekran sayaç', '/araclar/calisma/#odak', 'target'],
+    ['optik form', 'denemeyi işaretle, kontrol et', '/araclar/optik/', 'grid'],
+    ['bilgi kartları', 'kendi kartlarını yap', '/araclar/kartlar/', 'book'],
+    ['tüm araçlar', 'PDF, resim, hesap ve daha fazlası', '/araclar/', 'link'],
+  ]],
+];
+site.$('#tiles').innerHTML = GROUPS.map(([t, c, items]) => `<h2 class="sec">${t}</h2><div class="grid">${items.map(([n, d, u, i]) =>
+  `<a class="tile" href="${u}"><span class="ico" style="--c:${c}">${ic[i]}</span><div><b>${n}</b><span>${d}</span></div></a>`).join('')}</div>`).join('');
+
+const dateEl = site.$('#date');
+let target = store.get('yks-date', DEF);
+dateEl.value = target;
+dateEl.onchange = () => { if (dateEl.value) { target = dateEl.value; store.set('yks-date', target); tick(); facts(); } };
+site.$('#reset').onclick = () => { target = DEF; dateEl.value = DEF; store.set('yks-date', DEF); tick(); facts(); };
+
+function tick() {
+  let ms = Math.max(0, new Date(target) - Date.now());
+  const p = [864e5, 36e5, 6e4, 1e3].map(u => { const v = Math.floor(ms / u); ms -= v * u; return v; });
+  ['d', 'h', 'm', 's'].forEach((id, i) => site.$('#' + id).textContent = p[i]);
+}
+async function facts() {
+  const days = Math.max(0, Math.ceil((new Date(target) - Date.now()) / 864e5));
+  let left = '–';
+  try {
+    const d = await (await fetch('/yks/konular.json')).json(), done = store.get('konu-done', {});
+    const all = d.dersler.flatMap(s => s.konular.map(k => s.id + ':' + k.ad));
+    const rest = all.filter(k => !done[k]).length;
+    left = days ? site.fmt(rest / days, 1) : rest;
+    site.$('#facts').innerHTML = [
+      [Math.floor(days / 7) + ' hafta', (days % 7) + ' gün artı'],
+      [rest + ' konu', 'henüz işaretlenmemiş'],
+      [left, 'günde düşen konu'],
+      [site.streak() + ' gün', 'çalışma serisi'],
+    ].map(([b, s]) => `<div class="panel"><b>${b}</b><br><span class="muted small">${s}</span></div>`).join('');
+  } catch {}
+}
+tick(); facts();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
