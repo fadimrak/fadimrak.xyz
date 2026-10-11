@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>araçlar · fadimrak</title>
+<meta name="description" content="Tarayıcıda çalışan ücretsiz araçlar: PDF, resim, hesap makineleri, yazı araçları, QR kod, pomodoro ve daha fazlası">
+<meta property="og:title" content="araçlar · fadimrak">
+<meta property="og:description" content="PDF, resim, hesap, yazı ve çalışma araçları. Dosyalar cihazından çıkmaz.">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+</head>
+<body>
+<header class="wide"><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
+<main class="wide">
+  <div class="intro"><h1>araçlar</h1><p>Hepsi tarayıcında çalışır. Dosyaların hiçbir yere yüklenmez.</p></div>
+  <input id="q" type="search" placeholder="araç ara (ör. pdf birleştir, birim, şifre)" aria-label="araç ara" style="width:100%">
+  <div id="list"></div>
+</main>
+<script>
+const I = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON = {
+  calisma: I('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/>'),
+  pdf: I('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>'),
+  resim: I('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>'),
+  hesap: I('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>'),
+  yazi: I('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
+  genel: I('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>'),
+};
+// [grup anahtarı, başlık, renk, [ad, adres, açıklama]]
+const GROUPS = [
+  ['calisma', 'çalışma', 'var(--orange)', [
+    ['pomodoro', '/araclar/calisma/#pomodoro', '25 dakika çalış, 5 dakika dinlen'], ['kronometre', '/araclar/calisma/#kronometre', 'tur zamanlarıyla'], ['geri sayım', '/araclar/calisma/#sayac', 'alarmlı zamanlayıcı'],
+    ['beyaz gürültü, yağmur', '/araclar/calisma/#ses', 'odaklanmak için arka plan sesi'], ['odak modu', '/araclar/calisma/#odak', 'tam ekran, dikkat dağıtmayan sayaç'], ['bilgi kartları', '/araclar/kartlar/', 'kendi kartlarını yap, aralıklı tekrar'],
+    ['not defteri', '/araclar/notlar/#notlar', 'kendiliğinden kaydeder'], ['yapılacaklar', '/araclar/notlar/#yapilacaklar', 'tarihli görev listesi'], ['optik form', '/araclar/optik/', 'cevapla, anahtarla kontrol et'],
+  ]],
+  ['pdf', 'PDF', 'var(--red)', [
+    ['birleştir', '/araclar/pdf/#birlestir', 'birden çok PDF tek dosya'], ['böl', '/araclar/pdf/#bol', 'aralıklara ya da sayfalara'], ['sayfa sil', '/araclar/pdf/#sil', 'istemediğin sayfaları at'],
+    ['sayfa döndür', '/araclar/pdf/#dondur', 'tek tek ya da hepsini'], ['sayfa sırala', '/araclar/pdf/#sirala', 'sürükle bırak'], ['sayfa çıkar', '/araclar/pdf/#cikar', 'seçtiğin sayfalar yeni PDF'],
+    ['yazı ekle', '/araclar/pdf/#yazi', 'sayfanın üstüne metin'], ['çizim, işaretleme', '/araclar/pdf/#ciz', 'kalem ve fosforlu kalem'], ['imza', '/araclar/pdf/#imza', 'imzanı çiz, yerleştir'],
+    ['sayfa numarası', '/araclar/pdf/#numara', 'konum ve biçim seç'], ['filigran', '/araclar/pdf/#filigran', 'her sayfaya yazı'], ['şifrele', '/araclar/pdf/#sifrele', 'AES-256 parola'],
+    ['sıkıştır', '/araclar/pdf/#sikistir', 'dosyayı küçült'], ['resimden PDF', '/araclar/pdf/#resimden', 'fotoğrafları PDF yap'], ['PDF\'ten resim', '/araclar/pdf/#resme', 'sayfaları PNG ya da JPG yap'],
+    ['görüntüleyici', '/araclar/pdf/#goruntule', 'PDF\'i aç, oku'],
+  ]],
+  ['resim', 'resim', 'var(--teal)', [
+    ['sıkıştır', '/araclar/resim/#sikistir', 'boyutu küçült'], ['boyutlandır', '/araclar/resim/#boyut', 'piksel ya da yüzde'], ['kırp', '/araclar/resim/#kirp', 'serbest ya da oranlı'],
+    ['format çevir', '/araclar/resim/#cevir', 'PNG, JPG, WebP'], ['arka plan kaldır', '/araclar/resim/#arkaplan', 'yapay zekâ, cihazında çalışır'], ['taranmış belge efekti', '/araclar/resim/#tarama', 'fotoğrafı tarama gibi yap'],
+    ['resimden yazı oku', '/araclar/resim/#ocr', 'Türkçe OCR'],
+  ]],
+  ['hesap', 'hesap ve matematik', 'var(--blue)', [
+    ['bilimsel hesap makinesi', '/araclar/hesap/#bilimsel', 'trigonometri, log, üs'], ['fonksiyon grafiği', '/araclar/hesap/#grafik', 'üç fonksiyona kadar'], ['denklem çözücü', '/araclar/hesap/#denklem', 'tek bilinmeyen ve sistemler'],
+    ['matris', '/araclar/hesap/#matris', 'determinant, ters, çarpım'], ['birim çevirici', '/araclar/hesap/#birim', 'uzunluk, kütle, sıcaklık…'], ['yüzde', '/araclar/hesap/#yuzde', 'zam, indirim, değişim'],
+    ['ortalama ve not', '/araclar/hesap/#ortalama', 'ağırlıklı ortalama'], ['taban dönüştürücü', '/araclar/hesap/#taban', 'ikilik, onaltılık'], ['asal, EBOB, EKOK', '/araclar/hesap/#asal', 'çarpanlar ve bölenler'],
+    ['türev ve integral', '/araclar/hesap/#turev', 'sembolik türev, sayısal integral'],
+  ]],
+  ['yazi', 'yazı', 'var(--purple)', [
+    ['kelime sayacı, okuma süresi', '/araclar/yazi/#sayac', 'karakter, kelime, cümle'], ['büyük / küçük harf', '/araclar/yazi/#harf', 'Türkçe kurallarla'], ['metin karşılaştır', '/araclar/yazi/#fark', 'farkları renklendir'],
+    ['markdown editörü', '/araclar/yazi/#markdown', 'canlı önizleme'], ['yazım ve tekrar denetimi', '/araclar/yazi/#yazim', 'sık yapılan hatalar'],
+  ]],
+  ['genel', 'genel', 'var(--green)', [
+    ['QR kod oluştur', '/araclar/qr/#uret', 'bağlantı, metin, Wi-Fi'], ['QR kod oku', '/araclar/qr/#oku', 'kamerayla ya da resimden'], ['şifre üretici', '/araclar/genel/#sifre', 'güçlü ve rastgele'],
+    ['döviz çevirici', '/araclar/genel/#doviz', 'günlük kurlar'], ['hava durumu', '/araclar/genel/#hava', '7 günlük tahmin'], ['saat dilimi', '/araclar/genel/#saat', 'dünya saatleri'],
+    ['tarih farkı', '/araclar/genel/#tarih', 'gün, hafta, iş günü'], ['renk seçici', '/araclar/genel/#renk', 'HEX, RGB, HSL, kontrast'], ['klavye hız testi', '/araclar/genel/#klavye', 'dakikada kaç kelime'],
+    ['kamera, mikrofon, ekran testi', '/araclar/genel/#cihaz', 'cihazını dene'], ['dosya boyutu çevirici', '/araclar/genel/#boyut', 'MB, GB, indirme süresi'],
+  ]],
+];
+function render() {
+  const q = site.norm(site.$('#q').value.trim());
+  site.$('#list').innerHTML = GROUPS.map(([k, title, c, items]) => {
+    const hit = items.filter(([n, , d]) => !q || site.norm(title + ' ' + n + ' ' + d).includes(q));
+    return hit.length ? `<h2 class="sec">${title}</h2><div class="grid">${hit.map(([n, u, d]) => `<a class="tile" href="${u}"><span class="ico" style="--c:${c}">${ICON[k]}</span><div><b>${n}</b><span>${d}</span></div></a>`).join('')}</div>` : '';
+  }).join('') || '<p class="hint" style="margin-top:2rem">Bu aramaya uyan araç yok.</p>';
+}
+site.$('#q').oninput = render;
+render();
+</script>
+</body>
+</html>

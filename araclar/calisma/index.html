@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>çalışma araçları · fadimrak</title>
+<meta name="description" content="Pomodoro, kronometre, geri sayım, beyaz gürültü ve yağmur sesi, odak modu">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--orange); }
+  .clock { font-family: var(--head); font-weight: 900; font-size: clamp(3.5rem, 18vw, 7rem); line-height: 1; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin: .5rem 0; }
+  .phase { text-align: center; font-weight: 700; color: var(--muted); }
+  .ring { width: min(280px, 70vw); margin: .5rem auto; position: relative; }
+  .ring svg { width: 100%; display: block; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 10; }
+  .ring .bg { stroke: var(--soft); }
+  .ring .fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .5s linear; }
+  .ring .clock { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-size: clamp(2.6rem, 13vw, 4rem); }
+  .set { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: .6rem; margin-top: 1rem; }
+  .dots { display: flex; gap: .35rem; justify-content: center; margin: .4rem 0; }
+  .dots i { width: 10px; height: 10px; border-radius: 99px; background: var(--soft); border: 2px solid var(--line); }
+  .dots i.on { background: var(--accent); }
+  .laps { max-height: 260px; overflow: auto; margin-top: 1rem; }
+  .laps div { display: flex; justify-content: space-between; padding: .4rem .2rem; border-bottom: 1px solid var(--soft); font-variant-numeric: tabular-nums; }
+  .hms { display: flex; gap: .4rem; justify-content: center; align-items: center; }
+  .hms input { width: 84px; text-align: center; font-size: 1.4rem; font-weight: 700; }
+  .snd { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .7rem; }
+  .snd .panel { padding: .9rem; display: grid; gap: .5rem; box-shadow: 3px 3px 0 var(--sh); }
+  .snd .panel.on { background: color-mix(in srgb, var(--accent) 22%, var(--card)); }
+  .snd input[type=range] { width: 100%; }
+  #focus { position: fixed; inset: 0; z-index: 200; background: #0d0c0a; color: #f1ebdf; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 16px; }
+  #focus.show { display: flex; }
+  #focus .clock { font-size: clamp(5rem, 24vw, 16rem); color: #f1ebdf; }
+  #focus .task { font-size: clamp(1rem, 3vw, 1.5rem); color: #a8a093; text-align: center; max-width: 30ch; }
+  #focus button { background: transparent; color: #a8a093; border-color: #3a362e; box-shadow: none; }
+  #focus .phase { color: #a8a093; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>çalışma</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="araçlar"><a href="#pomodoro">pomodoro</a><a href="#kronometre">kronometre</a><a href="#sayac">geri sayım</a><a href="#ses">ses</a><a href="#odak">odak modu</a></nav>
+
+<section data-tab="pomodoro" class="panel">
+  <p class="phase" id="pPhase">çalışma</p>
+  <div class="ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" id="pRing" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><div class="clock" id="pClock">25:00</div></div>
+  <div class="dots" id="pDots" aria-label="tamamlanan pomodorolar"></div>
+  <div class="row"><button class="primary" id="pStart">başlat</button><button id="pSkip">atla</button><button class="ghost" id="pReset">sıfırla</button></div>
+  <div class="set">
+    <label class="f">çalışma (dk)<input type="number" id="pW" min="1" max="180"></label>
+    <label class="f">kısa mola (dk)<input type="number" id="pS" min="1" max="60"></label>
+    <label class="f">uzun mola (dk)<input type="number" id="pL" min="1" max="90"></label>
+    <label class="f">uzun mola her<input type="number" id="pN" min="2" max="10"></label>
+  </div>
+  <p class="muted small">Biten her çalışma bloğu <a href="/yks/takip/#sure">çalışma süresine</a> eklenir. Sekme kapalıyken de süre doğru tutulur. <button class="sm" id="pNotif">bildirim izni ver</button></p>
+</section>
+
+<section data-tab="kronometre" class="panel">
+  <div class="clock" id="kClock">00:00.00</div>
+  <div class="row"><button class="primary" id="kStart">başlat</button><button id="kLap" disabled>tur</button><button class="ghost" id="kReset">sıfırla</button></div>
+  <div class="laps" id="kLaps"></div>
+</section>
+
+<section data-tab="sayac" class="panel">
+  <div class="hms"><input type="number" id="cH" min="0" max="23" value="0" aria-label="saat"> : <input type="number" id="cM" min="0" max="59" value="10" aria-label="dakika"> : <input type="number" id="cS" min="0" max="59" value="0" aria-label="saniye"></div>
+  <div class="row" style="margin-top:.7rem"><button class="sm" data-pre="5">5 dk</button><button class="sm" data-pre="10">10 dk</button><button class="sm" data-pre="40">40 dk</button><button class="sm" data-pre="165">TYT 165 dk</button><button class="sm" data-pre="180">AYT 180 dk</button></div>
+  <div class="clock" id="cClock">10:00</div>
+  <div class="row"><button class="primary" id="cStart">başlat</button><button class="ghost" id="cReset">sıfırla</button></div>
+</section>
+
+<section data-tab="ses">
+  <div class="snd" id="snd"></div>
+  <div class="panel" style="margin-top:1rem"><div class="row l"><button id="sStop">hepsini durdur</button><label class="c">kapanış:<select id="sTimer"><option value="0">açık kalsın</option><option value="15">15 dk sonra</option><option value="30">30 dk sonra</option><option value="60">1 saat sonra</option></select></label></div>
+  <p class="muted small" style="margin-bottom:0">Sesler kayıt değil, tarayıcıda anlık üretilir; internet harcamaz. Birden çok sesi aynı anda açıp karıştırabilirsin.</p></div>
+</section>
+
+<section data-tab="odak" class="panel">
+  <h2>odak modu</h2>
+  <p>Ekranı tamamen kaplayan, yalnızca süreyi gösteren sade bir sayaç. Pomodoro sayacını kullanır; ekranın kararmasını da engeller.</p>
+  <label class="f">şu an ne üzerinde çalışıyorsun? (isteğe bağlı)<input id="oTask" placeholder="ör. AYT trigonometri, 40 soru"></label>
+  <div class="row l" style="margin-top:.8rem"><button class="primary" id="oGo">odak modunu aç</button></div>
+  <p class="muted small">Çıkmak için <kbd>Esc</kbd> ya da ekrandaki çıkış düğmesi.</p>
+</section>
+</main>
+
+<div id="focus" role="dialog" aria-label="odak modu"><p class="phase" id="fPhase"></p><div class="clock" id="fClock">25:00</div><p class="task" id="fTask"></p><div class="row"><button id="fPause">duraklat</button><button id="fExit">çık</button></div></div>
+
+<script>
+const pad = n => String(n).padStart(2, '0');
+const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return (s >= 3600 ? Math.floor(s / 3600) + ':' : '') + pad(Math.floor(s / 60) % (s >= 3600 ? 60 : 1e9)) + ':' + pad(s % 60); };
+let actx;
+const ac = () => (actx ||= new (window.AudioContext || window.webkitAudioContext)());
+function beep(times = 3) {
+  const a = ac(); a.resume();
+  for (let i = 0; i < times; i++) {
+    const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + i * .35;
+    o.frequency.value = 880; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.3, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .25);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + .3);
+  }
+}
+function notify(msg) { try { if (Notification.permission === 'granted' && document.hidden) new Notification('fadimrak', { body: msg, icon: '/favicon.svg' }); } catch {} }
+
+// ---- pomodoro (bitiş anını saklar, böylece sekme uyusa da doğru kalır)
+const P = Object.assign({ w: 25, s: 5, l: 15, n: 4 }, store.get('pomo-ayar', {}));
+let ps = store.get('pomo', { phase: 'w', running: false, end: 0, left: P.w * 6e4, done: 0 });
+const PH = { w: 'çalışma', s: 'kısa mola', l: 'uzun mola' };
+const len = ph => P[ph] * 6e4;
+const left = () => ps.running ? ps.end - Date.now() : ps.left;
+const saveP = () => store.set('pomo', ps);
+['w', 's', 'l', 'n'].forEach(k => { const el = site.$('#p' + k.toUpperCase()); el.value = P[k]; el.onchange = () => { P[k] = Math.max(+el.min, Math.min(+el.max, +el.value || P[k])); el.value = P[k]; store.set('pomo-ayar', P); if (!ps.running && k === ps.phase) { ps.left = len(ps.phase); saveP(); } paintP(); }; });
+function next(skipped) {
+  if (ps.phase === 'w' && !skipped) {
+    ps.done++;
+    const log = store.get('sure-log', {}), d = new Date().toLocaleDateString('sv');
+    log[d] = (log[d] || 0) + P.w; store.set('sure-log', log);
+  }
+  ps.phase = ps.phase === 'w' ? (ps.done && ps.done % P.n === 0 && !skipped ? 'l' : 's') : 'w';
+  ps.left = len(ps.phase); ps.end = Date.now() + ps.left;
+  saveP();
+}
+function paintP() {
+  const l = left(), t = mmss(l);
+  site.$('#pClock').textContent = t; site.$('#fClock').textContent = t;
+  site.$('#pPhase').textContent = site.$('#fPhase').textContent = PH[ps.phase];
+  site.$('#pRing').style.strokeDashoffset = 326.7 * (1 - Math.max(0, l) / len(ps.phase));
+  site.$('#pStart').textContent = ps.running ? 'duraklat' : 'başlat';
+  site.$('#fPause').textContent = ps.running ? 'duraklat' : 'devam';
+  site.$('#pDots').innerHTML = [...Array(P.n)].map((_, i) => `<i class="${i < ps.done % P.n ? 'on' : ''}"></i>`).join('');
+  document.title = ps.running ? `${t} · ${PH[ps.phase]}` : 'çalışma araçları · fadimrak';
+}
+function toggleP() {
+  ac().resume();
+  if (ps.running) { ps.left = left(); ps.running = false; } else { ps.end = Date.now() + ps.left; ps.running = true; }
+  saveP(); paintP();
+}
+site.$('#pStart').onclick = toggleP;
+site.$('#fPause').onclick = toggleP;
+site.$('#pSkip').onclick = () => { const r = ps.running; next(true); ps.running = r; if (!r) ps.left = len(ps.phase); saveP(); paintP(); };
+site.$('#pReset').onclick = () => { ps = { phase: 'w', running: false, end: 0, left: len('w'), done: 0 }; saveP(); paintP(); };
+site.$('#pNotif').onclick = () => { if (!('Notification' in window)) return toast('bu tarayıcı bildirim desteklemiyor'); Notification.requestPermission().then(p => toast(p === 'granted' ? 'bildirimler açık' : 'izin verilmedi')); };
+
+// ---- kronometre
+let k = { run: false, t0: 0, acc: 0, laps: [] };
+const kNow = () => k.acc + (k.run ? performance.now() - k.t0 : 0);
+const kFmt = ms => { const cs = Math.floor(ms / 10); return (cs >= 360000 ? Math.floor(cs / 360000) + ':' : '') + pad(Math.floor(cs / 6000) % 60) + ':' + pad(Math.floor(cs / 100) % 60) + '.' + pad(cs % 100); };
+site.$('#kStart').onclick = () => { if (k.run) { k.acc = kNow(); k.run = false; } else { k.t0 = performance.now(); k.run = true; } site.$('#kStart').textContent = k.run ? 'durdur' : 'devam'; site.$('#kLap').disabled = !k.run; };
+site.$('#kLap').onclick = () => { const t = kNow(); k.laps.unshift([t, t - (k.laps[0]?.[0] || 0)]); site.$('#kLaps').innerHTML = k.laps.map(([t, d], i) => `<div><span>tur ${k.laps.length - i}</span><span>+${kFmt(d)}</span><b>${kFmt(t)}</b></div>`).join(''); };
+site.$('#kReset').onclick = () => { k = { run: false, t0: 0, acc: 0, laps: [] }; site.$('#kLaps').innerHTML = ''; site.$('#kStart').textContent = 'başlat'; site.$('#kLap').disabled = true; };
+
+// ---- geri sayım
+let c = { run: false, end: 0, left: 6e5, ring: null };
+const cSet = () => { c.left = ((+site.$('#cH').value || 0) * 3600 + (+site.$('#cM').value || 0) * 60 + (+site.$('#cS').value || 0)) * 1000; };
+const cLeft = () => c.run ? c.end - Date.now() : c.left;
+['#cH', '#cM', '#cS'].forEach(s => site.$(s).oninput = () => { if (!c.run) { cSet(); site.$('#cClock').textContent = mmss(c.left); } });
+site.$$('[data-pre]').forEach(b => b.onclick = () => { const m = +b.dataset.pre; site.$('#cH').value = Math.floor(m / 60); site.$('#cM').value = m % 60; site.$('#cS').value = 0; c.run = false; cSet(); site.$('#cStart').textContent = 'başlat'; site.$('#cClock').textContent = mmss(c.left); });
+site.$('#cStart').onclick = () => {
+  ac().resume();
+  if (c.ring) { clearInterval(c.ring); c.ring = null; cSet(); site.$('#cStart').textContent = 'başlat'; return; }
+  if (c.run) { c.left = cLeft(); c.run = false; } else { if (c.left <= 0) cSet(); c.end = Date.now() + c.left; c.run = true; }
+  site.$('#cStart').textContent = c.run ? 'duraklat' : 'devam';
+};
+site.$('#cReset').onclick = () => { clearInterval(c.ring); c.ring = null; c.run = false; cSet(); site.$('#cStart').textContent = 'başlat'; site.$('#cClock').textContent = mmss(c.left); };
+
+// ---- tek döngü: tüm sayaçları ekrana yansıt
+setInterval(() => {
+  if (ps.running && left() <= 0) { const was = ps.phase; next(false); beep(); notify(was === 'w' ? 'Çalışma bitti, mola zamanı.' : 'Mola bitti, işe dönüş.'); toast(was === 'w' ? 'mola zamanı' : 'çalışmaya dönüş'); }
+  paintP();
+  if (k.run) site.$('#kClock').textContent = kFmt(kNow());
+  if (c.run) {
+    const l = cLeft(); site.$('#cClock').textContent = mmss(l);
+    if (l <= 0) { c.run = false; c.left = 0; beep(4); notify('Geri sayım bitti.'); site.$('#cStart').textContent = 'alarmı sustur'; c.ring = setInterval(() => beep(2), 2500); }
+  }
+}, 100);
+
+// ---- sesler (Web Audio ile üretilir)
+const SOUNDS = { beyaz: 'beyaz gürültü', pembe: 'pembe gürültü', kahve: 'kahverengi gürültü', yagmur: 'yağmur', ruzgar: 'rüzgâr' };
+const nodes = {};
+function noiseBuffer(kind) {
+  const a = ac(), n = a.sampleRate * 4, buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
+  for (let i = 0; i < n; i++) {
+    const w = Math.random() * 2 - 1;
+    if (kind === 'beyaz') d[i] = w * .5;
+    else if (kind === 'kahve' || kind === 'ruzgar') { last = (last + .02 * w) / 1.02; d[i] = last * 3.5; }
+    else { // pembe (Paul Kellet)
+      b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852; b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898;
+      d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362) * .11; b6 = w * .115926;
+    }
+  }
+  return buf;
+}
+function start(kind, vol) {
+  const a = ac(); a.resume();
+  const src = a.createBufferSource(); src.buffer = noiseBuffer(kind === 'yagmur' ? 'pembe' : kind); src.loop = true;
+  const g = a.createGain(); g.gain.value = vol;
+  let chain = src, extra = [];
+  if (kind === 'yagmur') {
+    const hp = a.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
+    const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000;
+    src.connect(hp).connect(lp); chain = lp;
+    // ara ara düşen iri damlalar
+    const drops = setInterval(() => {
+      const t = a.currentTime, o = a.createBufferSource(); o.buffer = src.buffer;
+      const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 3000; f.Q.value = 6;
+      const dg = a.createGain(); dg.gain.setValueAtTime(.0001, t); dg.gain.exponentialRampToValueAtTime(.5 * Math.random() + .1, t + .005); dg.gain.exponentialRampToValueAtTime(.0001, t + .06);
+      o.connect(f).connect(dg).connect(g); o.start(t, Math.random() * 3); o.stop(t + .08);
+    }, 70);
+    extra.push(() => clearInterval(drops));
+  }
+  if (kind === 'ruzgar') {
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 400; bp.Q.value = .8;
+    const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = .08; lg.gain.value = 250; lfo.connect(lg).connect(bp.frequency); lfo.start();
+    src.connect(bp); chain = bp; extra.push(() => lfo.stop());
+  }
+  chain.connect(g).connect(a.destination); src.start();
+  nodes[kind] = { src, g, stop: () => { src.stop(); extra.forEach(f => f()); } };
+}
+const vols = store.get('ses-vol', {});
+site.$('#snd').innerHTML = Object.entries(SOUNDS).map(([k, n]) => `<div class="panel" data-snd="${k}"><b>${n}</b><button class="sm" data-play="${k}">çal</button><label class="small muted">ses<input type="range" min="0" max="1" step="0.01" value="${vols[k] ?? .5}" data-vol="${k}" aria-label="${n} ses düzeyi"></label></div>`).join('');
+function stopSnd(k) { nodes[k]?.stop(); delete nodes[k]; const p = site.$(`[data-snd="${k}"]`); p.classList.remove('on'); site.$('[data-play]', p).textContent = 'çal'; }
+site.$('#snd').onclick = e => {
+  const b = e.target.closest('[data-play]'); if (!b) return;
+  const kd = b.dataset.play;
+  if (nodes[kd]) return stopSnd(kd);
+  start(kd, +site.$(`[data-vol="${kd}"]`).value); b.textContent = 'durdur'; b.closest('.panel').classList.add('on');
+};
+site.$('#snd').oninput = e => { const kd = e.target.dataset.vol; if (!kd) return; vols[kd] = +e.target.value; store.set('ses-vol', vols); if (nodes[kd]) nodes[kd].g.gain.value = vols[kd]; };
+site.$('#sStop').onclick = () => Object.keys(nodes).forEach(stopSnd);
+let sleepT;
+site.$('#sTimer').onchange = e => { clearTimeout(sleepT); const m = +e.target.value; if (m) { sleepT = setTimeout(() => Object.keys(nodes).forEach(stopSnd), m * 6e4); toast(`${m} dk sonra kapanacak`); } };
+
+// ---- odak modu
+let lock;
+async function focusOn() {
+  site.$('#fTask').textContent = site.$('#oTask').value.trim();
+  store.set('odak-gorev', site.$('#oTask').value);
+  site.$('#focus').classList.add('show');
+  try { await site.$('#focus').requestFullscreen?.(); } catch {}
+  try { lock = await navigator.wakeLock?.request('screen'); } catch {}
+  if (!ps.running) toggleP();
+}
+function focusOff() { site.$('#focus').classList.remove('show'); if (document.fullscreenElement) document.exitFullscreen(); lock?.release?.(); lock = null; }
+site.$('#oTask').value = store.get('odak-gorev', '');
+site.$('#oGo').onclick = focusOn;
+site.$('#fExit').onclick = focusOff;
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) site.$('#focus').classList.remove('show'); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && site.$('#focus').classList.contains('show')) focusOff(); });
+paintP();
+</script>
+</body>
+</html>

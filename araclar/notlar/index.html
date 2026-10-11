@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>notlar · fadimrak</title>
+<meta name="description" content="Tarayıcıda kaydedilen not defteri ve yapılacaklar listesi">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--yellow); }
+  .nb { display: grid; grid-template-columns: 240px 1fr; gap: 12px; align-items: start; }
+  .nlist { display: grid; gap: .4rem; max-height: 70vh; overflow: auto; padding: 2px; }
+  .nlist button { justify-content: flex-start; text-align: left; font-weight: 600; box-shadow: none; min-height: 0; padding: .55rem .7rem; display: block; width: 100%; }
+  .nlist button small { display: block; font-weight: 400; color: var(--muted); font-size: .74rem; }
+  .nlist button.on { background: var(--yellow); color: #1c1a17; }
+  .nlist button.on small { color: #4a4438; }
+  #ed { min-height: 60vh; font-size: 1rem; }
+  .meta { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .5rem; font-size: .8rem; color: var(--muted); }
+  .todo { display: grid; gap: .4rem; margin-top: 1rem; }
+  .todo .t { display: flex; align-items: center; gap: .7rem; padding: .5rem .7rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); }
+  .todo .t label { flex: 1; display: flex; align-items: center; gap: .6rem; cursor: pointer; min-height: 32px; overflow-wrap: anywhere; }
+  .todo .t.done label span { text-decoration: line-through; color: var(--muted); }
+  .todo .t small { color: var(--muted); white-space: nowrap; }
+  .todo .t small.late { color: var(--bad); font-weight: 700; }
+  @media (max-width: 640px) { .nb { grid-template-columns: 1fr; } .nlist { max-height: 30vh; } }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>notlar</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="bölümler"><a href="#notlar">not defteri</a><a href="#yapilacaklar">yapılacaklar</a></nav>
+
+<section data-tab="notlar">
+  <div class="nb">
+    <div class="panel" style="padding:.7rem"><div class="row l" style="margin-bottom:.6rem"><button class="primary sm" id="nNew">yeni not</button><input id="nQ" type="search" placeholder="ara" aria-label="notlarda ara" style="flex:1;min-width:0;min-height:34px;padding:.3rem .6rem"></div><div class="nlist" id="nList"></div></div>
+    <div class="panel" style="padding:.8rem"><textarea id="ed" placeholder="Yazmaya başla. İlk satır notun başlığı olur." aria-label="not"></textarea>
+      <div class="meta"><span id="nMeta"></span><div class="row"><button class="sm" id="nTxt">.txt indir</button><button class="sm ghost" id="nDel">sil</button></div></div></div>
+  </div>
+</section>
+
+<section data-tab="yapilacaklar" class="panel">
+  <div class="row l"><input id="tIn" placeholder="ne yapılacak?" style="flex:1 1 220px" aria-label="yeni görev"><input id="tDate" type="date" aria-label="son tarih (isteğe bağlı)"><button class="primary" id="tAdd">ekle</button></div>
+  <div class="row l" style="margin-top:.8rem" id="tF" role="group" aria-label="filtre"><button class="chip on" data-f="hepsi">hepsi</button><button class="chip" data-f="acik">yapılacak</button><button class="chip" data-f="bitti">bitenler</button><button class="sm ghost" id="tClear">bitenleri temizle</button></div>
+  <div class="todo" id="tList"></div>
+</section>
+</main>
+<script>
+const E = site.esc;
+// ---- not defteri
+let N = store.get('notlar', []), cur = N[0]?.id;
+const title = n => (n.metin.split('\n').find(l => l.trim()) || 'adsız not').slice(0, 60);
+const when = t => new Date(t).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+function listN() {
+  const q = site.norm(site.$('#nQ').value.trim());
+  site.$('#nList').innerHTML = N.filter(n => !q || site.norm(n.metin).includes(q)).sort((a, b) => b.guncel - a.guncel)
+    .map(n => `<button class="${n.id === cur ? 'on' : ''}" data-n="${n.id}">${E(title(n))}<small>${when(n.guncel)}</small></button>`).join('') || '<p class="muted small">Not yok.</p>';
+}
+function openN(id) {
+  cur = id; const n = N.find(x => x.id === id);
+  site.$('#ed').value = n ? n.metin : '';
+  site.$('#nMeta').textContent = n ? `${n.metin.trim().split(/\s+/).filter(Boolean).length} kelime · ${when(n.guncel)}` : '';
+  listN();
+}
+function newN() { const n = { id: Date.now(), metin: '', guncel: Date.now() }; N.push(n); store.set('notlar', N); openN(n.id); site.$('#ed').focus(); }
+let saveT;
+site.$('#ed').oninput = () => {
+  if (!N.find(x => x.id === cur)) { const n = { id: Date.now(), metin: '', guncel: Date.now() }; N.push(n); cur = n.id; }
+  const n = N.find(x => x.id === cur); n.metin = site.$('#ed').value; n.guncel = Date.now();
+  clearTimeout(saveT); saveT = setTimeout(() => { store.set('notlar', N); site.$('#nMeta').textContent = `${n.metin.trim().split(/\s+/).filter(Boolean).length} kelime · kaydedildi`; listN(); }, 400);
+};
+site.$('#nNew').onclick = newN;
+site.$('#nList').onclick = e => { const b = e.target.closest('[data-n]'); if (b) openN(+b.dataset.n); };
+site.$('#nQ').oninput = listN;
+site.$('#nDel').onclick = () => { if (!cur || !confirm('Bu not silinsin mi?')) return; N = N.filter(n => n.id !== cur); store.set('notlar', N); openN(N.sort((a, b) => b.guncel - a.guncel)[0]?.id); };
+site.$('#nTxt').onclick = () => { const n = N.find(x => x.id === cur); if (n) site.dl(new Blob([n.metin], { type: 'text/plain;charset=utf-8' }), title(n).replace(/[\\/:*?"<>|]/g, '').trim() + '.txt'); };
+openN(cur);
+
+// ---- yapılacaklar
+let T = store.get('yapilacaklar', []), f = 'hepsi';
+const today = new Date().toLocaleDateString('sv');
+function listT() {
+  const list = T.filter(t => f === 'hepsi' || (f === 'bitti' ? t.bitti : !t.bitti)).sort((a, b) => a.bitti - b.bitti || (a.tarih || '9').localeCompare(b.tarih || '9') || a.id - b.id);
+  site.$('#tList').innerHTML = list.map(t => `<div class="t ${t.bitti ? 'done' : ''}"><label><input type="checkbox" data-t="${t.id}" ${t.bitti ? 'checked' : ''}><span>${E(t.metin)}</span></label>${t.tarih ? `<small class="${!t.bitti && t.tarih < today ? 'late' : ''}">${new Date(t.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</small>` : ''}<button class="sm ghost" data-x="${t.id}" aria-label="sil">sil</button></div>`).join('')
+    || `<p class="muted small">${f === 'bitti' ? 'Biten görev yok.' : 'Liste boş.'}</p>`;
+}
+const saveT2 = () => { store.set('yapilacaklar', T); listT(); };
+site.$('#tAdd').onclick = () => { const m = site.$('#tIn').value.trim(); if (!m) return; T.push({ id: Date.now(), metin: m, bitti: false, tarih: site.$('#tDate').value }); site.$('#tIn').value = ''; site.$('#tDate').value = ''; saveT2(); site.$('#tIn').focus(); };
+site.$('#tIn').onkeydown = e => { if (e.key === 'Enter') site.$('#tAdd').click(); };
+site.$('#tList').onchange = e => { const t = T.find(x => x.id == e.target.dataset.t); if (t) { t.bitti = e.target.checked; saveT2(); } };
+site.$('#tList').onclick = e => { const b = e.target.closest('[data-x]'); if (b) { T = T.filter(x => x.id != b.dataset.x); saveT2(); } };
+site.$('#tF').onclick = e => { const b = e.target.closest('[data-f]'); if (!b) return; f = b.dataset.f; site.$$('#tF .chip').forEach(x => x.classList.toggle('on', x === b)); listT(); };
+site.$('#tClear').onclick = () => { const n = T.filter(t => t.bitti).length; if (n && confirm(n + ' biten görev silinsin mi?')) { T = T.filter(t => !t.bitti); saveT2(); } };
+listT();
+</script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hesap araçları · fadimrak</title>
+<meta name="description" content="Bilimsel hesap makinesi, fonksiyon grafiği, denklem çözücü, matris, birim çevirici, yüzde, ortalama, taban dönüştürücü, asal sayı, EBOB-EKOK, türev ve integral">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--blue); }
+  .calc { max-width: 460px; margin: 0 auto; }
+  .screen { background: var(--soft); border: 2px solid var(--line); border-radius: 14px; padding: .7rem .9rem; text-align: right; margin-bottom: .7rem; }
+  .screen input { all: unset; display: block; width: 100%; font-size: 1.25rem; text-align: right; overflow-wrap: anywhere; }
+  .screen .res { font-family: var(--head); font-size: 2rem; font-weight: 900; min-height: 2.4rem; overflow-wrap: anywhere; }
+  .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: .4rem; }
+  .keys button { min-height: 48px; padding: 0; font-size: 1rem; box-shadow: 2px 2px 0 var(--sh); }
+  .keys button.op { background: var(--soft); }
+  .keys button.eq { background: var(--blue); color: #fff; }
+  .hist { margin-top: .8rem; font-size: .88rem; display: grid; gap: .25rem; }
+  .hist button { justify-content: space-between; box-shadow: none; min-height: 0; padding: .3rem .6rem; font-weight: 500; border-width: 1.5px; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  canvas#plot { width: 100%; height: 420px; display: block; border: 2px solid var(--line); border-radius: 14px; background: var(--card); touch-action: none; cursor: grab; }
+  .out { margin-top: .8rem; padding: .8rem 1rem; border-radius: 12px; background: var(--soft); overflow-wrap: anywhere; line-height: 1.6; }
+  .out b { font-family: var(--head); font-size: 1.15rem; }
+  textarea.m { min-height: 7rem; font-family: ui-monospace, Consolas, monospace; }
+  table.mx { border-collapse: collapse; margin: .3rem 0; font-variant-numeric: tabular-nums; }
+  table.mx td { padding: .2rem .6rem; border-left: 2px solid var(--line); border-right: 2px solid var(--line); text-align: right; }
+  table.mx td + td { border-left: 0; } table.mx td:not(:last-child) { border-right: 0; }
+  .fx-row { display: flex; gap: .4rem; align-items: center; }
+  .fx-row i { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .fx-row input { flex: 1; }
+  .rows { display: grid; gap: .4rem; }
+  .rows .r { display: grid; grid-template-columns: 1fr 90px 90px 36px; gap: .4rem; }
+  .rows .r button { min-height: 36px; padding: 0; box-shadow: none; }
+  .note { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>hesap</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="hesap araçları"><a href="#bilimsel">bilimsel</a><a href="#grafik">grafik</a><a href="#denklem">denklem</a><a href="#matris">matris</a><a href="#birim">birim</a><a href="#yuzde">yüzde</a><a href="#ortalama">ortalama</a><a href="#taban">taban</a><a href="#asal">asal, EBOB, EKOK</a><a href="#turev">türev, integral</a></nav>
+
+<section data-tab="bilimsel" class="panel">
+  <div class="calc">
+    <div class="screen"><input id="ex" aria-label="ifade" autocomplete="off" placeholder="0"><div class="res" id="res" aria-live="polite"></div></div>
+    <div class="row" style="margin-bottom:.6rem"><div class="modes" id="ang"><button data-a="deg" class="on">derece</button><button data-a="rad">radyan</button></div></div>
+    <div class="keys" id="keys"></div>
+    <div class="hist" id="hist"></div>
+  </div>
+</section>
+
+<section data-tab="grafik" class="panel">
+  <div class="rows" id="fxs"></div>
+  <canvas id="plot" aria-label="fonksiyon grafiği"></canvas>
+  <p class="note">Sürükleyerek kaydır, tekerlek ya da iki parmakla yakınlaştır. Örnekler: <code>x^2 - 4</code>, <code>sin(x)</code>, <code>1/x</code>, <code>abs(x) - 2</code>, <code>log(x)</code>. Açılar radyandır. <span id="trace"></span></p>
+  <div class="row l"><button class="sm" id="pReset">görünümü sıfırla</button></div>
+</section>
+
+<section data-tab="denklem" class="panel">
+  <h2>tek bilinmeyenli denklem</h2>
+  <input id="eq1" style="width:100%" value="x^3 - 6x^2 + 11x - 6 = 0" aria-label="denklem">
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="eq1go">çöz</button></div>
+  <div class="out" id="eq1out" hidden></div>
+  <h2 class="sec">doğrusal denklem sistemi</h2>
+  <textarea id="eqs" class="m" aria-label="denklem sistemi">2x + y = 5
+x - y = 1</textarea>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="eqsgo">çöz</button></div>
+  <div class="out" id="eqsout" hidden></div>
+</section>
+
+<section data-tab="matris" class="panel">
+  <div class="opts"><label class="f">A matrisi<textarea id="ma" class="m">1 2
+3 4</textarea></label><label class="f">B matrisi<textarea id="mb" class="m">5 6
+7 8</textarea></label></div>
+  <p class="note">Her satır ayrı satıra, sayılar boşlukla ya da virgülle ayrılır.</p>
+  <div class="row l"><button data-mx="add">A + B</button><button data-mx="sub">A − B</button><button data-mx="mul">A × B</button><button data-mx="det">det(A)</button><button data-mx="inv">A⁻¹</button><button data-mx="tr">Aᵀ</button><button data-mx="pow">A²</button><button data-mx="eig">özdeğerler</button></div>
+  <div class="out" id="mout" hidden></div>
+</section>
+
+<section data-tab="birim" class="panel">
+  <div class="opts">
+    <label class="f">tür<select id="uc"></select></label>
+    <label class="f">değer<input id="uv" type="number" value="1" step="any"></label>
+    <label class="f">şundan<select id="uf"></select></label>
+    <label class="f">şuna<select id="ut"></select></label>
+  </div>
+  <div class="out" id="uout"></div>
+  <div class="tw"><table class="t" id="uall"></table></div>
+</section>
+
+<section data-tab="yuzde" class="panel">
+  <div class="opts"><label class="f">A sayısının yüzde B'si<input id="y1a" type="number" placeholder="A" step="any"></label><label class="f">&nbsp;<input id="y1b" type="number" placeholder="B (%)" step="any"></label><div class="out" id="y1"></div></div>
+  <div class="opts"><label class="f">A, B'nin yüzde kaçı?<input id="y2a" type="number" placeholder="A" step="any"></label><label class="f">&nbsp;<input id="y2b" type="number" placeholder="B" step="any"></label><div class="out" id="y2"></div></div>
+  <div class="opts"><label class="f">A'dan B'ye değişim<input id="y3a" type="number" placeholder="eski değer" step="any"></label><label class="f">&nbsp;<input id="y3b" type="number" placeholder="yeni değer" step="any"></label><div class="out" id="y3"></div></div>
+  <div class="opts"><label class="f">A'ya yüzde B zam / indirim<input id="y4a" type="number" placeholder="fiyat" step="any"></label><label class="f">&nbsp;<input id="y4b" type="number" placeholder="% (indirim için eksi)" step="any"></label><div class="out" id="y4"></div></div>
+</section>
+
+<section data-tab="ortalama" class="panel">
+  <h2>sayıların ortalaması</h2>
+  <textarea id="nums" class="m" placeholder="sayıları boşluk, virgül ya da satırla ayır" aria-label="sayılar">72 85 90 64 88</textarea>
+  <div class="out" id="numsout"></div>
+  <h2 class="sec">not ortalaması (ağırlıklı)</h2>
+  <p class="note" style="margin-top:0">Her ders için notu ve haftalık ders saatini (ya da kredisini) gir.</p>
+  <div class="rows" id="grades"></div>
+  <div class="row l" style="margin-top:.6rem"><button class="sm" id="gadd">ders ekle</button></div>
+  <div class="out" id="gout"></div>
+</section>
+
+<section data-tab="taban" class="panel">
+  <div class="opts"><label class="f">sayı<input id="bn" value="255" autocomplete="off"></label><label class="f">tabanı<select id="bb"><option value="10">10 (onluk)</option><option value="2">2 (ikilik)</option><option value="8">8 (sekizlik)</option><option value="16">16 (onaltılık)</option></select></label></div>
+  <div class="tw"><table class="t" id="bout"></table></div>
+</section>
+
+<section data-tab="asal" class="panel">
+  <label class="f">sayılar<input id="an" value="12 18 30" aria-label="sayılar"></label>
+  <div class="out" id="aout"></div>
+</section>
+
+<section data-tab="turev" class="panel">
+  <label class="f">f(x) =<input id="tf" value="x^3 - 2x^2 + sin(x)" autocomplete="off"></label>
+  <div class="opts"><label class="f">x noktası (türev değeri için)<input id="tx" type="number" value="1" step="any"></label><label class="f">integral alt sınır<input id="ta" type="number" value="0" step="any"></label><label class="f">integral üst sınır<input id="tb" type="number" value="2" step="any"></label></div>
+  <div class="out" id="tout"></div>
+  <p class="note">Türev sembolik hesaplanır. Belirli integral sayısal (Simpson yöntemi) hesaplanır; belirsiz integral gösterilmez.</p>
+</section>
+</main>
+<script>
+const MATH = 'https://cdn.jsdelivr.net/npm/mathjs@15.2.0/lib/browser/math.js';
+let m;
+const F = (v, p = 10) => { try { return typeof v === 'number' ? m.format(v, { precision: p }).replace(/^-0$/, '0') : m.format(v, { precision: p }); } catch { return String(v); } };
+const tr = s => String(s).replace(/(\d)\.(\d)/g, '$1,$2');
+const norm = s => s.replace(/×/g, '*').replace(/÷/g, '/').replace(/π/g, 'pi').replace(/√/g, 'sqrt').replace(/(\d),(\d)/g, '$1.$2').replace(/−/g, '-');
+
+// ---- bilimsel
+const KEYS = [['sin(', 'fn'], ['cos(', 'fn'], ['tan(', 'fn'], ['log(', 'fn'], ['ln(', 'fn'], ['√(', 'fn'], ['^', 'op'], ['(', 'op'], [')', 'op'], ['!', 'op'], ['7'], ['8'], ['9'], ['÷', 'op', '/'], ['C', 'op'], ['4'], ['5'], ['6'], ['×', 'op', '*'], ['⌫', 'op'], ['1'], ['2'], ['3'], ['−', 'op', '-'], ['π', 'op', 'pi'], ['0'], [',', '', '.'], ['%', 'op', '/100'], ['+', 'op'], ['=', 'eq']];
+let deg = true, hist = store.get('hesap-gecmis', []);
+site.$('#keys').innerHTML = KEYS.map(([k, c]) => `<button class="${c || ''}" data-k="${k}">${k.replace('(', '')}</button>`).join('');
+const scope = () => deg ? { sin: x => Math.sin(x * Math.PI / 180), cos: x => Math.cos(x * Math.PI / 180), tan: x => Math.tan(x * Math.PI / 180), asin: x => Math.asin(x) * 180 / Math.PI, acos: x => Math.acos(x) * 180 / Math.PI, atan: x => Math.atan(x) * 180 / Math.PI } : {};
+function calc(final) {
+  const ex = site.$('#ex').value.trim(); if (!ex) { site.$('#res').textContent = ''; return; }
+  try {
+    const v = m.evaluate(norm(ex).replace(/\blog\(/g, 'log10(').replace(/\bln\(/g, 'log('), scope());
+    const out = tr(F(typeof v === 'function' ? NaN : v, 12));
+    site.$('#res').textContent = '= ' + out;
+    if (final) { hist = [[ex, out], ...hist.filter(h => h[0] !== ex)].slice(0, 8); store.set('hesap-gecmis', hist); paintHist(); site.$('#ex').value = out.replace(/,/g, '.').replace(/\s/g, ''); }
+  } catch { if (final) site.$('#res').textContent = 'geçersiz ifade'; }
+}
+const paintHist = () => site.$('#hist').innerHTML = hist.map(([e, r]) => `<button data-h="${site.esc(e)}"><span>${site.esc(e)}</span><b>${r}</b></button>`).join('');
+site.$('#keys').onclick = e => {
+  const b = e.target.closest('[data-k]'); if (!b) return; const k = b.dataset.k, def = KEYS.find(x => x[0] === k), ins = def[2] ?? k, el = site.$('#ex');
+  if (k === 'C') el.value = ''; else if (k === '⌫') el.value = el.value.slice(0, -1); else if (k === '=') return calc(true);
+  else { const s = el.selectionStart ?? el.value.length; el.value = el.value.slice(0, s) + ins + el.value.slice(el.selectionEnd ?? s); }
+  calc(false);
+};
+site.$('#ex').oninput = () => calc(false);
+site.$('#ex').onkeydown = e => { if (e.key === 'Enter') calc(true); };
+site.$('#hist').onclick = e => { const b = e.target.closest('[data-h]'); if (b) { site.$('#ex').value = b.dataset.h; calc(false); } };
+site.$('#ang').onclick = e => { const b = e.target.closest('[data-a]'); if (!b) return; deg = b.dataset.a === 'deg'; site.$$('#ang button').forEach(x => x.classList.toggle('on', x === b)); calc(false); };
+
+// ---- grafik
+const COLORS = ['#ff5a4e', '#4d7cfe', '#3bb273'];
+let fxs = store.get('grafik', ['x^2 - 4', 'sin(x)', '']), view = { cx: 0, cy: 0, s: 40 };
+site.$('#fxs').innerHTML = fxs.map((f, i) => `<div class="fx-row"><i style="background:${COLORS[i]}"></i><input value="${site.esc(f)}" data-fx="${i}" placeholder="f${i + 1}(x) =" aria-label="fonksiyon ${i + 1}" autocomplete="off"></div>`).join('');
+site.$('#fxs').oninput = e => { fxs[e.target.dataset.fx] = e.target.value; store.set('grafik', fxs); plot(); };
+function plot() {
+  const c = site.$('#plot'), dpr = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight; if (!W) return;
+  c.width = W * dpr; c.height = H * dpr; const x = c.getContext('2d'); x.scale(dpr, dpr);
+  const cs = getComputedStyle(document.body), ink = cs.color, soft = cs.getPropertyValue('--soft');
+  const X = v => W / 2 + (v - view.cx) * view.s, Y = v => H / 2 - (v - view.cy) * view.s;
+  const step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].find(t => t * view.s > 40) || 1000, x0 = view.cx - W / 2 / view.s, x1 = view.cx + W / 2 / view.s, y0 = view.cy - H / 2 / view.s, y1 = view.cy + H / 2 / view.s;
+  x.lineWidth = 1; x.strokeStyle = soft; x.fillStyle = ink; x.font = '11px Outfit, sans-serif';
+  for (let g = Math.ceil(x0 / step) * step; g <= x1; g += step) { x.beginPath(); x.moveTo(X(g), 0); x.lineTo(X(g), H); x.stroke(); if (g) x.fillText(tr(F(g, 6)), X(g) + 2, Math.min(H - 4, Math.max(12, Y(0) + 12))); }
+  for (let g = Math.ceil(y0 / step) * step; g <= y1; g += step) { x.beginPath(); x.moveTo(0, Y(g)); x.lineTo(W, Y(g)); x.stroke(); if (g) x.fillText(tr(F(g, 6)), Math.min(W - 30, Math.max(2, X(0) + 4)), Y(g) - 2); }
+  x.strokeStyle = ink; x.lineWidth = 1.5; x.beginPath(); x.moveTo(X(0), 0); x.lineTo(X(0), H); x.moveTo(0, Y(0)); x.lineTo(W, Y(0)); x.stroke();
+  fxs.forEach((f, i) => {
+    if (!f.trim()) return; let code; try { code = m.compile(norm(f.split('=').pop())); } catch { return; }
+    x.strokeStyle = COLORS[i]; x.lineWidth = 2.5; x.beginPath(); let pen = false, prev = null;
+    for (let px = 0; px <= W; px += .5) {
+      const xv = x0 + px / view.s; let yv; try { yv = code.evaluate({ x: xv }); } catch { yv = NaN; }
+      if (typeof yv !== 'number' || !isFinite(yv) || (prev != null && Math.abs(yv - prev) * view.s > H * 2)) { pen = false; prev = null; continue; }
+      pen ? x.lineTo(px, Y(yv)) : x.moveTo(px, Y(yv)); pen = true; prev = yv;
+    }
+    x.stroke();
+  });
+}
+{
+  const c = site.$('#plot'); let drag = null; const pts = new Map();
+  c.onpointerdown = e => { c.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); drag = { x: e.clientX, y: e.clientY, cx: view.cx, cy: view.cy, s: view.s, d: null }; };
+  c.onpointermove = e => {
+    const r = c.getBoundingClientRect(), xv = view.cx + (e.clientX - r.left - r.width / 2) / view.s, yv = view.cy - (e.clientY - r.top - r.height / 2) / view.s;
+    site.$('#trace').textContent = `(${tr(xv.toFixed(2))}; ${tr(yv.toFixed(2))})`;
+    if (!drag) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (!drag.d) drag.d = d; view.s = Math.min(2000, Math.max(2, drag.s * d / drag.d)); }
+    else { view.cx = drag.cx - (e.clientX - drag.x) / view.s; view.cy = drag.cy + (e.clientY - drag.y) / view.s; }
+    plot();
+  };
+  c.onpointerup = c.onpointercancel = e => { pts.delete(e.pointerId); if (!pts.size) drag = null; };
+  c.onwheel = e => { e.preventDefault(); view.s = Math.min(2000, Math.max(2, view.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); plot(); };
+  site.$('#pReset').onclick = () => { view = { cx: 0, cy: 0, s: 40 }; plot(); };
+  addEventListener('resize', plot);
+}
+
+// ---- denklem
+site.$('#eq1go').onclick = () => {
+  const out = site.$('#eq1out'); out.hidden = false;
+  try {
+    const [l, r = '0'] = norm(site.$('#eq1').value).split('='), expr = `(${l}) - (${r})`, node = m.parse(expr);
+    const vars = [...new Set(node.filter(n => n.isSymbolNode && !(n.name in m) ).map(n => n.name))];
+    const v = vars[0] || 'x', code = m.compile(expr), f = t => code.evaluate({ [v]: t });
+    let roots = [];
+    try { // polinomsa (en çok 3. derece) kesin kökler
+      const p = m.rationalize(expr, {}, true);
+      if (p.variables.length <= 1 && p.coefficients.length && p.coefficients.length <= 4) roots = m.polynomialRoot(...p.coefficients.map(Number)).map(z => typeof z === 'number' ? z : (Math.abs(z.im) < 1e-9 ? z.re : z));
+    } catch {}
+    if (!roots.length) { // sayısal: işaret değişimi + ikiye bölme
+      for (let a = -100; a < 100; a += .05) {
+        let lo = a, hi = a + .05, fl = f(lo), fh = f(hi);
+        if (!isFinite(fl) || !isFinite(fh)) continue;
+        if (fl === 0) { roots.push(lo); continue; }
+        if (fl * fh < 0) { for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2, fm = f(mid); if (fl * fm <= 0) hi = mid; else { lo = mid; fl = fm; } } const z = (lo + hi) / 2; if (Math.abs(f(z)) < 1e-6) roots.push(z); }
+      }
+    }
+    const real = roots.filter(z => typeof z === 'number').sort((a, b) => a - b).filter((z, i, a) => !i || Math.abs(z - a[i - 1]) > 1e-7), cplx = roots.filter(z => typeof z !== 'number');
+    const shown = real.length > 10 ? real.slice().sort((p, q) => Math.abs(p) - Math.abs(q)).slice(0, 10).sort((p, q) => p - q) : real;
+    out.innerHTML = (real.length ? `<b>${v} = ${shown.map(z => tr(F(z, 10))).join(' ; ')}</b>${real.length > 10 ? `<br>sıfıra en yakın 10 kök; −100 ile 100 arasında toplam ${real.length} kök var.` : ''}` : 'Gerçek kök bulunamadı (−100 ile 100 arasında arandı).') + (cplx.length ? `<br>karmaşık kökler: ${cplx.map(z => tr(F(z, 8))).join(' ; ')}` : '');
+  } catch { out.textContent = 'Denklem okunamadı. Örnek: 2x^2 - 3x - 2 = 0'; }
+};
+site.$('#eqsgo').onclick = () => {
+  const out = site.$('#eqsout'); out.hidden = false;
+  try {
+    const eqs = site.$('#eqs').value.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const [l, r = '0'] = norm(s).split('='); return m.compile(`(${l}) - (${r})`); });
+    const names = [...new Set(site.$('#eqs').value.split('\n').flatMap(s => { const [l, r = '0'] = norm(s).split('='); try { return m.parse(`(${l}) - (${r})`).filter(n => n.isSymbolNode && !(n.name in m)).map(n => n.name); } catch { return []; } }))].sort();
+    if (names.length !== eqs.length) throw new Error(`${names.length} bilinmeyen, ${eqs.length} denklem var; sayıları eşit olmalı.`);
+    const zero = Object.fromEntries(names.map(n => [n, 0]));
+    const A = eqs.map(e => names.map(n => e.evaluate({ ...zero, [n]: 1 }) - e.evaluate(zero))), b = eqs.map(e => -e.evaluate(zero));
+    if (Math.abs(m.det(A)) < 1e-12) throw new Error('Sistemin tek bir çözümü yok (determinant sıfır).');
+    const x = m.lusolve(A, b);
+    out.innerHTML = names.map((n, i) => `<b>${n} = ${tr(F(x[i][0], 10))}</b>`).join('<br>');
+  } catch (e) { out.textContent = e.message?.includes('denklem') || e.message?.includes('determinant') ? e.message : 'Sistem okunamadı. Her satıra bir denklem yaz: 2x + y = 5'; }
+};
+
+// ---- matris
+const parseM = s => s.trim().split('\n').filter(l => l.trim()).map(l => l.trim().split(/[\s,;]+/).map(v => m.evaluate(v.replace(',', '.'))));
+const showM = v => typeof v === 'number' ? `<b>${tr(F(v, 8))}</b>` : `<table class="mx">${m.matrix(v).toArray().map(r => `<tr>${(Array.isArray(r) ? r : [r]).map(c => `<td>${tr(F(c, 6))}</td>`).join('')}</tr>`).join('')}</table>`;
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-mx]'); if (!b) return; const out = site.$('#mout'); out.hidden = false;
+  try {
+    const A = parseM(site.$('#ma').value), B = () => parseM(site.$('#mb').value);
+    const r = { add: () => m.add(A, B()), sub: () => m.subtract(A, B()), mul: () => m.multiply(A, B()), det: () => m.det(A), inv: () => m.inv(A), tr: () => m.transpose(A), pow: () => m.multiply(A, A), eig: () => m.eigs(A).values }[b.dataset.mx]();
+    out.innerHTML = showM(r);
+  } catch (err) { out.textContent = /singular|Cannot calculate inverse/.test(err.message) ? 'Matrisin tersi yok (determinant sıfır).' : /dimension|Dimension/.test(err.message) ? 'Boyutlar bu işlem için uygun değil.' : 'Matris okunamadı.'; }
+});
+
+// ---- birim
+const U = {
+  'uzunluk': [['mm', 'milimetre'], ['cm', 'santimetre'], ['m', 'metre'], ['km', 'kilometre'], ['inch', 'inç'], ['ft', 'fit'], ['yd', 'yarda'], ['mi', 'mil'], ['1852 m', 'deniz mili']],
+  'kütle': [['mg', 'miligram'], ['g', 'gram'], ['kg', 'kilogram'], ['tonne', 'ton'], ['oz', 'ons'], ['lb', 'libre (pound)']],
+  'sıcaklık': [['degC', '°C'], ['degF', '°F'], ['K', 'kelvin']],
+  'alan': [['cm2', 'cm²'], ['m2', 'm²'], ['km2', 'km²'], ['hectare', 'hektar'], ['1000 m2', 'dönüm'], ['acre', 'akre'], ['sqft', 'fit²']],
+  'hacim': [['mL', 'mililitre'], ['L', 'litre'], ['m3', 'm³'], ['cm3', 'cm³'], ['gallon', 'galon (ABD)'], ['cup', 'su bardağı (ABD)']],
+  'hız': [['m/s', 'm/s'], ['km/h', 'km/sa'], ['mi/h', 'mil/sa'], ['0.514444 m/s', 'knot']],
+  'zaman': [['s', 'saniye'], ['minute', 'dakika'], ['hour', 'saat'], ['day', 'gün'], ['week', 'hafta'], ['year', 'yıl']],
+  'enerji': [['J', 'joule'], ['kJ', 'kilojoule'], ['4.184 J', 'kalori'], ['4184 J', 'kilokalori'], ['Wh', 'Wh'], ['kWh', 'kWh'], ['eV', 'elektronvolt']],
+  'basınç': [['Pa', 'pascal'], ['kPa', 'kilopascal'], ['bar', 'bar'], ['atm', 'atmosfer'], ['mmHg', 'mmHg'], ['psi', 'psi']],
+  'açı': [['deg', 'derece'], ['rad', 'radyan'], ['grad', 'grad']],
+  'veri': [['b', 'bit'], ['B', 'bayt'], ['kB', 'kB'], ['MB', 'MB'], ['GB', 'GB'], ['TB', 'TB'], ['KiB', 'KiB'], ['MiB', 'MiB'], ['GiB', 'GiB']],
+};
+site.$('#uc').innerHTML = Object.keys(U).map(k => `<option>${k}</option>`).join('');
+const fillU = () => { const l = U[site.$('#uc').value]; site.$('#uf').innerHTML = site.$('#ut').innerHTML = l.map(([u, n]) => `<option value="${u}">${n}</option>`).join(''); site.$('#ut').selectedIndex = Math.min(1, l.length - 1); conv(); };
+function conv() {
+  const v = +site.$('#uv').value, from = site.$('#uf').value, cat = U[site.$('#uc').value];
+  const to1 = u => { const src = from.includes(' ') ? m.multiply(m.unit(from), v) : m.unit(v, from); return u.includes(' ') ? m.divide(src, m.unit(u)) : src.toNumber(u); };
+  try {
+    const r = to1(site.$('#ut').value);
+    site.$('#uout').innerHTML = `<b>${tr(F(+site.$('#uv').value, 10))} ${cat.find(x => x[0] === from)[1]} = ${tr(F(r, 10))} ${cat.find(x => x[0] === site.$('#ut').value)[1]}</b>`;
+    site.$('#uall').innerHTML = cat.map(([u, n]) => `<tr><td>${n}</td><td class="n">${tr(F(to1(u), 10))}</td></tr>`).join('');
+  } catch { site.$('#uout').textContent = 'çevrilemedi'; }
+}
+site.$('#uc').onchange = fillU; ['#uv', '#uf', '#ut'].forEach(s => site.$(s).addEventListener('input', conv));
+
+// ---- yüzde
+function yuzde() {
+  const g = id => parseFloat(site.$(id).value), ok = (...a) => a.every(v => !isNaN(v)), o = (id, h) => site.$(id).innerHTML = h;
+  const a1 = g('#y1a'), b1 = g('#y1b'); o('#y1', ok(a1, b1) ? `<b>${tr(F(a1 * b1 / 100))}</b>` : '—');
+  const a2 = g('#y2a'), b2 = g('#y2b'); o('#y2', ok(a2, b2) && b2 ? `<b>%${tr(F(a2 / b2 * 100, 6))}</b>` : '—');
+  const a3 = g('#y3a'), b3 = g('#y3b'); o('#y3', ok(a3, b3) && a3 ? `<b>${b3 >= a3 ? '+' : ''}%${tr(F((b3 - a3) / Math.abs(a3) * 100, 6))}</b> (${tr(F(b3 - a3))})` : '—');
+  const a4 = g('#y4a'), b4 = g('#y4b'); o('#y4', ok(a4, b4) ? `<b>${tr(F(a4 * (1 + b4 / 100)))}</b> (fark ${tr(F(a4 * b4 / 100))})` : '—');
+}
+site.$('[data-tab="yuzde"]').addEventListener('input', yuzde);
+
+// ---- ortalama
+function nums() {
+  const a = site.$('#nums').value.replace(/(\d),(\d)/g, '$1.$2').split(/[\s;]+|,\s*/).map(Number).filter(v => !isNaN(v) && v !== '' );
+  const v = site.$('#nums').value.trim() ? a : [];
+  if (!v.length) { site.$('#numsout').textContent = 'Sayı gir.'; return; }
+  const s = v.slice().sort((x, y) => x - y), sum = v.reduce((x, y) => x + y, 0), mean = sum / v.length;
+  const med = s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+  const cnt = {}; v.forEach(x => cnt[x] = (cnt[x] || 0) + 1); const mx = Math.max(...Object.values(cnt)), mode = mx > 1 ? Object.keys(cnt).filter(k => cnt[k] === mx).join(', ') : 'yok';
+  const sd = Math.sqrt(v.reduce((x, y) => x + (y - mean) ** 2, 0) / v.length);
+  site.$('#numsout').innerHTML = `<b>ortalama ${tr(F(mean, 6))}</b><br>${v.length} sayı · toplam ${tr(F(sum))} · ortanca ${tr(F(med))} · tepe değer ${tr(mode)} · en küçük ${tr(F(s[0]))} · en büyük ${tr(F(s.at(-1)))} · açıklık ${tr(F(s.at(-1) - s[0]))} · standart sapma ${tr(F(sd, 4))}`;
+}
+site.$('#nums').oninput = nums;
+let G = store.get('notlar-ort', [['Matematik', '', 6], ['Türk Dili ve Edebiyatı', '', 5], ['Fizik', '', 2]]);
+function paintG() { site.$('#grades').innerHTML = '<div class="r note"><span>ders</span><span>not</span><span>saat</span><span></span></div>' + G.map((g, i) => `<div class="r"><input value="${site.esc(g[0])}" data-g="${i}" data-c="0" aria-label="ders adı"><input type="number" step="any" value="${g[1]}" data-g="${i}" data-c="1" aria-label="not"><input type="number" step="any" value="${g[2]}" data-g="${i}" data-c="2" aria-label="ders saati"><button data-gx="${i}" aria-label="sil">✕</button></div>`).join(''); grade(); }
+function grade() {
+  const ok = G.filter(g => g[1] !== '' && +g[2] > 0), w = ok.reduce((a, g) => a + +g[2], 0);
+  site.$('#gout').innerHTML = w ? `<b>ağırlıklı ortalama ${tr(F(ok.reduce((a, g) => a + g[1] * g[2], 0) / w, 5))}</b> · ${ok.length} ders, toplam ${w} saat` : 'Notları gir.';
+}
+site.$('#grades').oninput = e => { const t = e.target; if (t.dataset.g == null) return; G[t.dataset.g][t.dataset.c] = t.value; store.set('notlar-ort', G); grade(); };
+site.$('#grades').onclick = e => { const b = e.target.closest('[data-gx]'); if (b) { G.splice(+b.dataset.gx, 1); store.set('notlar-ort', G); paintG(); } };
+site.$('#gadd').onclick = () => { G.push(['', '', 2]); store.set('notlar-ort', G); paintG(); };
+
+// ---- taban
+function taban() {
+  const s = site.$('#bn').value.trim().replace(/\s/g, '').toLowerCase(), b = +site.$('#bb').value, digits = '0123456789abcdef'.slice(0, b);
+  const out = site.$('#bout');
+  if (!s || ![...s.replace(/^-/, '')].every(c => digits.includes(c))) { out.innerHTML = `<tr><td>Bu tabanda geçerli bir tam sayı değil (${digits} rakamları).</td></tr>`; return; }
+  const neg = s.startsWith('-'); let n = 0n; for (const c of s.replace(/^-/, '')) n = n * BigInt(b) + BigInt(digits.indexOf(c));
+  const fmt = (x, bb) => (neg ? '-' : '') + x.toString(bb).toUpperCase();
+  out.innerHTML = [[2, 'ikilik'], [8, 'sekizlik'], [10, 'onluk'], [16, 'onaltılık'], [36, '36 tabanı']].map(([bb, n2]) => `<tr><td>${n2} (${bb})</td><td class="n" style="font-family:ui-monospace,monospace;overflow-wrap:anywhere">${fmt(n, bb)}</td></tr>`).join('') + `<tr><td>bit sayısı</td><td class="n">${n.toString(2).length}</td></tr>`;
+}
+['#bn', '#bb'].forEach(s => site.$(s).addEventListener('input', taban));
+
+// ---- asal, EBOB, EKOK
+function asal() {
+  const ns = site.$('#an').value.split(/[\s,;]+/).map(Number).filter(n => Number.isInteger(n) && n > 0 && n <= 1e12);
+  if (!ns.length) { site.$('#aout').textContent = 'Pozitif tam sayılar gir.'; return; }
+  const gcd = (a, b) => b ? gcd(b, a % b) : a, lcm = (a, b) => a / gcd(a, b) * b;
+  const fac = n => { const f = {}; for (let p = 2; p * p <= n; p++) while (n % p === 0) { f[p] = (f[p] || 0) + 1; n /= p; } if (n > 1) f[n] = (f[n] || 0) + 1; return f; };
+  const sup = d => String(d).replace(/\d/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]);
+  site.$('#aout').innerHTML = (ns.length > 1 ? `<b>EBOB ${ns.reduce(gcd).toLocaleString('tr-TR')} · EKOK ${ns.reduce(lcm).toLocaleString('tr-TR')}</b><br>` : '') + ns.map(n => {
+    const f = fac(n), isP = n > 1 && Object.keys(f).length === 1 && Object.values(f)[0] === 1, dc = Object.values(f).reduce((a, e) => a * (e + 1), 1);
+    const divs = n <= 1e7 ? [...Array(Math.floor(Math.sqrt(n)))].map((_, i) => i + 1).filter(d => n % d === 0).flatMap(d => d * d === n ? [d] : [d, n / d]).sort((a, b) => a - b) : null;
+    return `<b>${n.toLocaleString('tr-TR')}</b>: ${n === 1 ? '1 asal değildir' : isP ? 'asal' : 'asal değil, ' + Object.entries(f).map(([p, e]) => p + (e > 1 ? sup(e) : '')).join(' · ')} · ${dc} pozitif bölen${divs && divs.length <= 60 ? ` (${divs.join(', ')})` : ''}`;
+  }).join('<br>');
+}
+site.$('#an').oninput = asal;
+
+// ---- türev ve integral
+function turev() {
+  const out = site.$('#tout');
+  try {
+    const f = norm(site.$('#tf').value), d = m.simplify(m.derivative(f, 'x')), d2 = m.simplify(m.derivative(d, 'x')), x0 = +site.$('#tx').value, a = +site.$('#ta').value, b = +site.$('#tb').value, code = m.compile(f);
+    const g = x => code.evaluate({ x }); let n = 1000, h = (b - a) / n, s = g(a) + g(b);
+    for (let i = 1; i < n; i++) s += g(a + i * h) * (i % 2 ? 4 : 2);
+    const I = s * h / 3;
+    out.innerHTML = `<b>f′(x) = ${tr(d.toString())}</b><br>f″(x) = ${tr(d2.toString())}<br>f′(${tr(x0)}) = ${tr(F(d.evaluate({ x: x0 }), 8))} · f(${tr(x0)}) = ${tr(F(g(x0), 8))}<br><b>∫ ${tr(a)}..${tr(b)} f(x) dx ≈ ${isFinite(I) ? tr(F(I, 8)) : 'hesaplanamadı'}</b>`;
+  } catch { out.textContent = 'İfade okunamadı. Örnek: x^2 * sin(x), e^x, log(x), sqrt(x)'; }
+}
+['#tf', '#tx', '#ta', '#tb'].forEach(s => site.$(s).addEventListener('input', turev));
+
+site.load(MATH).then(() => {
+  m = math;
+  paintHist(); fillU(); yuzde(); nums(); paintG(); taban(); asal(); turev();
+  site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { if (s.dataset.tab === 'grafik') plot(); }));
+  if (location.hash === '#grafik') plot();
+});
+</script>
+</body>
+</html>

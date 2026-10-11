@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yazı araçları · fadimrak</title>
+<meta name="description" content="Kelime ve karakter sayacı, okuma süresi, büyük küçük harf çevirici, metin karşılaştırma, Markdown editörü, yazım ve tekrar denetimi">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .stats2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); gap: .6rem; margin-top: .8rem; }
+  .stats2 div { background: var(--soft); border-radius: 12px; padding: .6rem .8rem; }
+  .stats2 b { display: block; font-family: var(--head); font-size: 1.5rem; }
+  .stats2 span { font-size: .8rem; color: var(--muted); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+  .diff { margin-top: 1rem; padding: .9rem 1rem; border-radius: 12px; background: var(--card); border: 2px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+  .diff ins { background: color-mix(in srgb, var(--green) 35%, transparent); text-decoration: none; border-radius: 3px; }
+  .diff del { background: color-mix(in srgb, var(--red) 35%, transparent); border-radius: 3px; }
+  .md { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+  .md textarea { min-height: 60vh; font-family: ui-monospace, Consolas, monospace; font-size: .92rem; }
+  .md .pv { min-height: 60vh; max-height: 75vh; overflow: auto; padding: .8rem 1.1rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); line-height: 1.6; }
+  .md .pv img { max-width: 100%; }
+  .md .pv pre { background: var(--soft); padding: .7rem; border-radius: 8px; overflow: auto; }
+  .md .pv code { font-family: ui-monospace, Consolas, monospace; font-size: .9em; }
+  .md .pv blockquote { margin: 0; padding-left: 1rem; border-left: 4px solid var(--soft); color: var(--muted); }
+  .md .pv table { border-collapse: collapse; } .md .pv td, .md .pv th { border: 1px solid var(--soft); padding: .3rem .6rem; }
+  .finds { display: grid; gap: .4rem; margin-top: .8rem; }
+  .finds .f2 { display: flex; gap: .6rem; align-items: center; justify-content: space-between; padding: .5rem .75rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); font-size: .92rem; }
+  .finds mark { background: color-mix(in srgb, var(--yellow) 60%, transparent); color: inherit; padding: 0 .15rem; border-radius: 3px; }
+  .words { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .6rem; }
+  .words span { font-size: .82rem; padding: .15rem .55rem; border-radius: 99px; background: var(--soft); }
+  @media (max-width: 720px) { .two, .md { grid-template-columns: 1fr; } .md textarea, .md .pv { min-height: 40vh; } }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>yazı araçları</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="yazı araçları"><a href="#sayac">sayaç ve okuma süresi</a><a href="#harf">büyük / küçük harf</a><a href="#fark">karşılaştır</a><a href="#markdown">markdown</a><a href="#yazim">yazım ve tekrar</a></nav>
+
+<section data-tab="sayac" class="panel">
+  <textarea class="shared" placeholder="Metni buraya yapıştır ya da yaz." aria-label="metin" spellcheck="true" lang="tr"></textarea>
+  <div class="stats2" id="st"></div>
+  <p class="note small muted">Okuma süresi dakikada 200 kelime, sesli okuma 130 kelime üzerinden hesaplanır.</p>
+  <div class="words" id="top"></div>
+</section>
+
+<section data-tab="harf" class="panel">
+  <textarea class="shared" placeholder="Metni buraya yapıştır." aria-label="metin" lang="tr"></textarea>
+  <div class="row l" style="margin-top:.7rem"><button data-case="up">BÜYÜK HARF</button><button data-case="low">küçük harf</button><button data-case="title">Her Kelime Büyük</button><button data-case="sent">Cümle düzeni</button><button data-case="inv">tErS çEvİr</button><button class="primary" id="copy1">kopyala</button></div>
+  <p class="muted small">Türkçe kurallara göre çevirir: i → İ, ı → I.</p>
+</section>
+
+<section data-tab="fark" class="panel">
+  <div class="two"><label class="f">eski metin<textarea id="da" aria-label="eski metin"></textarea></label><label class="f">yeni metin<textarea id="db" aria-label="yeni metin"></textarea></label></div>
+  <div class="row l" style="margin-top:.6rem"><div class="modes" id="dm"><button data-d="word" class="on">kelime kelime</button><button data-d="line">satır satır</button></div><span class="muted small" id="dinfo"></span></div>
+  <div class="diff" id="dout" aria-live="polite"></div>
+</section>
+
+<section data-tab="markdown">
+  <div class="row l" style="margin-bottom:.6rem"><button class="sm" id="mdmd">.md indir</button><button class="sm" id="mdhtml">.html indir</button><button class="sm" id="mdcopy">HTML'i kopyala</button><span class="muted small" id="mdinfo"></span></div>
+  <div class="md"><textarea id="mdin" aria-label="markdown" spellcheck="true" lang="tr"></textarea><div class="pv" id="mdout"></div></div>
+</section>
+
+<section data-tab="yazim" class="panel">
+  <textarea class="shared" placeholder="Denetlenecek metni yapıştır." aria-label="metin" spellcheck="true" lang="tr"></textarea>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="ycheck">denetle</button><span class="muted small" id="yinfo"></span></div>
+  <div class="finds" id="yout"></div>
+  <p class="muted small">Sık yapılan yazım yanlışları, bitişik yazılan "mi" soru eki ve art arda tekrar eden kelimeler aranır. Diğer yazım hataları için tarayıcının kendi denetimi (kırmızı alt çizgi) açıktır; dil ayarı Türkçe değilse göstermeyebilir.</p>
+</section>
+</main>
+<script>
+const E = site.esc;
+// ---- ortak metin (sayaç, harf, yazım)
+const shared = site.$$('textarea.shared');
+const setText = v => { shared.forEach(t => { if (t.value !== v) t.value = v; }); store.set('yazi-metin', v); stats(); };
+shared.forEach(t => t.oninput = () => setText(t.value));
+const words = s => s.match(/[\p{L}\p{N}'’-]+/gu) || [];
+const STOP = new Set('ve ile bir bu şu o da de ki mi mı mu mü için gibi kadar daha çok en ama fakat ancak ya veya hem ne her olan olarak sonra önce çünkü ise bile diye den dan ben sen biz siz onlar'.split(' '));
+function stats() {
+  const t = shared[0].value, w = words(t), chars = [...t].length, noSp = [...t.replace(/\s/g, '')].length;
+  const sent = (t.match(/[^.!?…]+[.!?…]+/g) || []).length || (t.trim() ? 1 : 0), para = t.split(/\n\s*\n/).filter(p => p.trim()).length, lines = t ? t.split('\n').length : 0;
+  const mm = n => n < 1 ? Math.max(1, Math.round(n * 60)) + ' sn' : Math.floor(n) + ' dk' + (Math.round(n % 1 * 60) ? ' ' + Math.round(n % 1 * 60) + ' sn' : '');
+  site.$('#st').innerHTML = [[w.length, 'kelime'], [chars, 'karakter'], [noSp, 'boşluksuz karakter'], [sent, 'cümle'], [para, 'paragraf'], [lines, 'satır'], [w.length ? mm(w.length / 200) : '0 sn', 'okuma süresi'], [w.length ? mm(w.length / 130) : '0 sn', 'sesli okuma']].map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('');
+  const f = {}; w.forEach(x => { const k = x.toLocaleLowerCase('tr'); if (k.length > 2 && !STOP.has(k)) f[k] = (f[k] || 0) + 1; });
+  const top = Object.entries(f).sort((a, b) => b[1] - a[1]).slice(0, 12).filter(([, n]) => n > 1);
+  site.$('#top').innerHTML = top.length ? '<span style="background:none;padding-left:0">en sık:</span>' + top.map(([k, n]) => `<span>${E(k)} · ${n}</span>`).join('') : '';
+}
+
+// ---- büyük / küçük harf
+const cap = w => w.charAt(0).toLocaleUpperCase('tr') + w.slice(1).toLocaleLowerCase('tr');
+const CASE = {
+  up: s => s.toLocaleUpperCase('tr'), low: s => s.toLocaleLowerCase('tr'),
+  title: s => s.toLocaleLowerCase('tr').replace(/(^|[\s"“(\-/])(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('tr')),
+  sent: s => s.toLocaleLowerCase('tr').replace(/(^\s*|[.!?…]\s+)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('tr')),
+  inv: s => [...s].map(c => c === c.toLocaleUpperCase('tr') ? c.toLocaleLowerCase('tr') : c.toLocaleUpperCase('tr')).join(''),
+};
+site.$$('[data-case]').forEach(b => b.onclick = () => setText(CASE[b.dataset.case](shared[1].value)));
+site.$('#copy1').onclick = () => navigator.clipboard.writeText(shared[1].value).then(() => toast('kopyalandı'));
+
+// ---- metin karşılaştırma (en uzun ortak alt dizi)
+let dmode = 'word';
+function diff() {
+  const a = site.$('#da').value, b = site.$('#db').value;
+  const tok = s => dmode === 'line' ? s.split(/(?<=\n)/) : s.match(/\s+|[^\s]+/g) || [];
+  let A = tok(a), B = tok(b);
+  if (A.length * B.length > 9e6) { site.$('#dout').textContent = 'Metinler çok uzun; satır satır karşılaştırmayı dene.'; return; }
+  // ortak baş ve son kısımları ayır, kalan üzerinde LCS tablosu
+  let pre = 0; while (pre < A.length && pre < B.length && A[pre] === B[pre]) pre++;
+  let suf = 0; while (suf < A.length - pre && suf < B.length - pre && A[A.length - 1 - suf] === B[B.length - 1 - suf]) suf++;
+  const a2 = A.slice(pre, A.length - suf), b2 = B.slice(pre, B.length - suf), n = a2.length, m = b2.length;
+  const L = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = a2[i] === b2[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = A.slice(0, pre).map(t => E(t)); let i = 0, j = 0, add = 0, del = 0;
+  while (i < n || j < m) {
+    if (i < n && j < m && a2[i] === b2[j]) { out.push(E(a2[i])); i++; j++; }
+    else if (i < n && (j === m || L[i + 1][j] >= L[i][j + 1])) { out.push(`<del>${E(a2[i])}</del>`); if (a2[i].trim()) del++; i++; }
+    else { out.push(`<ins>${E(b2[j])}</ins>`); if (b2[j].trim()) add++; j++; }
+  }
+  out.push(...A.slice(A.length - suf).map(t => E(t)));
+  site.$('#dout').innerHTML = out.join('').replace(/<\/ins><ins>/g, '').replace(/<\/del><del>/g, '') || '<span class="muted">İki metni yapıştır; farklar renklenir.</span>';
+  site.$('#dinfo').textContent = a || b ? (add || del ? `${add} ${dmode === 'line' ? 'satır' : 'kelime'} eklendi, ${del} silindi` : 'metinler aynı') : '';
+}
+site.$('#da').oninput = site.$('#db').oninput = diff;
+site.$('#dm').onclick = e => { const b = e.target.closest('[data-d]'); if (!b) return; dmode = b.dataset.d; site.$$('#dm button').forEach(x => x.classList.toggle('on', x === b)); diff(); };
+
+// ---- markdown
+const MD = 'https://cdn.jsdelivr.net/npm/marked@18.1.0/lib/marked.umd.js', PUR = 'https://cdn.jsdelivr.net/npm/dompurify@3.4.16/dist/purify.min.js';
+const mdIn = site.$('#mdin');
+mdIn.value = store.get('markdown', '# Başlık\n\nBu bir **Markdown** örneğidir. Sağ tarafta önizlemesi görünür.\n\n- madde bir\n- madde iki\n\n> alıntı\n\n`kod` ve [bağlantı](https://fadimrak.xyz)\n');
+let mdReady = null, mdT;
+const mdLoad = () => mdReady ||= Promise.all([site.load(MD), site.load(PUR)]);
+const html = () => DOMPurify.sanitize(marked.parse(mdIn.value));
+async function mdRender() { await mdLoad(); site.$('#mdout').innerHTML = html(); site.$('#mdinfo').textContent = `${words(mdIn.value).length} kelime`; }
+mdIn.oninput = () => { clearTimeout(mdT); mdT = setTimeout(() => { store.set('markdown', mdIn.value); mdRender(); }, 150); };
+const mdName = () => (mdIn.value.match(/^#\s+(.+)/m)?.[1] || 'belge').replace(/[\\/:*?"<>|]/g, '').trim();
+site.$('#mdmd').onclick = () => site.dl(new Blob([mdIn.value], { type: 'text/markdown;charset=utf-8' }), mdName() + '.md');
+site.$('#mdhtml').onclick = async () => { await mdLoad(); site.dl(new Blob([`<!doctype html><html lang="tr"><meta charset="utf-8"><title>${E(mdName())}</title><body style="max-width:720px;margin:2rem auto;padding:0 16px;font-family:system-ui,sans-serif;line-height:1.6">${html()}</body></html>`], { type: 'text/html;charset=utf-8' }), mdName() + '.html'); };
+site.$('#mdcopy').onclick = async () => { await mdLoad(); navigator.clipboard.writeText(html()).then(() => toast('HTML kopyalandı')); };
+
+// ---- yazım ve tekrar denetimi
+const YANLIS = { herkez: 'herkes', yalnış: 'yanlış', yanlız: 'yalnız', birşey: 'bir şey', herşey: 'her şey', hiçbirşey: 'hiçbir şey', yada: 'ya da', şöyleki: 'şöyle ki', malesef: 'maalesef', orjinal: 'orijinal', eşortman: 'eşofman', kiprik: 'kirpik', traş: 'tıraş', şarz: 'şarj', kirbit: 'kibrit', antreman: 'antrenman', entellektüel: 'entelektüel', egzos: 'egzoz', dinazor: 'dinozor', mütevazi: 'mütevazı', laboratuar: 'laboratuvar', makina: 'makine', ünvan: 'unvan', şöför: 'şoför', kuvaför: 'kuaför', pantalon: 'pantolon', yoğort: 'yoğurt', meyva: 'meyve', süpriz: 'sürpriz', sandoviç: 'sandviç', hakkaten: 'hakikaten', müsade: 'müsaade', herhangibir: 'herhangi bir', bircok: 'birçok', yanısıra: 'yanı sıra', itibariyle: 'itibarıyla', kontür: 'kontör', ambülans: 'ambulans', sağol: 'sağ ol', hoşçakal: 'hoşça kal', pekçok: 'pek çok', seyehat: 'seyahat', rasgele: 'rastgele', ahçı: 'aşçı', klavuz: 'kılavuz', sezeryan: 'sezaryen', işkenbe: 'işkembe', yalnışlık: 'yanlışlık', yanlızca: 'yalnızca', tabiki: 'tabii ki', birsürü: 'bir sürü', hergün: 'her gün', heryer: 'her yer', aksesuvar: 'aksesuar' };
+const AYRI = [[/\bher hangi\b/giu, 'herhangi'], [/\bhiç bir\b/giu, 'hiçbir'], [/\bbir çok\b/giu, 'birçok'], [/\bbir kaç\b/giu, 'birkaç'], [/\bbirden bire\b/giu, 'birdenbire']];
+function check() {
+  const t = shared[2].value, out = [];
+  const ctx = (i, len) => E(t.slice(Math.max(0, i - 25), i)) + '<mark>' + E(t.slice(i, i + len)) + '</mark>' + E(t.slice(i + len, i + len + 25));
+  for (const m of t.matchAll(/[\p{L}]+/gu)) { const w = m[0].toLocaleLowerCase('tr'); if (YANLIS[w]) out.push([ctx(m.index, m[0].length), `doğrusu: <b>${YANLIS[w]}</b>`]); }
+  for (const [re, fix] of AYRI) for (const m of t.matchAll(re)) out.push([ctx(m.index, m[0].length), `bitişik yazılır: <b>${fix}</b>`]);
+  for (const m of t.matchAll(/([\p{L}]{2,}?)(m[ıiuü](?:y[ıiuü][mz]|s[ıiuü]n(?:[ıiuü]z)?|d[ıiuü]r|l[ae]r)?)\?/gu)) if (m[1].length > 2) out.push([ctx(m.index, m[0].length - 1), `soru eki ayrı yazılır: <b>${E(m[1] + ' ' + m[2])}</b>`]);
+  for (const m of t.matchAll(/(?<![\p{L}])([\p{L}]+)\s+\1(?![\p{L}])/giu)) out.push([ctx(m.index, m[0].length), 'aynı kelime art arda; ikileme değilse birini sil']);
+  site.$('#yout').innerHTML = out.map(([c, f]) => `<div class="f2"><span>…${c}…</span><span>${f}</span></div>`).join('');
+  site.$('#yinfo').textContent = t.trim() ? (out.length ? `${out.length} olası sorun` : 'sık yapılan hatalardan biri bulunamadı') : 'önce metin yapıştır';
+}
+site.$('#ycheck').onclick = check;
+
+setText(store.get('yazi-metin', ''));
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { if (s.dataset.tab === 'markdown') mdRender(); }));
+</script>
+</body>
+</html>

@@ -1,19 +1,21 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-native="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>telif hakları · fadimrak</title>
-<meta name="description" content="fadimrak.xyz telif hakları, lisanslar ve kaynaklar">
+<meta name="description" content="fadimrak.xyz telif hakları, lisanslar, kaynaklar ve gizlilik">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script src="/assets/site.js"></script>
 <style>
   html, body { margin: 0; }
+  html[data-theme=light] { filter: invert(1); }
   body { background: #0a0a0a; color: #cfcfcf; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.75; }
   main { max-width: 720px; margin: 0 auto; padding: 2.5rem 16px 4rem; }
   a { color: #e6e6e6; text-underline-offset: 3px; }
   a:hover { color: #fff; }
-  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
   .top a { color: #777; text-decoration: none; }
   .top a:hover { color: #e6e6e6; }
   h1 { font-size: 1.6rem; font-weight: 400; letter-spacing: .1em; color: #e6e6e6; margin: 0 0 .5rem; }
@@ -29,37 +31,65 @@
 </head>
 <body>
 <main>
-  <div class="top"><a href="/">← fadimrak</a><a href="/games/">oyunlar →</a></div>
+  <div class="top"><a href="/">← fadimrak</a><span><a href="/yks/">YKS</a> · <a href="/araclar/">araçlar</a> · <a href="/games/">oyunlar</a></span></div>
   <h1>telif hakları</h1>
   <p class="muted">son güncelleme: ekim 2026</p>
 
   <h2>Site</h2>
-  <p>© 2026 fadimrak. Bu sitedeki tasarım, yazılar ve oyunların kodu fadimrak'a aittir; izin alınmadan kopyalanamaz ve başka bir yerde yayımlanamaz. Aşağıda listelenen üçüncü taraf yazılımlar, yazı tipleri, veriler ve görseller kendi sahiplerine aittir ve belirtilen lisanslarla kullanılmaktadır.</p>
+  <p>© 2026 fadimrak. Bu sitedeki tasarım, yazılar, konu özetleri, formül sayfaları, kavram haritaları, sözlük maddeleri ve kodlar fadimrak'a aittir; izin alınmadan kopyalanamaz ve başka bir yerde yayımlanamaz. Aşağıda listelenen üçüncü taraf yazılımlar, yazı tipleri, modeller, veriler ve görseller kendi sahiplerine aittir ve belirtilen lisanslarla kullanılır.</p>
 
-  <h2>Yazılım ve yazı tipleri</h2>
+  <h2>Yazılım kütüphaneleri</h2>
+  <p class="muted">Araç sayfalarında kullanılır, jsDelivr üzerinden yalnızca gerektiğinde yüklenir.</p>
   <ul>
-    <li><b>Outfit</b><span class="lic">SIL OFL 1.1</span><br>Oyun sayfalarındaki yazı tipi, Google Fonts üzerinden yüklenir. © The Outfit Project Authors. <a href="https://github.com/Outfitio/Outfit-Fonts" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>pdf-lib</b> (@cantoo/pdf-lib çatalı)<span class="lic">MIT</span><br>PDF birleştirme, bölme, düzenleme ve şifreleme. © Andrew Dillon ve Cantoo. <a href="https://github.com/cantoo-scribe/pdf-lib" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>PDF.js</b><span class="lic">Apache 2.0</span><br>PDF görüntüleme ve sayfaları resme çevirme. © Mozilla. <a href="https://github.com/mozilla/pdf.js" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>JSZip</b><span class="lic">MIT</span><br>Birden çok dosyayı tek ZIP olarak indirme. © Stuart Knightley ve katkıda bulunanlar. <a href="https://github.com/Stuk/jszip" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>Tesseract.js</b><span class="lic">Apache 2.0</span><br>Resimden yazı okuma (OCR) ve dil verileri (tessdata). <a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>Transformers.js</b> ve <b>ONNX Runtime Web</b><span class="lic">Apache 2.0 · MIT</span><br>Arka plan kaldırma modelini tarayıcıda çalıştırır. © Hugging Face, Microsoft. <a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>math.js</b><span class="lic">Apache 2.0</span><br>Hesap makinesi, grafik, denklem, matris, birim, türev. © Jos de Jong. <a href="https://github.com/josdejong/mathjs" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>qrcode-generator</b><span class="lic">MIT</span><br>QR kod üretimi. © Kazuhiko Arase. <a href="https://github.com/kazuhikoarase/qrcode-generator" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>jsQR</b><span class="lic">Apache 2.0</span><br>Tarayıcı yerleşik okuyucuyu desteklemiyorsa QR kod okuma. © Cosmo Wolfe. <a href="https://github.com/cozmo/jsQR" target="_blank" rel="noopener">kaynak</a></li>
+    <li><b>marked</b> ve <b>DOMPurify</b><span class="lic">MIT · Apache 2.0</span><br>Markdown önizlemesi ve güvenli HTML temizliği. <a href="https://github.com/markedjs/marked" target="_blank" rel="noopener">marked</a>, <a href="https://github.com/cure53/DOMPurify" target="_blank" rel="noopener">DOMPurify</a></li>
+    <li><b>StatiCrypt</b><span class="lic">MIT</span><br>Şifreli PDF arşivinin parola sayfası. © Robin Moisson. <a href="https://github.com/robinmoisson/staticrypt" target="_blank" rel="noopener">kaynak</a></li>
+  </ul>
+
+  <h2>Yapay zekâ modelleri</h2>
+  <ul>
+    <li><b>ormbg</b><span class="lic">Apache 2.0</span><br>Arka plan kaldırma, insan fotoğrafları için. © schirrmacher. ONNX dönüşümü onnx-community. <a href="https://huggingface.co/schirrmacher/ormbg" target="_blank" rel="noopener">model</a></li>
+    <li><b>BiRefNet lite</b><span class="lic">MIT</span><br>Arka plan kaldırma, genel nesneler için. © ZhengPeng7. ONNX dönüşümü onnx-community. <a href="https://huggingface.co/ZhengPeng7/BiRefNet_lite" target="_blank" rel="noopener">model</a></li>
+  </ul>
+
+  <h2>Yazı tipleri</h2>
+  <ul>
+    <li><b>Outfit</b><span class="lic">SIL OFL 1.1</span><br>Oyun, YKS ve araç sayfalarındaki yazı tipi, Google Fonts üzerinden yüklenir. © The Outfit Project Authors. <a href="https://github.com/Outfitio/Outfit-Fonts" target="_blank" rel="noopener">kaynak</a></li>
     <li><b>Gramatika</b><br>Tokotype'a ait tescilli bir yazı tipidir. Bu sitede barındırılmaz ve dağıtılmaz; yalnızca ziyaretçinin kendi bilgisayarında zaten yüklüyse görüntülenir.</li>
   </ul>
 
-  <h2>Veriler</h2>
+  <h2>Veriler ve servisler</h2>
   <ul>
     <li><b>Güncel Türkçe Sözlük verisi</b><span class="lic">MIT</span><br>Kelime oyunundaki kelime listesi <a href="https://github.com/ogun/guncel-turkce-sozluk" target="_blank" rel="noopener">ogun/guncel-turkce-sozluk</a> projesinden türetilmiştir. © 2021 Kemal Oğun Işık. Sözlük maddeleri Türk Dil Kurumu'nun Güncel Türkçe Sözlük'üne dayanır. Oyunda yalnızca kelimelerin kendisi kullanılır; anlamlar için <a href="https://sozluk.gov.tr" target="_blank" rel="noopener">sozluk.gov.tr</a> adresine bağlantı verilir.</li>
     <li><b>FrequencyWords</b><span class="lic">CC BY-SA 4.0</span><br>Kelimelerin ne kadar yaygın olduğunu belirlemek için kullanılan sıklık listesi. Hermit Dave, OpenSubtitles verisinden. <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">kaynak</a>. Bu nedenle <a href="/games/kelime/kelimeler.json">kelimeler.json</a> dosyası CC BY-SA 4.0 lisansıyla paylaşılır.</li>
-    <li><b>Natural Earth</b><span class="lic">kamu malı</span><br>Şehir oyunundaki il sınırları. <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">naturalearthdata.com</a></li>
+    <li><b>Natural Earth</b><span class="lic">kamu malı</span><br>Şehir oyunundaki ve coğrafya haritalarındaki il sınırları. <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">naturalearthdata.com</a></li>
     <li><b>Vikipedi, "Türkiye'nin illeri"</b><span class="lic">CC BY-SA 4.0</span><br>İllerin nüfus (TÜİK 2025), yüzölçümü ve rakım bilgileri. <a href="https://tr.wikipedia.org/wiki/T%C3%BCrkiye%27nin_illeri" target="_blank" rel="noopener">madde</a></li>
     <li><b>mledoze/countries</b><span class="lic">ODbL 1.0</span><br>Ülkelerin Türkçe adları ve yüzölçümleri. <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">kaynak</a></li>
     <li><b>Dünya Bankası</b><span class="lic">CC BY 4.0</span><br>Ülke nüfusları (2023). <a href="https://data.worldbank.org/indicator/SP.POP.TOTL" target="_blank" rel="noopener">kaynak</a>. "Hangisi daha?" oyununun <a href="/games/kalabalik/veri.json">veri dosyası</a> bu kaynaklardan derlenmiştir; il bölümü CC BY-SA 4.0, ülke bölümü ODbL 1.0 koşullarıyla paylaşılır.</li>
     <li><b>Bayraklar</b><span class="lic">kamu malı</span><br>Bayrak görselleri <a href="https://flagpedia.net" target="_blank" rel="noopener">Flagpedia</a> (flagcdn.com) üzerinden yüklenir.</li>
     <li><b>Tarihte bugün</b><span class="lic">CC BY-SA 4.0</span><br>Yıl oyunundaki olay metinleri Wikimedia'nın "On this day" servisi aracılığıyla Türkçe Vikipedi'den alınır; her olayda ilgili maddeye bağlantı verilir. Görseller yalnızca Wikimedia Commons'tan gelir ve her biri kendi lisansına tabidir; görselin üzerindeki bağlantı, yazar ve lisans bilgisinin yer aldığı dosya sayfasına gider.</li>
+    <li><b>YKS soru dağılımı</b><br>Konu başına soru sayıları <a href="https://www.unirehberi.com/yks-tyt-ayt-konulari/" target="_blank" rel="noopener">ÜniRehberi</a>'nin yıllara göre derlediği tablolardan alınmıştır.</li>
+    <li><b>Open-Meteo</b><span class="lic">CC BY 4.0</span><br>Hava durumu ve şehir arama verisi. <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a></li>
+    <li><b>Frankfurter</b><br>Döviz kurları; Avrupa Merkez Bankası'nın günlük referans kurlarına dayanır. <a href="https://frankfurter.dev" target="_blank" rel="noopener">frankfurter.dev</a></li>
+    <li><b>ÖSYM ve MEB içerikleri</b><br>Çıkmış sorular, konu özetleri ve soru bankaları bu sitede barındırılmaz; yalnızca kurumların kendi sayfalarına bağlantı verilir. İçerikler ilgili kurumlara aittir.</li>
     <li><b>Ziyaret sayacı</b><br>Ana sayfadaki sayaç <a href="https://abacus.jasoncameron.dev" target="_blank" rel="noopener">Abacus</a> servisini kullanır.</li>
   </ul>
 
-  <h2>Oyunlar ve markalar</h2>
-  <p>"kelime" Wordle'dan, "bağlantı" Connections'tan, "şehir" Worldle'dan, "hayatın haftaları" ise Tim Urban'ın "Your Life in Weeks" yazısından esinlenmiştir. Bu oyunlar The New York Times Company, Worldle, Wait But Why ya da bunlarla ilişkili herhangi bir kuruluşla bağlantılı değildir ve onlar tarafından desteklenmez. Bulmacalarda geçen marka, ürün ve kişi adları yalnızca bilgi amaçlıdır ve sahiplerine aittir.</p>
+  <h2>Oyunlar, sınavlar ve markalar</h2>
+  <p>"kelime" Wordle'dan, "bağlantı" Connections'tan, "şehir" Worldle'dan, "hayatın haftaları" ise Tim Urban'ın "Your Life in Weeks" yazısından esinlenmiştir. Bu oyunlar The New York Times Company, Worldle, Wait But Why ya da bunlarla ilişkili herhangi bir kuruluşla bağlantılı değildir ve onlar tarafından desteklenmez.</p>
+  <p>YKS bölümü ÖSYM, MEB ya da YÖK ile bağlantılı değildir. Puan hesaplamaları geçmiş yılların verilerine dayanan tahminlerdir; resmî sonuç yerine geçmez. "QR Code", DENSO WAVE INCORPORATED'ın tescilli markasıdır. Geçen marka, ürün ve kişi adları yalnızca bilgi amaçlıdır ve sahiplerine aittir.</p>
 
   <h2>Gizlilik</h2>
-  <p>Bu site çerez kullanmaz. Oyun ilerlemesi ve istatistikler yalnızca tarayıcının yerel depolamasında tutulur ve hiçbir sunucuya gönderilmez. Ziyaret sayacı oturum başına bir kez istek gönderir, kişisel bilgi içermez. Yazı tipi, bayraklar ve Vikipedi içerikleri ilgili hizmetlerden (Google Fonts, flagcdn, Wikimedia) yüklenir ve bu hizmetler kendi gizlilik politikalarına tabidir.</p>
+  <p>Bu site çerez kullanmaz ve hesap açtırmaz. Konu takibi, denemeler, notlar, kartlar, oyun istatistikleri ve yanlış defteri fotoğrafları yalnızca tarayıcının yerel depolamasında (localStorage ve IndexedDB) tutulur, hiçbir sunucuya gönderilmez. Dışa aktardığın yedek dosyası senin cihazında kalır.</p>
+  <p>PDF, resim ve yazı araçlarına verdiğin dosyalar cihazında işlenir; yüklenmez. Kamera ve mikrofon yalnızca ilgili test ya da QR okuma açıkken kullanılır ve kaydedilmez. Konumun yalnızca "konumum" düğmesine bastığında, hava durumu isteği için kullanılır.</p>
+  <p>Bazı içerikler üçüncü taraf hizmetlerden yüklenir: yazı tipi (Google Fonts), kütüphaneler (jsDelivr), arka plan kaldırma modelleri (Hugging Face), hava durumu (Open-Meteo), döviz kurları (Frankfurter), bayraklar (flagcdn) ve Vikipedi içerikleri (Wikimedia). Bu hizmetler kendi gizlilik politikalarına tabidir. Ziyaret sayacı oturum başına bir kez istek gönderir, kişisel bilgi içermez.</p>
 
   <h2>İletişim</h2>
   <p>Bu sitede size ait bir içeriğin izinsiz kullanıldığını düşünüyorsanız Discord'da <b>fadimrak</b> kullanıcı adıyla iletişime geçin. Talebiniz incelenir ve gerekirse içerik en kısa sürede kaldırılır.</p>

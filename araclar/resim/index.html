@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>resim araçları · fadimrak</title>
+<meta name="description" content="Resim sıkıştır, boyutlandır, kırp, PNG JPG WebP çevir, arka plan kaldır, taranmış belge efekti, resimden yazı oku (OCR). Dosyalar cihazından çıkmaz.">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--teal); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  .prev { display: grid; place-items: center; margin-top: 1rem; padding: 8px; border-radius: 14px; background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 18px 18px; min-height: 120px; }
+  .prev img, .prev canvas { max-width: 100%; max-height: 60vh; display: block; }
+  .info { font-size: .85rem; color: var(--muted); margin-top: .5rem; }
+  .crop { position: relative; display: inline-block; touch-action: none; user-select: none; }
+  .crop img { display: block; max-width: 100%; max-height: 60vh; }
+  .crop .r { position: absolute; border: 2px solid #fff; outline: 2px solid #1c1a17; box-shadow: 0 0 0 9999px rgba(0,0,0,.45); cursor: move; }
+  .file { display: flex; gap: .7rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .prog { margin-top: .6rem; }
+  textarea.ocr { min-height: 14rem; margin-top: .8rem; }
+  .note { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>resim araçları</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="resim araçları"><a href="#sikistir">sıkıştır</a><a href="#boyut">boyutlandır</a><a href="#kirp">kırp</a><a href="#cevir">format çevir</a><a href="#arkaplan">arka plan kaldır</a><a href="#tarama">tarama efekti</a><a href="#ocr">yazı oku (OCR)</a></nav>
+<p class="note" style="margin-top:0">Resmin hiçbir sunucuya yüklenmez; işlemler tarayıcında yapılır.</p>
+<div class="panel">
+  <div class="drop" id="drop"><b>resim seç ya da buraya sürükle</b><span class="note">JPG, PNG, WebP, GIF, BMP</span></div>
+  <div class="file" id="finfo" hidden><span><b id="fname"></b> <span class="note" id="fmeta"></span></span><button class="sm" id="fchange">başka resim</button></div>
+</div>
+
+<section data-tab="sikistir" class="panel">
+  <h2>resim sıkıştır</h2>
+  <div class="opts"><label class="f">biçim<select id="zf"><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option></select></label><label class="f">kalite: <span id="zqv">70</span><input id="zq" type="range" min="10" max="95" value="70"></label><label class="f">en uzun kenar<select id="zmax"><option value="0">aynı kalsın</option><option value="2560">2560 px</option><option value="1920">1920 px</option><option value="1280">1280 px</option><option value="800">800 px</option></select></label></div>
+  <div class="row l"><button class="primary" data-dl="z">indir</button></div>
+</section>
+<section data-tab="boyut" class="panel">
+  <h2>boyutlandır</h2>
+  <div class="opts"><label class="f">genişlik (px)<input id="bw" type="number" min="1"></label><label class="f">yükseklik (px)<input id="bh" type="number" min="1"></label><label class="c"><input type="checkbox" id="bl" checked> oranı koru</label><label class="f">biçim<select id="bf"><option value="orig">aynı</option><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></label></div>
+  <div class="row l"><button class="sm" data-pct="25">%25</button><button class="sm" data-pct="50">%50</button><button class="sm" data-pct="75">%75</button><button class="sm" data-pct="200">%200</button><button class="primary" data-dl="b">indir</button></div>
+</section>
+<section data-tab="kirp" class="panel">
+  <h2>kırp</h2>
+  <div class="opts"><label class="f">oran<select id="kr"><option value="0">serbest</option><option value="1">1:1</option><option value="1.3333">4:3</option><option value="0.75">3:4</option><option value="1.7778">16:9</option><option value="0.5625">9:16</option></select></label><span class="info" id="kinfo"></span></div>
+  <p class="note">Resmin üzerinde sürükleyerek alan seç; seçili alanı sürükleyerek taşı.</p>
+  <div class="row l"><button class="primary" data-dl="k">kırp ve indir</button></div>
+</section>
+<section data-tab="cevir" class="panel">
+  <h2>format çevir</h2>
+  <div class="opts"><label class="f">yeni biçim<select id="cf"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option></select></label><label class="f">kalite (JPG, WebP): <span id="cqv">92</span><input id="cq" type="range" min="10" max="100" value="92"></label></div>
+  <div class="row l"><button class="primary" data-dl="c">çevir ve indir</button></div>
+  <p class="note">JPG saydamlığı desteklemez; saydam alanlar beyaz olur.</p>
+</section>
+<section data-tab="arkaplan" class="panel">
+  <h2>arka plan kaldır</h2>
+  <div class="opts"><label class="f">model<select id="am"><option value="ormbg">insan fotoğrafları için (44 MB)</option><option value="birefnet">her tür nesne için (115 MB)</option></select></label></div>
+  <div class="row l"><button class="primary" id="ago">arka planı kaldır</button><button id="adl" hidden>PNG indir</button></div>
+  <div class="bar prog" id="aprog" hidden><i style="width:0"></i></div><p class="note" id="anote">Model ilk kullanımda indirilir ve tarayıcıda saklanır; sonraki seferler hızlı açılır. İşlem tamamen bu cihazda yapılır.</p>
+</section>
+<section data-tab="tarama" class="panel">
+  <h2>taranmış belge efekti</h2>
+  <div class="opts"><label class="f">mod<select id="tm"><option value="bw">siyah beyaz</option><option value="gray" selected>gri, temiz</option><option value="color">renkli, temiz</option></select></label><label class="f">kontrast: <span id="tcv">30</span><input id="tc" type="range" min="0" max="80" value="30"></label></div>
+  <div class="row l"><button class="primary" data-dl="t">JPG indir</button><button id="tpdf">PDF indir</button></div>
+  <p class="note">Gölgeyi ve kâğıt rengini düzeltir, yazıyı belirginleştirir. Fotoğrafı belgeye dik açıdan çekersen sonuç daha iyi olur.</p>
+</section>
+<section data-tab="ocr" class="panel">
+  <h2>resimden yazı oku</h2>
+  <div class="opts"><label class="f">dil<select id="ol"><option value="tur">Türkçe</option><option value="tur+eng">Türkçe + İngilizce</option><option value="eng">İngilizce</option></select></label><label class="c"><input type="checkbox" id="oclean" checked> önce tarama efekti uygula</label></div>
+  <div class="row l"><button class="primary" id="ogo">yazıyı oku</button><button id="ocopy" hidden>kopyala</button><button id="otxt" hidden>.txt indir</button></div>
+  <div class="bar prog" id="oprog" hidden><i style="width:0"></i></div><p class="note" id="onote"></p>
+  <textarea class="ocr" id="oout" hidden aria-label="okunan yazı"></textarea>
+</section>
+<div class="prev" id="prev" hidden></div>
+<p class="info" id="pinfo"></p>
+</main>
+<script>
+const TF = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js';
+const TS = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
+const LIB = 'https://cdn.jsdelivr.net/npm/@cantoo/pdf-lib@2.11.1/dist/pdf-lib.min.js';
+let I = null, tab = 'sikistir', crop = null, bgOut = null;
+const kb = n => n > 1048576 ? site.fmt(n / 1048576, 1) + ' MB' : Math.round(n / 1024) + ' KB';
+const ext = t => ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' })[t] || 'png';
+const base = () => (I?.name || 'resim').replace(/\.[^.]+$/, '');
+const toBlob = (c, type, q) => new Promise(r => c.toBlob(r, type, q));
+function canvas(w, h, draw, opaque) {
+  const c = Object.assign(document.createElement('canvas'), { width: Math.max(1, Math.round(w)), height: Math.max(1, Math.round(h)) }), x = c.getContext('2d');
+  if (opaque) { x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); }
+  x.imageSmoothingQuality = 'high'; draw(x, c); return c;
+}
+const scaled = (max, opaque) => { const k = max && Math.max(I.w, I.h) > max ? max / Math.max(I.w, I.h) : 1; return canvas(I.w * k, I.h * k, x => x.drawImage(I.bmp, 0, 0, I.w * k, I.h * k), opaque); };
+
+async function setImg(file) {
+  if (!file.type.startsWith('image/')) return toast('bu bir resim değil');
+  let bmp; try { bmp = await createImageBitmap(file); } catch { return toast('resim açılamadı'); }
+  I = { file, name: file.name, bmp, w: bmp.width, h: bmp.height, type: file.type, url: URL.createObjectURL(file) };
+  site.$('#fname').textContent = I.name; site.$('#fmeta').textContent = `${I.w} × ${I.h} · ${kb(file.size)}`;
+  site.$('#drop').hidden = true; site.$('#finfo').hidden = false;
+  site.$('#bw').value = I.w; site.$('#bh').value = I.h; crop = null; bgOut = null; site.$('#adl').hidden = true;
+  show();
+}
+site.drop(site.$('#drop'), fs => setImg(fs[0]), { accept: 'image/*' });
+site.$('#fchange').onclick = () => site.$('#drop').click();
+addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])].find(f => f.type.startsWith('image/')); if (f) setImg(f); });
+
+// ---- önizleme
+let prevT;
+function preview() { clearTimeout(prevT); prevT = setTimeout(previewNow, 120); }
+async function previewNow() {
+  const box = site.$('#prev'), info = site.$('#pinfo');
+  box.hidden = !I; info.textContent = ''; if (!I) return;
+  if (tab === 'kirp') return cropUI();
+  if (tab === 'arkaplan') { box.innerHTML = ''; box.append(bgOut || Object.assign(new Image(), { src: I.url })); return; }
+  if (tab === 'ocr') { box.innerHTML = ''; box.append(Object.assign(new Image(), { src: I.url })); return; }
+  const r = await render(tab);
+  if (!r) { box.innerHTML = ''; box.append(Object.assign(new Image(), { src: I.url })); return; }
+  const u = URL.createObjectURL(r.blob); box.innerHTML = ''; box.append(Object.assign(new Image(), { src: u, alt: 'önizleme' }));
+  info.textContent = `${r.w} × ${r.h} · ${kb(r.blob.size)}` + (tab === 'sikistir' ? ` (önce ${kb(I.file.size)}, %${Math.max(0, Math.round((1 - r.blob.size / I.file.size) * 100))} küçüldü)` : '');
+}
+async function render(t) {
+  if (t === 'sikistir') { const type = site.$('#zf').value, c = scaled(+site.$('#zmax').value, type === 'image/jpeg'); return { blob: await toBlob(c, type, site.$('#zq').value / 100), w: c.width, h: c.height, type }; }
+  if (t === 'boyut') { const w = +site.$('#bw').value || I.w, h = +site.$('#bh').value || I.h, type = site.$('#bf').value === 'orig' ? (['image/jpeg', 'image/png', 'image/webp'].includes(I.type) ? I.type : 'image/png') : site.$('#bf').value; const c = canvas(w, h, x => x.drawImage(I.bmp, 0, 0, w, h), type === 'image/jpeg'); return { blob: await toBlob(c, type, .92), w, h, type }; }
+  if (t === 'cevir') { const type = site.$('#cf').value, c = scaled(0, type === 'image/jpeg'); return { blob: await toBlob(c, type, site.$('#cq').value / 100), w: c.width, h: c.height, type }; }
+  if (t === 'tarama') { const c = scan(site.$('#tm').value, +site.$('#tc').value); return { blob: await toBlob(c, 'image/jpeg', .9), w: c.width, h: c.height, type: 'image/jpeg', c }; }
+}
+document.addEventListener('input', e => { if (e.target.closest('section') && I) { site.$('#zqv').textContent = site.$('#zq').value; site.$('#cqv').textContent = site.$('#cq').value; site.$('#tcv').textContent = site.$('#tc').value; if (e.target.id === 'kr') { crop = null; } preview(); } });
+site.$('#bw').addEventListener('input', () => { if (site.$('#bl').checked) site.$('#bh').value = Math.round(site.$('#bw').value * I.h / I.w); });
+site.$('#bh').addEventListener('input', () => { if (site.$('#bl').checked) site.$('#bw').value = Math.round(site.$('#bh').value * I.w / I.h); });
+site.$$('[data-pct]').forEach(b => b.onclick = () => { if (!I) return; site.$('#bw').value = Math.round(I.w * b.dataset.pct / 100); site.$('#bh').value = Math.round(I.h * b.dataset.pct / 100); preview(); });
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-dl]'); if (!b) return; if (!I) return toast('önce bir resim seç');
+  const k = b.dataset.dl;
+  if (k === 'k') return cropSave();
+  const r = await render({ z: 'sikistir', b: 'boyut', c: 'cevir', t: 'tarama' }[k]);
+  site.dl(r.blob, `${base()}-${{ z: 'kucuk', b: r.w + 'x' + r.h, c: 'cevrildi', t: 'tarama' }[k]}.${ext(r.type)}`);
+});
+
+// ---- kırpma
+function cropUI() {
+  const box = site.$('#prev'); box.innerHTML = `<div class="crop"><img src="${I.url}" alt="kırpılacak resim" draggable="false"><div class="r"></div></div>`;
+  const wrap = site.$('.crop', box), img = site.$('img', wrap), r = site.$('.r', wrap);
+  const ratio = +site.$('#kr').value;
+  const paint = () => { if (!crop) { r.hidden = true; site.$('#kinfo').textContent = ''; return; } r.hidden = false; const k = img.clientWidth / I.w; Object.assign(r.style, { left: crop.x * k + 'px', top: crop.y * k + 'px', width: crop.w * k + 'px', height: crop.h * k + 'px' }); site.$('#kinfo').textContent = `${Math.round(crop.w)} × ${Math.round(crop.h)} px`; };
+  img.onload = () => { if (!crop) { const w = ratio ? Math.min(I.w, I.h * ratio) : I.w * .8, h = ratio ? w / ratio : I.h * .8; crop = { x: (I.w - w) / 2, y: (I.h - h) / 2, w, h }; } paint(); };
+  let start = null;
+  wrap.onpointerdown = e => {
+    wrap.setPointerCapture(e.pointerId);
+    const k = img.clientWidth / I.w, rect = img.getBoundingClientRect(), p = [(e.clientX - rect.left) / k, (e.clientY - rect.top) / k];
+    const inside = crop && p[0] > crop.x && p[0] < crop.x + crop.w && p[1] > crop.y && p[1] < crop.y + crop.h;
+    start = { p, move: inside, c: { ...crop } };
+  };
+  wrap.onpointermove = e => {
+    if (!start) return;
+    const k = img.clientWidth / I.w, rect = img.getBoundingClientRect(), q = [(e.clientX - rect.left) / k, (e.clientY - rect.top) / k];
+    if (start.move) { crop.x = Math.min(I.w - crop.w, Math.max(0, start.c.x + q[0] - start.p[0])); crop.y = Math.min(I.h - crop.h, Math.max(0, start.c.y + q[1] - start.p[1])); }
+    else {
+      let x0 = Math.max(0, Math.min(start.p[0], q[0])), y0 = Math.max(0, Math.min(start.p[1], q[1])), w = Math.min(I.w, Math.max(start.p[0], q[0])) - x0, h = Math.min(I.h, Math.max(start.p[1], q[1])) - y0;
+      if (ratio) { h = w / ratio; if (y0 + h > I.h) { h = I.h - y0; w = h * ratio; } }
+      if (w > 4 && h > 4) crop = { x: x0, y: y0, w, h };
+    }
+    paint();
+  };
+  wrap.onpointerup = () => start = null;
+}
+async function cropSave() {
+  if (!crop) return toast('önce bir alan seç');
+  const type = ['image/jpeg', 'image/webp'].includes(I.type) ? I.type : 'image/png';
+  const c = canvas(crop.w, crop.h, x => x.drawImage(I.bmp, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h), type === 'image/jpeg');
+  site.dl(await toBlob(c, type, .92), `${base()}-kirpildi.${ext(type)}`);
+}
+
+// ---- tarama efekti: arka planı yerel ortalamaya bölerek düzleştir
+function scan(mode, contrast, max = 2400) {
+  const src = scaled(max, true), w = src.width, h = src.height, x = src.getContext('2d'), im = x.getImageData(0, 0, w, h), d = im.data;
+  const L = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) L[i] = .299 * d[i * 4] + .587 * d[i * 4 + 1] + .114 * d[i * 4 + 2];
+  // integral görüntü ile kutu ortalaması (pencere ≈ kısa kenarın 1/12'si)
+  const S = new Float64Array((w + 1) * (h + 1)), R = Math.max(8, Math.round(Math.min(w, h) / 24));
+  for (let y = 0; y < h; y++) { let row = 0; for (let xx = 0; xx < w; xx++) { row += L[y * w + xx]; S[(y + 1) * (w + 1) + xx + 1] = S[y * (w + 1) + xx + 1] + row; } }
+  const c = 1 + contrast / 40;
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - R), y1 = Math.min(h, y + R + 1);
+    for (let xx = 0; xx < w; xx++) {
+      const x0 = Math.max(0, xx - R), x1 = Math.min(w, xx + R + 1), n = (y1 - y0) * (x1 - x0);
+      const mean = (S[y1 * (w + 1) + x1] - S[y0 * (w + 1) + x1] - S[y1 * (w + 1) + x0] + S[y0 * (w + 1) + x0]) / n;
+      const i = y * w + xx, ratio = L[i] / Math.max(1, mean);
+      if (mode === 'bw') { const v = ratio > .86 - contrast / 800 ? 255 : 0; d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v; }
+      else {
+        const v = Math.min(1, ratio); const t = Math.max(0, Math.min(1, (v - 1) * c + 1)) ** (1 + contrast / 50);
+        if (mode === 'gray') { d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = t * 255; }
+        else { const k = t / Math.max(.01, L[i] / 255); for (let ch = 0; ch < 3; ch++) d[i * 4 + ch] = Math.min(255, d[i * 4 + ch] * k); }
+      }
+    }
+  }
+  x.putImageData(im, 0, 0); return src;
+}
+site.$('#tpdf').onclick = async e => {
+  if (!I) return toast('önce bir resim seç');
+  const c = scan(site.$('#tm').value, +site.$('#tc').value);
+  await site.load(LIB); const doc = await PDFLib.PDFDocument.create(), img = await doc.embedJpg(await (await toBlob(c, 'image/jpeg', .85)).arrayBuffer());
+  const [pw, ph] = c.width > c.height ? [841.89, 595.28] : [595.28, 841.89], k = Math.min(pw / c.width, ph / c.height);
+  doc.addPage([pw, ph]).drawImage(img, { x: (pw - c.width * k) / 2, y: (ph - c.height * k) / 2, width: c.width * k, height: c.height * k });
+  site.dl(new Blob([await doc.save()], { type: 'application/pdf' }), base() + '-tarama.pdf');
+};
+
+// ---- arka plan kaldırma (transformers.js, model tarayıcıda çalışır)
+const MODELS = { ormbg: ['onnx-community/ormbg-ONNX', 'q8'], birefnet: ['onnx-community/BiRefNet_lite-ONNX', 'fp16'] };
+const segs = {};
+site.$('#ago').onclick = async e => {
+  if (!I) return toast('önce bir resim seç');
+  const b = e.target, key = site.$('#am').value, bar = site.$('#aprog'); b.disabled = true; bar.hidden = false;
+  const note = t => site.$('#anote').textContent = t;
+  try {
+    const tf = await import(TF);
+    if (!segs[key]) {
+      const files = {};
+      note('model indiriliyor…');
+      segs[key] = await tf.pipeline('background-removal', MODELS[key][0], { dtype: MODELS[key][1], device: navigator.gpu ? 'webgpu' : 'wasm', progress_callback: p => {
+        if (p.status === 'progress' && p.total) { files[p.file] = [p.loaded, p.total]; const v = Object.values(files), l = v.reduce((a, x) => a + x[0], 0), t = v.reduce((a, x) => a + x[1], 0); site.$('i', bar).style.width = l / t * 100 + '%'; note(`model indiriliyor: ${kb(l)} / ${kb(t)}`); }
+      } }).catch(err => { delete segs[key]; throw err; });
+    }
+    note('arka plan kaldırılıyor…'); site.$('i', bar).style.width = '100%';
+    let out = await segs[key](I.url);
+    if (Array.isArray(out)) out = out[0];
+    const oc = out.toCanvas(); // OffscreenCanvas olabilir; önizleme ve indirme için normal tuvale kopyala
+    bgOut = canvas(oc.width, oc.height, x => x.drawImage(oc, 0, 0));
+    site.$('#adl').hidden = false; note('hazır. Kenarlarda sorun varsa diğer modeli dene.'); previewNow();
+  } catch (err) { console.error(err); note('işlem başarısız: ' + (err.message || err) + '. Tarayıcın WebAssembly ya da yeterli belleği desteklemiyor olabilir.'); }
+  finally { b.disabled = false; bar.hidden = true; }
+};
+site.$('#adl').onclick = async () => { if (bgOut) site.dl(await toBlob(bgOut, 'image/png'), base() + '-arkaplansiz.png'); };
+
+// ---- OCR (Tesseract.js)
+site.$('#ogo').onclick = async e => {
+  if (!I) return toast('önce bir resim seç');
+  const b = e.target, bar = site.$('#oprog'), note = t => site.$('#onote').textContent = t; b.disabled = true; bar.hidden = false;
+  const ST = { 'loading tesseract core': 'motor yükleniyor', 'initializing tesseract': 'başlatılıyor', 'loading language traineddata': 'dil verisi indiriliyor', 'initializing api': 'hazırlanıyor', 'recognizing text': 'yazı okunuyor' };
+  try {
+    await site.load(TS);
+    const worker = await Tesseract.createWorker(site.$('#ol').value, 1, { logger: m => { if (m.progress != null) site.$('i', bar).style.width = m.progress * 100 + '%'; note(ST[m.status] || m.status); } });
+    const src = site.$('#oclean').checked ? scan('gray', 30, 2600) : scaled(3000, true);
+    const { data } = await worker.recognize(src);
+    await worker.terminate();
+    site.$('#oout').hidden = false; site.$('#oout').value = data.text.trim(); site.$('#ocopy').hidden = site.$('#otxt').hidden = false;
+    note(data.text.trim() ? `bitti · güven %${Math.round(data.confidence)}` : 'yazı bulunamadı; daha net bir fotoğraf dene');
+  } catch (err) { console.error(err); note('okunamadı: ' + (err.message || err)); }
+  finally { b.disabled = false; bar.hidden = true; }
+};
+site.$('#ocopy').onclick = () => navigator.clipboard.writeText(site.$('#oout').value).then(() => toast('kopyalandı'));
+site.$('#otxt').onclick = () => site.dl(new Blob([site.$('#oout').value], { type: 'text/plain;charset=utf-8' }), base() + '.txt');
+
+function show() { tab = location.hash.slice(1) || 'sikistir'; previewNow(); }
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', show));
+</script>
+</body>
+</html>

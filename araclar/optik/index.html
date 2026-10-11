@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>optik form · fadimrak</title>
+<meta name="description" content="Deneme çözerken cevaplarını işaretle, cevap anahtarıyla otomatik kontrol et, netini hesapla">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--blue); }
+  .top { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: .6rem; align-items: end; }
+  .bar3 { position: sticky; top: 0; z-index: 5; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: .6rem .2rem; background: var(--bg); border-bottom: 2px solid var(--soft); margin: .8rem 0; }
+  .timer { font-family: var(--head); font-weight: 900; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+  .sect { margin-top: 1rem; }
+  .sect h2 { font-size: 1.05rem; margin: 0 0 .5rem; display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+  .qs { columns: 4 170px; column-gap: 1rem; }
+  .q { break-inside: avoid; display: flex; align-items: center; gap: .3rem; padding: .18rem 0; }
+  .q > span { width: 2rem; text-align: right; font-weight: 700; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .q button { width: 28px; height: 28px; min-height: 0; padding: 0; border-radius: 99px; border-width: 1.5px; box-shadow: none; font-size: .72rem; font-weight: 700; color: var(--muted); }
+  .q button:hover:not(:disabled) { transform: none; box-shadow: none; background: var(--soft); }
+  .q button.on { background: var(--ink); color: var(--bg); }
+  .key .q button.on { background: var(--green); color: #fff; }
+  .q.ok button.on { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .q.bad button.on { background: var(--bad); color: #fff; border-color: var(--bad); }
+  .q.bad button.k, .q.empty button.k { outline: 2.5px solid var(--ok); outline-offset: 1px; }
+  .res { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: .6rem; }
+  .res div { background: var(--soft); border-radius: 12px; padding: .6rem .8rem; font-size: .85rem; }
+  .res b { display: block; font-family: var(--head); font-size: 1.3rem; }
+  .mode { display: inline-flex; padding: 3px; gap: 3px; border: 2px solid var(--line); border-radius: 99px; background: var(--card); }
+  .mode button { box-shadow: none; border: 0; border-radius: 99px; min-height: 34px; padding: .25rem .8rem; font-size: .85rem; background: transparent; }
+  .mode button.on { background: var(--ink); color: var(--bg); }
+  .mode button:hover:not(:disabled) { transform: none; box-shadow: none; }
+  .keyin { width: 100%; font-family: ui-monospace, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; min-height: 38px; font-size: .9rem; margin-bottom: .5rem; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>optik form</h1><div class="acts"></div></header>
+<main class="wide">
+  <div class="panel">
+    <div class="top">
+      <label class="f">sınav<select id="tur"></select></label>
+      <label class="f" id="customWrap" hidden>soru sayısı<input id="custom" type="number" min="1" max="200" value="40"></label>
+      <label class="f">deneme adı<input id="ad" placeholder="ör. 4. genel deneme"></label>
+      <button id="yeni">yeni form</button>
+    </div>
+  </div>
+  <div class="bar3">
+    <div class="mode" role="group" aria-label="işaretleme modu"><button data-m="cevap" class="on">cevaplarım</button><button data-m="anahtar">cevap anahtarı</button></div>
+    <span class="timer" id="tm" title="süre">00:00</span>
+    <div class="row"><button class="sm" id="tBtn">süreyi başlat</button><button class="sm primary" id="check">kontrol et</button></div>
+  </div>
+  <div id="form"></div>
+  <div class="panel" id="out" hidden style="margin-top:1rem"></div>
+  <p class="muted small">Cevap anahtarı modunda doğru şıkları işaretleyebilir ya da her bölüm için şıkları sırasıyla yazabilirsin (ör. ABCDE…, boş için nokta). Her şey bu tarayıcıda saklanır; sayfayı kapatsan da kaldığın yerden devam edersin.</p>
+</main>
+<script>
+const EX = {
+  'TYT': { sure: 165, b: [['Türkçe', 40], ['Sosyal', 20], ['Matematik', 40], ['Fen', 20]] },
+  'AYT SAY': { sure: 180, b: [['Matematik', 40], ['Fizik', 14], ['Kimya', 13], ['Biyoloji', 13]] },
+  'AYT EA': { sure: 180, b: [['Matematik', 40], ['Edebiyat', 24], ['Tarih-1', 10], ['Coğrafya-1', 6]] },
+  'AYT SÖZ': { sure: 180, b: [['Edebiyat', 24], ['Tarih-1', 10], ['Coğrafya-1', 6], ['Tarih-2', 11], ['Coğrafya-2', 11], ['Felsefe', 12], ['Din', 6]] },
+  'AYT DİL': { sure: 180, b: [['Yabancı Dil', 80]] },
+  'serbest': { sure: 0, b: [['Test', 40]] },
+};
+const L = 'ABCDE';
+let S = store.get('optik', null), mode = 'cevap', timer;
+const fresh = tur => { const b = tur === 'serbest' ? [['Test', +site.$('#custom').value || 40]] : EX[tur].b; return { tur, ad: '', b, cevap: {}, anahtar: {}, t: 0, run: false, t0: 0, checked: false }; };
+const save = () => store.set('optik', S);
+site.$('#tur').innerHTML = Object.keys(EX).map(k => `<option>${k}</option>`).join('');
+
+function render() {
+  site.$('#tur').value = S.tur; site.$('#ad').value = S.ad; site.$('#customWrap').hidden = S.tur !== 'serbest';
+  let n = 0;
+  site.$('#form').innerHTML = S.b.map(([name, q], bi) => {
+    const start = n; n += q;
+    const keyStr = [...Array(q)].map((_, i) => S.anahtar[start + i] ?? '.').join('');
+    return `<section class="panel sect ${mode === 'anahtar' ? 'key' : ''}"><h2><span>${name}</span><span class="muted small">${q} soru</span></h2>
+      ${mode === 'anahtar' ? `<input class="keyin" data-key="${bi}" value="${keyStr.replace(/\.+$/, '')}" placeholder="${name} anahtarı: ABCDE…" aria-label="${name} cevap anahtarı" maxlength="${q}">` : ''}
+      <div class="qs">${[...Array(q)].map((_, i) => { const id = start + i, m = S[mode][id], a = S.cevap[id], k = S.anahtar[id];
+        const cls = S.checked && mode === 'cevap' && k ? (a ? (a === k ? 'ok' : 'bad') : 'empty') : '';
+        return `<div class="q ${cls}"><span>${i + 1}</span>${[...L].map(c => `<button data-q="${id}" data-c="${c}" class="${m === c ? 'on' : ''} ${S.checked && mode === 'cevap' && k === c ? 'k' : ''}" aria-pressed="${m === c}" aria-label="${name} ${i + 1}. soru ${c}">${c}</button>`).join('')}</div>`; }).join('')}</div></section>`;
+  }).join('');
+  site.$$('.mode button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  tick();
+}
+function tick() {
+  const t = S.t + (S.run ? Date.now() - S.t0 : 0), s = Math.floor(t / 1000), lim = EX[S.tur].sure * 60;
+  const show = lim ? Math.max(0, lim - s) : s, pad = x => String(x).padStart(2, '0');
+  site.$('#tm').textContent = (show >= 3600 ? Math.floor(show / 3600) + ':' : '') + pad(Math.floor(show / 60) % 60) + ':' + pad(show % 60);
+  site.$('#tBtn').textContent = S.run ? 'duraklat' : (S.t ? 'devam' : 'süreyi başlat');
+  if (lim && S.run && s >= lim) { S.t = lim * 1000; S.run = false; save(); toast('süre doldu', 3000); }
+}
+function check() {
+  let n = 0;
+  const rows = S.b.map(([name, q]) => { let d = 0, y = 0, b = 0, k = 0; for (let i = n; i < n + q; i++) { if (!S.anahtar[i]) continue; k++; const a = S.cevap[i]; a ? (a === S.anahtar[i] ? d++ : y++) : b++; } n += q; return { name, q, d, y, b, k, net: d - y / 4 }; });
+  if (!rows.some(r => r.k)) { toast('önce cevap anahtarını gir'); return; }
+  S.checked = true; save(); mode = 'cevap'; render();
+  const tot = rows.reduce((a, r) => a + r.net, 0);
+  site.$('#out').hidden = false;
+  site.$('#out').innerHTML = `<h2 style="margin-top:0">sonuç: ${site.fmt(tot)} net</h2><div class="res">${rows.map(r => `<div>${r.name}<b>${site.fmt(r.net)}</b>${r.d} D · ${r.y} Y · ${r.b} B${r.k < r.q ? ` <span class="muted">(${r.q - r.k} soruda anahtar yok)</span>` : ''}</div>`).join('')}</div>
+    <div class="row l" style="margin-top:1rem">${S.tur !== 'serbest' ? '<button class="primary" id="kaydet">deneme takibine kaydet</button>' : ''}<a class="btn" href="/yks/takip/#deneme">takip sayfası</a></div>`;
+  site.$('#out').scrollIntoView({ behavior: 'smooth' });
+  const k = site.$('#kaydet');
+  if (k) k.onclick = () => {
+    const log = store.get('deneme-log', []), netler = Object.fromEntries(rows.map(r => [r.name, r.net]));
+    log.push({ id: Date.now(), tur: S.tur, tarih: new Date().toLocaleDateString('sv'), ad: S.ad, netler, toplam: tot });
+    store.set('deneme-log', log); k.disabled = true; toast('deneme takibine eklendi');
+  };
+}
+
+site.$('#form').onclick = e => {
+  const b = e.target.closest('[data-q]'); if (!b) return;
+  const map = S[mode], q = b.dataset.q;
+  map[q] = map[q] === b.dataset.c ? undefined : b.dataset.c;
+  if (!map[q]) delete map[q];
+  if (mode === 'cevap' && S.checked) { S.checked = false; site.$('#out').hidden = true; }
+  save(); render();
+};
+site.$('#form').addEventListener('change', e => {
+  const bi = e.target.dataset.key; if (bi == null) return;
+  let start = 0; for (let i = 0; i < bi; i++) start += S.b[i][1];
+  const v = e.target.value.toUpperCase().replace(/[^A-E.\- ]/g, '');
+  for (let i = 0; i < S.b[bi][1]; i++) { const c = v[i]; if (c && L.includes(c)) S.anahtar[start + i] = c; else delete S.anahtar[start + i]; }
+  save(); render();
+});
+site.$('.mode').onclick = e => { const b = e.target.closest('[data-m]'); if (b) { mode = b.dataset.m; render(); } };
+site.$('#tBtn').onclick = () => { if (S.run) { S.t += Date.now() - S.t0; S.run = false; } else { S.t0 = Date.now(); S.run = true; } save(); tick(); };
+site.$('#check').onclick = check;
+site.$('#ad').oninput = e => { S.ad = e.target.value; save(); };
+const reset = () => { if (Object.keys(S.cevap).length && !confirm('Mevcut form silinip yenisi açılsın mı?')) { site.$('#tur').value = S.tur; return; } S = fresh(site.$('#tur').value); mode = 'cevap'; site.$('#out').hidden = true; save(); render(); };
+site.$('#tur').onchange = () => { site.$('#customWrap').hidden = site.$('#tur').value !== 'serbest'; reset(); };
+site.$('#custom').onchange = () => { if (S.tur === 'serbest') reset(); };
+site.$('#yeni').onclick = reset;
+if (!S) S = fresh('TYT');
+render();
+if (S.checked) check();
+setInterval(() => { if (S.run) tick(); }, 500);
+</script>
+</body>
+</html>

@@ -1,12 +1,13 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-native="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>fadimrak</title>
-<meta name="description" content="fadimrak — 07.2027">
+<meta name="description" content="fadimrak: YKS kaynakları, tarayıcıda çalışan araçlar ve oyunlar">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script src="/assets/site.js"></script>
 <meta property="og:title" content="fadimrak">
 <meta property="og:description" content="07.2027">
 <meta property="og:url" content="https://fadimrak.xyz/">
@@ -25,6 +26,14 @@
   a { color: #777; display: flex; transition: color .3s; }
   a:hover { color: #e6e6e6; }
   a svg { width: 22px; height: 22px; fill: currentColor; }
+  .links .st svg, .mini svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mini { display: flex; gap: .9rem; margin-top: .1rem; animation-delay: .75s; }
+  .mini button { all: unset; cursor: pointer; color: #555; display: flex; transition: color .3s; }
+  .mini button:hover, .mini button:focus-visible { color: #e6e6e6; }
+  .mini svg { width: 15px; height: 15px; }
+  a:focus-visible, .mini button:focus-visible { outline: 1px solid #777; outline-offset: 4px; border-radius: 4px; }
+  html[data-theme=light] { filter: invert(1); }
+  html[data-theme=light].inv { filter: none; }
   .card { transition: transform .25s ease-out; will-change: transform; }
   canvas { transform: scale(1.08); transition: transform .4s ease-out; }
   .count { margin: 0; display: flex; align-items: center; gap: .35rem; color: #555; font-size: .7rem; animation-delay: .9s; }
@@ -45,9 +54,12 @@
 <h1>fadimrak</h1>
 <p>07.2027 <span class="spin" aria-label="yükleniyor"></span></p>
 <div class="links">
+<a href="/yks/" class="st" aria-label="YKS" title="YKS"><svg viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5M22 9v6"/></svg></a>
+<a href="/araclar/" class="st" aria-label="araçlar" title="araçlar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></a>
 <a href="/games/" aria-label="oyunlar" title="oyunlar"><svg viewBox="0 0 24 24"><path d="M7 6h10a5 5 0 0 1 5 5v2a5 5 0 0 1-9 3h-2a5 5 0 0 1-9-3v-2a5 5 0 0 1 5-5zm0 3v2H5v2h2v2h2v-2h2v-2H9V9H7zm8.5 1a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5zm2.5 2.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z"/></svg></a>
 <a href="https://discord.com/users/1263876356534702247" target="_blank" rel="noopener" aria-label="discord kullanıcı adını kopyala" title="fadimrak"><svg viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
 </div>
+<div class="mini"><button data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button data-act="theme" aria-label="açık / koyu tema" title="tema"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button></div>
 <span class="count" title="ziyaret"><svg viewBox="0 0 24 24" aria-label="ziyaret"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="count">–</span></span>
 </main>
 <footer class="foot">fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>
@@ -55,14 +67,7 @@
 <script src="topography.js"></script>
 <script>new TopographyEngine('topo', { lowColor: '#0a0a0a', midColor: '#555555', highColor: '#bbbbbb', scale: 0.8, bands: 6, morphAmount: 1.5, speed: 0.2, glow: 0.15, grainIntensity: 0.02 });</script>
 <script>
-const card = document.querySelector('.card'), topo = document.getElementById('topo'), toastEl = document.getElementById('toast');
-let toastTimer;
-function toast(msg) {
-  toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
-}
+const card = document.querySelector('.card'), topo = document.getElementById('topo');
 
 // konsol mesajı
 console.log('%c' + String.raw`

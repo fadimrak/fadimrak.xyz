@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF araçları · fadimrak</title>
+<meta name="description" content="PDF birleştir, böl, sayfa sil, döndür, sırala, yazı, çizim, imza, sayfa numarası, filigran, şifrele, sıkıştır, resme çevir. Dosyalar cihazından çıkmaz.">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--red); }
+  .file { display: flex; gap: .7rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  .grid-p { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 1rem; }
+  .pg { border: 2px solid var(--line); border-radius: 12px; background: var(--card); padding: .45rem; display: grid; gap: .35rem; justify-items: center; cursor: grab; user-select: none; }
+  .pg.sel { outline: 3px solid var(--red); outline-offset: 1px; }
+  .pg.drag { opacity: .4; }
+  .pg .im { width: 100%; aspect-ratio: 3/4; display: grid; place-items: center; overflow: hidden; background: var(--soft); border-radius: 6px; }
+  .pg img { max-width: 100%; max-height: 100%; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .pg .ctl { display: flex; gap: .25rem; align-items: center; }
+  .pg .ctl button { min-height: 30px; width: 30px; padding: 0; border-radius: 8px; box-shadow: none; font-size: .85rem; }
+  .pg b { font-size: .8rem; }
+  .flist { display: grid; gap: .4rem; margin-top: .8rem; }
+  .flist .it { display: flex; gap: .6rem; align-items: center; padding: .45rem .6rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); }
+  .flist .it span { flex: 1; overflow-wrap: anywhere; font-size: .9rem; }
+  .flist .it img { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; }
+  .flist .it button { min-height: 32px; width: 32px; padding: 0; box-shadow: none; border-radius: 8px; }
+  .ann { display: grid; gap: 14px; justify-items: center; margin-top: 1rem; }
+  .ann .pw { position: relative; box-shadow: 0 2px 10px rgba(0,0,0,.2); background: #fff; max-width: 100%; }
+  .ann .pw canvas { display: block; max-width: 100%; height: auto; }
+  .ann .pw canvas.ov { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+  .tb { position: sticky; top: 0; z-index: 5; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; padding: .55rem; background: var(--card); border: 2px solid var(--line); border-radius: 14px; }
+  .viewer { display: grid; gap: 12px; justify-items: center; margin-top: 1rem; max-height: 80vh; overflow: auto; padding: 8px; background: var(--soft); border-radius: 14px; }
+  .viewer canvas { box-shadow: 0 2px 8px rgba(0,0,0,.25); background: #fff; max-width: 100%; height: auto; }
+  .gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 1rem; }
+  .gal a { display: grid; gap: .3rem; text-decoration: none; font-size: .8rem; text-align: center; }
+  .gal img { width: 100%; border: 2px solid var(--line); border-radius: 8px; background: #fff; }
+  dialog.sig { border: 2px solid var(--line); border-radius: 16px; background: var(--card); color: var(--ink); padding: 1rem; max-width: 96vw; }
+  dialog.sig canvas { width: min(560px, 86vw); height: 200px; background: #fff; border: 2px dashed var(--line); border-radius: 10px; touch-action: none; display: block; }
+  dialog.sig::backdrop { background: rgba(0,0,0,.5); }
+  .note { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>PDF araçları</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="PDF araçları">
+  <a href="#birlestir">birleştir</a><a href="#bol">böl</a><a href="#sil">sayfa sil</a><a href="#dondur">döndür</a><a href="#sirala">sırala</a><a href="#cikar">sayfa çıkar</a>
+  <a href="#yazi">yazı ekle</a><a href="#ciz">çizim</a><a href="#imza">imza</a><a href="#numara">sayfa no</a><a href="#filigran">filigran</a><a href="#sifrele">şifrele</a>
+  <a href="#sikistir">sıkıştır</a><a href="#resimden">resim → PDF</a><a href="#resme">PDF → resim</a><a href="#goruntule">görüntüle</a>
+</nav>
+<p class="note" style="margin-top:0">Dosyaların hiçbir sunucuya yüklenmez; her işlem bu cihazda, tarayıcının içinde yapılır.</p>
+
+<div class="panel" id="filebox">
+  <div class="drop" id="drop"><b>PDF seç ya da buraya sürükle</b><span class="note">tek dosya</span></div>
+  <div class="file" id="finfo" hidden><span><b id="fname"></b> <span class="note" id="fmeta"></span></span><button class="sm" id="fchange">başka dosya</button></div>
+</div>
+
+<section data-tab="birlestir" class="panel">
+  <h2>PDF birleştir</h2>
+  <div class="drop" id="mdrop"><b>birleştirilecek PDF'leri seç</b><span class="note">birden çok dosya; sırayı aşağıdan değiştirebilirsin</span></div>
+  <div class="flist" id="mlist"></div>
+  <div class="row l" style="margin-top:.8rem"><button class="primary" id="mgo" disabled>birleştir ve indir</button></div>
+</section>
+
+<section data-tab="bol" class="panel">
+  <h2>PDF böl</h2>
+  <div class="opts">
+    <label class="f">bölme şekli<select id="smode"><option value="ranges">aralıklara göre</option><option value="each">her sayfa ayrı dosya</option><option value="n">her N sayfada bir</option></select></label>
+    <label class="f" id="srWrap">aralıklar<input id="sranges" placeholder="ör. 1-3, 4-10, 11"></label>
+    <label class="f" id="snWrap" hidden>N<input id="sn" type="number" min="1" value="2"></label>
+  </div>
+  <button class="primary" data-run="bol">böl ve indir</button>
+  <p class="note">Birden çok parça çıkarsa tek bir ZIP dosyası olarak iner.</p>
+</section>
+<section data-tab="sil" class="panel"><h2>sayfa sil</h2><p class="note">Silmek istediğin sayfaları seç (sayfaya dokun).</p><button class="primary" data-run="sil">seçilenleri silip indir</button></section>
+<section data-tab="dondur" class="panel"><h2>sayfa döndür</h2><p class="note">Her sayfanın altındaki ↻ ile tek tek ya da hepsini birden döndür.</p><div class="row l"><button data-rotall="90">hepsini 90° döndür</button><button class="primary" data-run="dondur">kaydet ve indir</button></div></section>
+<section data-tab="sirala" class="panel"><h2>sayfa sırala</h2><p class="note">Sayfaları sürükleyip bırak ya da ← → ile taşı.</p><div class="row l"><button data-reverse>sırayı ters çevir</button><button class="primary" data-run="sirala">kaydet ve indir</button></div></section>
+<section data-tab="cikar" class="panel"><h2>sayfa çıkar</h2><p class="note">Yeni PDF'e alınacak sayfaları seç.</p><button class="primary" data-run="cikar">seçilenleri yeni PDF yap</button></section>
+
+<div id="pagesBox" hidden><div class="row l"><button class="sm" data-selall>hepsini seç</button><button class="sm ghost" data-selnone>seçimi kaldır</button><span class="note" id="selinfo"></span></div><div class="grid-p" id="pages"></div></div>
+
+<section data-tab="yazi" class="panel"><h2>PDF'e yazı ekle</h2><p class="note">Metni yaz, renk ve boyutu seç, sonra sayfada yazının başlayacağı yere dokun.</p></section>
+<section data-tab="ciz" class="panel"><h2>çizim ve işaretleme</h2><p class="note">Sayfanın üzerine kalemle çiz. Fosforlu kalem yarı saydam çizer.</p></section>
+<section data-tab="imza" class="panel"><h2>imza ekle</h2><p class="note">İmzanı bir kez çiz; bu tarayıcı hatırlar. Sonra sayfada yerine dokun.</p></section>
+<div id="annBox" hidden>
+  <div class="tb">
+    <span id="tText"><input id="atext" placeholder="eklenecek yazı" style="min-height:38px;width:200px" aria-label="eklenecek yazı"></span>
+    <span id="tPen"><select id="apen" aria-label="kalem türü"><option value="pen">kalem</option><option value="hl">fosforlu</option></select></span>
+    <span id="tSig"><button class="sm" id="asig">imzamı çiz</button> <label class="c note">genişlik<input type="range" id="asw" min="60" max="400" value="160"></label></span>
+    <input type="color" id="acolor" value="#1c3fd1" aria-label="renk">
+    <label class="c note" id="tSize">boyut<input type="range" id="asize" min="2" max="48" value="16"></label>
+    <button class="sm" id="aundo">geri al</button>
+    <button class="sm primary" id="asave">kaydet ve indir</button>
+  </div>
+  <div class="ann" id="ann"></div>
+</div>
+<dialog class="sig" id="sigd"><p style="margin-top:0"><b>imzanı çiz</b></p><canvas id="sigc" width="1120" height="400"></canvas><div class="row" style="margin-top:.7rem"><button id="sclr">temizle</button><button class="primary" id="sok">kullan</button><button class="ghost" id="sx">vazgeç</button></div></dialog>
+
+<section data-tab="numara" class="panel">
+  <h2>sayfa numarası ekle</h2>
+  <div class="opts">
+    <label class="f">konum<select id="npos"><option value="bc">alt orta</option><option value="br">alt sağ</option><option value="bl">alt sol</option><option value="tc">üst orta</option><option value="tr">üst sağ</option></select></label>
+    <label class="f">biçim<select id="nfmt"><option value="n">1</option><option value="nN">1 / 12</option><option value="s">Sayfa 1</option></select></label>
+    <label class="f">başlangıç<input id="nstart" type="number" value="1"></label>
+    <label class="f">ilk kaç sayfayı atla<input id="nskip" type="number" min="0" value="0"></label>
+    <label class="f">yazı boyutu (pt)<input id="nsize" type="number" min="6" max="40" value="11"></label>
+  </div>
+  <button class="primary" data-run="numara">ekle ve indir</button>
+</section>
+<section data-tab="filigran" class="panel">
+  <h2>filigran ekle</h2>
+  <div class="opts">
+    <label class="f">yazı<input id="wtext" value="TASLAK"></label>
+    <label class="f">renk<input id="wcolor" type="color" value="#d63a2f"></label>
+    <label class="f">saydamlık<input id="wop" type="range" min="5" max="80" value="18"></label>
+    <label class="f">açı<input id="wang" type="number" value="45"></label>
+    <label class="f">boyut (sayfa eninin %)<input id="wsize" type="number" min="5" max="100" value="60"></label>
+  </div>
+  <button class="primary" data-run="filigran">ekle ve indir</button>
+</section>
+<section data-tab="sifrele" class="panel">
+  <h2>PDF şifrele</h2>
+  <div class="opts">
+    <label class="f">açma parolası<input id="pu" type="password" autocomplete="new-password"></label>
+    <label class="f">sahip parolası (isteğe bağlı)<input id="po" type="password" autocomplete="new-password"></label>
+    <label class="c"><input type="checkbox" id="pprint" checked> yazdırmaya izin ver</label>
+    <label class="c"><input type="checkbox" id="pcopy" checked> metin kopyalamaya izin ver</label>
+  </div>
+  <button class="primary" data-run="sifrele">şifrele ve indir</button>
+  <p class="note">AES-256 ile şifrelenir. Parolayı unutursan dosya açılamaz; bu site parolanı bilmez ve saklamaz.</p>
+</section>
+<section data-tab="sikistir" class="panel">
+  <h2>PDF sıkıştır</h2>
+  <div class="opts">
+    <label class="f">yöntem<select id="cmode"><option value="raster">güçlü: sayfaları resme çevir</option><option value="lossless">hafif: yapıyı sadeleştir</option></select></label>
+    <label class="f" id="cdpiW">çözünürlük<select id="cdpi"><option value="72">72 dpi (en küçük)</option><option value="110" selected>110 dpi</option><option value="150">150 dpi</option><option value="200">200 dpi</option></select></label>
+    <label class="f" id="cqW">kalite<input id="cq" type="range" min="30" max="95" value="65"></label>
+  </div>
+  <button class="primary" data-run="sikistir">sıkıştır ve indir</button>
+  <p class="note" id="cinfo">Güçlü yöntemde metin seçilemez hâle gelir ama dosya çok küçülür; taranmış belgeler için idealdir.</p>
+</section>
+<section data-tab="resimden" class="panel">
+  <h2>resimden PDF</h2>
+  <div class="drop" id="idrop"><b>resimleri seç</b><span class="note">JPG, PNG, WebP; sırayı aşağıdan değiştirebilirsin</span></div>
+  <div class="flist" id="ilist"></div>
+  <div class="opts">
+    <label class="f">sayfa boyutu<select id="isz"><option value="a4">A4</option><option value="fit">resim boyutunda</option></select></label>
+    <label class="f">kenar boşluğu<select id="imar"><option value="0">yok</option><option value="20" selected>dar</option><option value="40">geniş</option></select></label>
+  </div>
+  <button class="primary" id="igo" disabled>PDF oluştur</button>
+</section>
+<section data-tab="resme" class="panel">
+  <h2>PDF'ten resme</h2>
+  <div class="opts">
+    <label class="f">biçim<select id="rfmt"><option value="png">PNG</option><option value="jpeg">JPG</option></select></label>
+    <label class="f">çözünürlük<select id="rsc"><option value="1">normal (72 dpi)</option><option value="2" selected>yüksek (144 dpi)</option><option value="3">çok yüksek (216 dpi)</option></select></label>
+  </div>
+  <div class="row l"><button class="primary" data-run="resme">resimlere çevir</button><button id="rzip" hidden>hepsini ZIP indir</button></div>
+  <div class="gal" id="rgal"></div>
+</section>
+<section data-tab="goruntule" class="panel">
+  <h2>PDF görüntüleyici</h2>
+  <div class="row l"><button class="sm" data-zoom="-1">−</button><span class="note" id="zlab">100%</span><button class="sm" data-zoom="1">+</button><span class="note" id="vinfo"></span></div>
+  <div class="viewer" id="viewer"></div>
+</section>
+</main>
+<script>
+const LIB = 'https://cdn.jsdelivr.net/npm/@cantoo/pdf-lib@2.11.1/dist/pdf-lib.min.js';
+const PJ = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/';
+const ZIP = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+let pdfjsMod, F = null, P = [], tab = '';
+const lib = async () => { await site.load(LIB); return PDFLib; };
+const pj = async () => { if (!pdfjsMod) { pdfjsMod = await import(PJ + 'pdf.min.mjs'); pdfjsMod.GlobalWorkerOptions.workerSrc = PJ + 'pdf.worker.min.mjs'; } return pdfjsMod; };
+const base = () => (F?.name || 'belge').replace(/\.pdf$/i, '');
+const pdfBlob = b => new Blob([b], { type: 'application/pdf' });
+const kb = n => n > 1048576 ? site.fmt(n / 1048576, 1) + ' MB' : Math.round(n / 1024) + ' KB';
+async function busy(btn, fn) {
+  if (btn.disabled) return;
+  const t = btn.textContent; btn.disabled = true; btn.textContent = 'çalışıyor…';
+  try { await fn(); } catch (e) { console.error(e); toast('işlem başarısız: ' + (e.message || e), 3500); }
+  finally { btn.disabled = false; btn.textContent = t; }
+}
+async function zipOrSingle(files) { // [[ad, blob]]
+  if (files.length === 1) return site.dl(files[0][1], files[0][0]);
+  await site.load(ZIP); const z = new JSZip(); files.forEach(([n, b]) => z.file(n, b));
+  site.dl(await z.generateAsync({ type: 'blob' }), base() + '.zip');
+}
+
+// ---- ana dosya
+const NEED = ['bol', 'sil', 'dondur', 'sirala', 'cikar', 'yazi', 'ciz', 'imza', 'numara', 'filigran', 'sifrele', 'sikistir', 'resme', 'goruntule'];
+async function openDoc(bytes, pw) {
+  const J = await pj();
+  return J.getDocument({ data: bytes.slice(), password: pw }).promise;
+}
+async function setFile(file) {
+  if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) return toast('bu bir PDF değil');
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let pw = '', doc;
+  for (;;) {
+    try { doc = await openDoc(bytes, pw); break; }
+    catch (e) { if (e.name !== 'PasswordException') { toast('PDF açılamadı'); return; } pw = prompt(e.code === 2 ? 'Parola yanlış, tekrar dene:' : 'Bu PDF parolalı. Parolayı gir:'); if (pw == null) return; }
+  }
+  F = { name: file.name, bytes, pw, doc, n: doc.numPages, size: file.size };
+  P = [...Array(F.n)].map((_, i) => ({ i, rot: 0, sel: false, thumb: '' }));
+  site.$('#fname').textContent = F.name; site.$('#fmeta').textContent = `${F.n} sayfa · ${kb(F.size)}`;
+  site.$('#drop').hidden = true; site.$('#finfo').hidden = false;
+  thumbsDone = false; annDone = false; viewDone = false; site.$('#rgal').innerHTML = ''; site.$('#rzip').hidden = true;
+  show();
+}
+site.drop(site.$('#drop'), fs => setFile(fs[0]), { accept: 'application/pdf,.pdf' });
+site.$('#fchange').onclick = () => site.$('#drop').click();
+async function libDoc() {
+  const { PDFDocument } = await lib();
+  try { return await PDFDocument.load(F.bytes); } catch { return PDFDocument.load(F.bytes, { password: F.pw }); }
+}
+
+// ---- sayfa ızgarası (böl, sil, döndür, sırala, çıkar)
+let thumbsDone = false, dragFrom = null;
+async function renderThumbs() {
+  paintPages();
+  if (thumbsDone) return; thumbsDone = true;
+  for (const p of P) {
+    if (!F) return;
+    const page = await F.doc.getPage(p.i + 1), v = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: 220 / Math.max(v.width, v.height) });
+    const c = Object.assign(document.createElement('canvas'), { width: Math.ceil(vp.width), height: Math.ceil(vp.height) });
+    await page.render({ canvas: c, viewport: vp }).promise;
+    p.thumb = c.toDataURL('image/jpeg', .7);
+    const img = site.$(`.pg[data-orig="${p.i}"] img`); if (img) img.src = p.thumb;
+  }
+}
+function paintPages() {
+  site.$('#pages').innerHTML = P.map((p, k) => `<div class="pg ${p.sel ? 'sel' : ''}" draggable="true" data-k="${k}" data-orig="${p.i}"><div class="im"><img src="${p.thumb || 'data:,'}" alt="sayfa ${p.i + 1}" style="transform:rotate(${p.rot}deg)"></div>
+    <b>${p.i + 1}${p.rot ? ` · ${p.rot}°` : ''}</b><div class="ctl"><button data-mv="-1" aria-label="sola taşı">←</button><button data-rot aria-label="döndür">↻</button><button data-mv="1" aria-label="sağa taşı">→</button></div></div>`).join('');
+  const n = P.filter(p => p.sel).length;
+  site.$('#selinfo').textContent = n ? `${n} sayfa seçili` : '';
+}
+site.$('#pages').onclick = e => {
+  const pg = e.target.closest('.pg'); if (!pg) return; const k = +pg.dataset.k;
+  const mv = e.target.closest('[data-mv]'); if (mv) { const j = k + +mv.dataset.mv; if (j >= 0 && j < P.length) { [P[k], P[j]] = [P[j], P[k]]; paintPages(); } return; }
+  if (e.target.closest('[data-rot]')) { P[k].rot = (P[k].rot + 90) % 360; paintPages(); return; }
+  P[k].sel = !P[k].sel; paintPages();
+};
+site.$('#pages').addEventListener('dragstart', e => { const pg = e.target.closest('.pg'); if (!pg) return; dragFrom = +pg.dataset.k; pg.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; });
+site.$('#pages').addEventListener('dragover', e => e.preventDefault());
+site.$('#pages').addEventListener('drop', e => { e.preventDefault(); const pg = e.target.closest('.pg'); if (!pg || dragFrom == null) return; const to = +pg.dataset.k; const [m] = P.splice(dragFrom, 1); P.splice(to, 0, m); dragFrom = null; paintPages(); });
+site.$('#pages').addEventListener('dragend', () => { dragFrom = null; paintPages(); });
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-selall]')) { P.forEach(p => p.sel = true); paintPages(); }
+  if (e.target.closest('[data-selnone]')) { P.forEach(p => p.sel = false); paintPages(); }
+  if (e.target.closest('[data-rotall]')) { P.forEach(p => p.rot = (p.rot + 90) % 360); paintPages(); }
+  if (e.target.closest('[data-reverse]')) { P.reverse(); paintPages(); }
+});
+async function build(list) {
+  const { PDFDocument, degrees } = await lib();
+  const src = await libDoc(), dst = await PDFDocument.create();
+  const pages = await dst.copyPages(src, list.map(p => p.i));
+  pages.forEach((pg, k) => { if (list[k].rot) pg.setRotation(degrees((pg.getRotation().angle + list[k].rot) % 360)); dst.addPage(pg); });
+  return dst.save();
+}
+function ranges(str, n) {
+  return str.split(',').map(s => s.trim()).filter(Boolean).map(s => { const [a, b] = s.split('-').map(x => parseInt(x)); const lo = Math.max(1, a), hi = Math.min(n, isNaN(b) ? a : b); return lo <= hi ? [...Array(hi - lo + 1)].map((_, i) => lo + i - 1) : null; }).filter(Boolean);
+}
+site.$('#smode').onchange = e => { site.$('#srWrap').hidden = e.target.value !== 'ranges'; site.$('#snWrap').hidden = e.target.value !== 'n'; };
+
+// ---- yazı, çizim, imza (sayfanın üstüne saydam katman)
+let annDone = false, hist = [], sigImg = null;
+const LONG = 1600; // katmanın uzun kenarı (piksel)
+async function renderAnn() {
+  if (annDone) return; annDone = true;
+  const box = site.$('#ann'); box.innerHTML = '';
+  for (let i = 0; i < F.n; i++) {
+    const page = await F.doc.getPage(i + 1), v = page.getViewport({ scale: 1 }), k = LONG / Math.max(v.width, v.height), vp = page.getViewport({ scale: k });
+    const w = document.createElement('div'); w.className = 'pw'; w.style.width = Math.min(900, v.width * 1.4) + 'px';
+    const c = Object.assign(document.createElement('canvas'), { width: Math.round(vp.width), height: Math.round(vp.height) });
+    const o = Object.assign(document.createElement('canvas'), { width: c.width, height: c.height, className: 'ov' });
+    o.dataset.i = i; o.dataset.dirty = '';
+    w.append(c, o); box.append(w);
+    page.render({ canvas: c, viewport: vp });
+  }
+}
+function annTools() {
+  site.$('#tText').hidden = tab !== 'yazi'; site.$('#tPen').hidden = tab !== 'ciz'; site.$('#tSig').hidden = tab !== 'imza'; site.$('#tSize').hidden = tab === 'imza';
+}
+const pos = (e, o) => { const r = o.getBoundingClientRect(); return [(e.clientX - r.left) * o.width / r.width, (e.clientY - r.top) * o.height / r.height]; };
+const remember = o => { hist.push([o, o.getContext('2d').getImageData(0, 0, o.width, o.height)]); if (hist.length > 30) hist.shift(); };
+let drawing = null;
+site.$('#ann').addEventListener('pointerdown', e => {
+  const o = e.target.closest('canvas.ov'); if (!o) return;
+  const ctx = o.getContext('2d'), [x, y] = pos(e, o), scale = o.width / o.getBoundingClientRect().width, color = site.$('#acolor').value, size = +site.$('#asize').value;
+  if (tab === 'yazi') {
+    const t = site.$('#atext').value; if (!t.trim()) return toast('önce eklenecek yazıyı gir');
+    remember(o); ctx.fillStyle = color; ctx.font = `600 ${size * 2 * scale / 1.5}px Outfit, Arial, sans-serif`; ctx.textBaseline = 'top';
+    t.split('\n').forEach((l, i) => ctx.fillText(l, x, y + i * size * 2.4 * scale / 1.5)); o.dataset.dirty = '1';
+  } else if (tab === 'imza') {
+    if (!sigImg) return site.$('#asig').click();
+    remember(o); const w = +site.$('#asw').value * scale * 1.2, h = w * sigImg.height / sigImg.width;
+    ctx.drawImage(sigImg, x - w / 2, y - h / 2, w, h); o.dataset.dirty = '1';
+  } else if (tab === 'ciz') {
+    remember(o); o.setPointerCapture(e.pointerId);
+    const hl = site.$('#apen').value === 'hl';
+    Object.assign(ctx, { strokeStyle: color, lineWidth: size * scale * (hl ? 2.5 : .7), lineCap: 'round', lineJoin: 'round', globalAlpha: hl ? .35 : 1, globalCompositeOperation: hl ? 'multiply' : 'source-over' });
+    ctx.beginPath(); ctx.moveTo(x, y); drawing = o; o.dataset.dirty = '1';
+  }
+});
+site.$('#ann').addEventListener('pointermove', e => { if (!drawing) return; const [x, y] = pos(e, drawing), ctx = drawing.getContext('2d'); ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y); });
+addEventListener('pointerup', () => { if (drawing) { const ctx = drawing.getContext('2d'); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; drawing = null; } });
+site.$('#aundo').onclick = () => { const h = hist.pop(); if (h) h[0].getContext('2d').putImageData(h[1], 0, 0); };
+// imza çizme penceresi
+const sc = site.$('#sigc'), sx = sc.getContext('2d'); let sDraw = false;
+const spos = e => { const r = sc.getBoundingClientRect(); return [(e.clientX - r.left) * sc.width / r.width, (e.clientY - r.top) * sc.height / r.height]; };
+sc.onpointerdown = e => { sDraw = true; sc.setPointerCapture(e.pointerId); sx.lineWidth = 6; sx.lineCap = 'round'; sx.lineJoin = 'round'; sx.strokeStyle = '#111'; sx.beginPath(); sx.moveTo(...spos(e)); };
+sc.onpointermove = e => { if (sDraw) { sx.lineTo(...spos(e)); sx.stroke(); } };
+sc.onpointerup = () => sDraw = false;
+site.$('#asig').onclick = () => site.$('#sigd').showModal();
+site.$('#sclr').onclick = () => sx.clearRect(0, 0, sc.width, sc.height);
+site.$('#sx').onclick = () => site.$('#sigd').close();
+site.$('#sok').onclick = () => {
+  // boş kenarları kırp, rengi uygula
+  const d = sx.getImageData(0, 0, sc.width, sc.height).data; let x0 = sc.width, y0 = sc.height, x1 = 0, y1 = 0;
+  for (let y = 0; y < sc.height; y++) for (let x = 0; x < sc.width; x++) if (d[(y * sc.width + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 <= x0) return toast('önce imzanı çiz');
+  const t = Object.assign(document.createElement('canvas'), { width: x1 - x0 + 8, height: y1 - y0 + 8 }), tc = t.getContext('2d');
+  tc.drawImage(sc, x0 - 4, y0 - 4, t.width, t.height, 0, 0, t.width, t.height);
+  tc.globalCompositeOperation = 'source-in'; tc.fillStyle = site.$('#acolor').value; tc.fillRect(0, 0, t.width, t.height);
+  const url = t.toDataURL('image/png'); store.set('pdf-imza', url); loadSig(url); site.$('#sigd').close(); toast('imza hazır, sayfada yerine dokun');
+};
+function loadSig(url) { const im = new Image(); im.onload = () => sigImg = im; im.src = url; }
+const savedSig = store.get('pdf-imza', null); if (savedSig) loadSig(savedSig);
+
+// Katmanı sayfaya bas: görüntülenen yöne göre (sayfa döndürülmüşse de) doğru yere oturur
+async function stamp(doc, page, canvas) {
+  const { degrees } = PDFLib;
+  const png = await doc.embedPng(await (await new Promise(r => canvas.toBlob(r, 'image/png'))).arrayBuffer());
+  const cb = page.getCropBox(), r = ((page.getRotation().angle % 360) + 360) % 360, w = cb.width, h = cb.height;
+  const [px, py] = { 0: [0, 0], 90: [w, 0], 180: [w, h], 270: [0, h] }[r];
+  page.drawImage(png, { x: cb.x + px, y: cb.y + py, width: r % 180 ? h : w, height: r % 180 ? w : h, rotate: degrees(r) });
+}
+// Görüntülenen sayfa boyutunda boş bir katman
+function layer(page, long = 1400) {
+  const cb = page.getCropBox(), r = ((page.getRotation().angle % 360) + 360) % 360, dw = r % 180 ? cb.height : cb.width, dh = r % 180 ? cb.width : cb.height, k = long / Math.max(dw, dh);
+  const c = Object.assign(document.createElement('canvas'), { width: Math.round(dw * k), height: Math.round(dh * k) });
+  return [c, c.getContext('2d'), k];
+}
+site.$('#asave').onclick = e => busy(e.target, async () => {
+  const ovs = site.$$('#ann canvas.ov').filter(o => o.dataset.dirty);
+  if (!ovs.length) return toast('henüz bir şey eklemedin');
+  const doc = await libDoc(), pages = doc.getPages();
+  for (const o of ovs) await stamp(doc, pages[+o.dataset.i], o);
+  site.dl(pdfBlob(await doc.save()), `${base()}-${tab}.pdf`);
+});
+
+// ---- çalıştır
+const RUN = {
+  async bol() {
+    const m = site.$('#smode').value;
+    const groups = m === 'each' ? P.map((_, i) => [i]) : m === 'n' ? (() => { const n = Math.max(1, +site.$('#sn').value || 1), g = []; for (let i = 0; i < F.n; i += n) g.push([...Array(Math.min(n, F.n - i))].map((_, j) => i + j)); return g; })() : ranges(site.$('#sranges').value, F.n);
+    if (!groups.length) return toast('geçerli bir aralık gir, ör. 1-3, 4-10');
+    const files = [];
+    for (const g of groups) files.push([`${base()}-${g[0] + 1}${g.length > 1 ? '-' + (g.at(-1) + 1) : ''}.pdf`, pdfBlob(await build(g.map(i => ({ i, rot: 0 }))))]);
+    await zipOrSingle(files);
+  },
+  async sil() { const keep = P.filter(p => !p.sel); if (keep.length === P.length) return toast('silinecek sayfaları seç'); if (!keep.length) return toast('tüm sayfaları silemezsin'); site.dl(pdfBlob(await build(keep)), base() + '-silindi.pdf'); },
+  async dondur() { site.dl(pdfBlob(await build(P)), base() + '-donduruldu.pdf'); },
+  async sirala() { site.dl(pdfBlob(await build(P)), base() + '-siralandi.pdf'); },
+  async cikar() { const s = P.filter(p => p.sel); if (!s.length) return toast('çıkarılacak sayfaları seç'); site.dl(pdfBlob(await build(s)), base() + '-sayfalar.pdf'); },
+  async numara() {
+    const doc = await libDoc(), pages = doc.getPages(), posn = site.$('#npos').value, fmt = site.$('#nfmt').value, start = +site.$('#nstart').value || 1, skip = +site.$('#nskip').value || 0, size = +site.$('#nsize').value || 11;
+    for (let i = skip; i < pages.length; i++) {
+      const [c, ctx, k] = layer(pages[i]), n = start + i - skip, total = start + pages.length - 1 - skip;
+      const txt = fmt === 'nN' ? `${n} / ${total}` : fmt === 's' ? `Sayfa ${n}` : String(n), m = 28 * k;
+      ctx.font = `500 ${size * k}px Arial, sans-serif`; ctx.fillStyle = '#222'; ctx.textBaseline = posn[0] === 'b' ? 'bottom' : 'top';
+      ctx.textAlign = { c: 'center', r: 'right', l: 'left' }[posn[1]];
+      ctx.fillText(txt, { c: c.width / 2, r: c.width - m, l: m }[posn[1]], posn[0] === 'b' ? c.height - m * .8 : m * .8);
+      await stamp(doc, pages[i], c);
+    }
+    site.dl(pdfBlob(await doc.save()), base() + '-numarali.pdf');
+  },
+  async filigran() {
+    const t = site.$('#wtext').value.trim(); if (!t) return toast('filigran yazısını gir');
+    const doc = await libDoc();
+    for (const p of doc.getPages()) {
+      const [c, ctx] = layer(p);
+      ctx.globalAlpha = +site.$('#wop').value / 100; ctx.fillStyle = site.$('#wcolor').value; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      let fs = 100; ctx.font = `800 ${fs}px Arial, sans-serif`; fs *= c.width * (+site.$('#wsize').value / 100) / ctx.measureText(t).width; ctx.font = `800 ${fs}px Arial, sans-serif`;
+      ctx.translate(c.width / 2, c.height / 2); ctx.rotate(-(+site.$('#wang').value) * Math.PI / 180); ctx.fillText(t, 0, 0);
+      await stamp(doc, p, c);
+    }
+    site.dl(pdfBlob(await doc.save()), base() + '-filigran.pdf');
+  },
+  async sifrele() {
+    const u = site.$('#pu').value; if (!u) return toast('açma parolasını gir');
+    const doc = await libDoc();
+    doc.encrypt({ userPassword: u, ownerPassword: site.$('#po').value || u + '-sahip-' + crypto.getRandomValues(new Uint32Array(1))[0], permissions: { printing: site.$('#pprint').checked ? 'highResolution' : false, copying: site.$('#pcopy').checked, modifying: false, annotating: true, fillingForms: true, contentAccessibility: true, documentAssembly: false } });
+    site.dl(pdfBlob(await doc.save()), base() + '-sifreli.pdf');
+  },
+  async sikistir() {
+    const { PDFDocument } = await lib();
+    let out;
+    if (site.$('#cmode').value === 'lossless') out = await (await libDoc()).save({ useObjectStreams: true });
+    else {
+      const dst = await PDFDocument.create(), dpi = +site.$('#cdpi').value, q = +site.$('#cq').value / 100;
+      for (let i = 1; i <= F.n; i++) {
+        site.$('#cinfo').textContent = `sayfa ${i} / ${F.n}…`;
+        const page = await F.doc.getPage(i), v1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: dpi / 72 });
+        const c = Object.assign(document.createElement('canvas'), { width: Math.ceil(vp.width), height: Math.ceil(vp.height) });
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+        await page.render({ canvas: c, viewport: vp }).promise;
+        const jpg = await dst.embedJpg(await (await new Promise(r => c.toBlob(r, 'image/jpeg', q))).arrayBuffer());
+        dst.addPage([v1.width, v1.height]).drawImage(jpg, { x: 0, y: 0, width: v1.width, height: v1.height });
+      }
+      out = await dst.save();
+    }
+    site.$('#cinfo').textContent = `${kb(F.size)} → ${kb(out.length)} (%${Math.round((1 - out.length / F.size) * 100)} küçüldü)`;
+    if (out.length >= F.size) toast('dosya zaten sıkıştırılmış görünüyor, diğer yöntemi dene', 3500);
+    site.dl(pdfBlob(out), base() + '-kucuk.pdf');
+  },
+  async resme() {
+    const fmt = site.$('#rfmt').value, sc = +site.$('#rsc').value, gal = site.$('#rgal'); gal.innerHTML = ''; files = [];
+    for (let i = 1; i <= F.n; i++) {
+      const page = await F.doc.getPage(i), vp = page.getViewport({ scale: sc });
+      const c = Object.assign(document.createElement('canvas'), { width: Math.ceil(vp.width), height: Math.ceil(vp.height) });
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvas: c, viewport: vp }).promise;
+      const b = await new Promise(r => c.toBlob(r, 'image/' + fmt, .9)), name = `${base()}-${i}.${fmt === 'jpeg' ? 'jpg' : 'png'}`, u = URL.createObjectURL(b);
+      files.push([name, b]);
+      gal.insertAdjacentHTML('beforeend', `<a href="${u}" download="${name}"><img src="${u}" alt="sayfa ${i}">sayfa ${i} · ${kb(b.size)}</a>`);
+    }
+    site.$('#rzip').hidden = files.length < 2;
+  },
+};
+let files = [];
+site.$('#rzip').onclick = e => busy(e.target, () => zipOrSingle(files));
+document.addEventListener('click', e => { const b = e.target.closest('[data-run]'); if (!b) return; if (!F) return toast('önce bir PDF seç'); busy(b, RUN[b.dataset.run]); });
+site.$('#cmode').onchange = e => { site.$('#cdpiW').hidden = site.$('#cqW').hidden = e.target.value !== 'raster'; };
+
+// ---- birleştir
+let M = [];
+site.drop(site.$('#mdrop'), async fs => {
+  const { PDFDocument } = await lib();
+  for (const f of fs.filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf')) {
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    try { const d = await PDFDocument.load(bytes); M.push({ name: f.name, bytes, n: d.getPageCount() }); } catch { toast(`${f.name} açılamadı (parolalı olabilir)`); }
+  }
+  paintM();
+}, { accept: 'application/pdf,.pdf', multiple: true });
+function paintM() {
+  site.$('#mlist').innerHTML = M.map((m, i) => `<div class="it"><span>${i + 1}. ${site.esc(m.name)} <small class="note">${m.n} sayfa</small></span><button data-mu="${i}" aria-label="yukarı">↑</button><button data-md="${i}" aria-label="aşağı">↓</button><button data-mx="${i}" aria-label="çıkar">✕</button></div>`).join('');
+  site.$('#mgo').disabled = M.length < 2;
+}
+site.$('#mlist').onclick = e => {
+  const t = e.target.closest('button'); if (!t) return; const i = +(t.dataset.mu ?? t.dataset.md ?? t.dataset.mx);
+  if (t.dataset.mx != null) M.splice(i, 1); else { const j = i + (t.dataset.mu != null ? -1 : 1); if (j >= 0 && j < M.length) [M[i], M[j]] = [M[j], M[i]]; }
+  paintM();
+};
+site.$('#mgo').onclick = e => busy(e.target, async () => {
+  const { PDFDocument } = await lib(), dst = await PDFDocument.create();
+  for (const m of M) { const s = await PDFDocument.load(m.bytes); (await dst.copyPages(s, s.getPageIndices())).forEach(p => dst.addPage(p)); }
+  site.dl(pdfBlob(await dst.save()), 'birlestirilmis.pdf');
+});
+
+// ---- resimden PDF
+let IM = [];
+site.drop(site.$('#idrop'), fs => { fs.filter(f => f.type.startsWith('image/')).forEach(f => IM.push({ f, u: URL.createObjectURL(f) })); paintI(); }, { accept: 'image/*', multiple: true });
+function paintI() {
+  site.$('#ilist').innerHTML = IM.map((m, i) => `<div class="it"><img src="${m.u}" alt=""><span>${i + 1}. ${site.esc(m.f.name)}</span><button data-iu="${i}" aria-label="yukarı">↑</button><button data-id="${i}" aria-label="aşağı">↓</button><button data-ix="${i}" aria-label="çıkar">✕</button></div>`).join('');
+  site.$('#igo').disabled = !IM.length;
+}
+site.$('#ilist').onclick = e => {
+  const t = e.target.closest('button'); if (!t) return; const i = +(t.dataset.iu ?? t.dataset.id ?? t.dataset.ix);
+  if (t.dataset.ix != null) IM.splice(i, 1); else { const j = i + (t.dataset.iu != null ? -1 : 1); if (j >= 0 && j < IM.length) [IM[i], IM[j]] = [IM[j], IM[i]]; }
+  paintI();
+};
+site.$('#igo').onclick = e => busy(e.target, async () => {
+  const { PDFDocument } = await lib(), doc = await PDFDocument.create(), a4 = site.$('#isz').value === 'a4', mar = +site.$('#imar').value;
+  for (const { f } of IM) {
+    const bmp = await createImageBitmap(f), c = Object.assign(document.createElement('canvas'), { width: bmp.width, height: bmp.height }), ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0);
+    const img = await doc.embedJpg(await (await new Promise(r => c.toBlob(r, 'image/jpeg', .92))).arrayBuffer());
+    const land = bmp.width > bmp.height, [pw, ph] = a4 ? (land ? [841.89, 595.28] : [595.28, 841.89]) : [bmp.width * .75 + mar * 2, bmp.height * .75 + mar * 2];
+    const k = Math.min((pw - mar * 2) / bmp.width, (ph - mar * 2) / bmp.height), w = bmp.width * k, h = bmp.height * k;
+    doc.addPage([pw, ph]).drawImage(img, { x: (pw - w) / 2, y: (ph - h) / 2, width: w, height: h });
+  }
+  site.dl(pdfBlob(await doc.save()), 'resimler.pdf');
+});
+
+// ---- görüntüleyici
+let viewDone = false, zoom = 1;
+async function renderView() {
+  if (viewDone) return; viewDone = true;
+  const box = site.$('#viewer'); box.innerHTML = ''; site.$('#zlab').textContent = Math.round(zoom * 100) + '%'; site.$('#vinfo').textContent = `${F.n} sayfa`;
+  const io = new IntersectionObserver(es => es.forEach(async en => {
+    if (!en.isIntersecting || en.target.dataset.done) return; en.target.dataset.done = 1;
+    const page = await F.doc.getPage(+en.target.dataset.p), dpr = Math.min(2, devicePixelRatio || 1), vp = page.getViewport({ scale: zoom * 1.4 * dpr });
+    en.target.width = vp.width; en.target.height = vp.height; en.target.style.width = vp.width / dpr + 'px';
+    page.render({ canvas: en.target, viewport: vp });
+  }), { root: box, rootMargin: '600px' });
+  for (let i = 1; i <= F.n; i++) {
+    const page = await F.doc.getPage(i), vp = page.getViewport({ scale: zoom * 1.4 });
+    const c = Object.assign(document.createElement('canvas'), { width: vp.width, height: vp.height }); c.dataset.p = i; c.style.width = vp.width + 'px';
+    box.append(c); io.observe(c);
+  }
+}
+document.addEventListener('click', e => { const z = e.target.closest('[data-zoom]'); if (z && F) { zoom = Math.min(3, Math.max(.4, zoom + +z.dataset.zoom * .2)); viewDone = false; renderView(); } });
+
+// ---- sekmeye göre görünüm
+function show() {
+  tab = location.hash.slice(1) || 'birlestir';
+  const need = NEED.includes(tab);
+  site.$('#filebox').hidden = !need;
+  site.$('#pagesBox').hidden = !(F && ['bol', 'sil', 'dondur', 'sirala', 'cikar'].includes(tab));
+  site.$('#annBox').hidden = !(F && ['yazi', 'ciz', 'imza'].includes(tab));
+  if (!F) return;
+  if (!site.$('#pagesBox').hidden) renderThumbs();
+  if (!site.$('#annBox').hidden) { annTools(); renderAnn(); }
+  if (tab === 'goruntule') renderView();
+}
+// Izgara ve katman kutuları ilgili sekmelerin hemen ardında durur; diğer sekmeler gizli olduğu için doğru yerde görünürler
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', show));
+</script>
+</body>
+</html>

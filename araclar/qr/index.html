@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR kod · fadimrak</title>
+<meta name="description" content="QR kod oluştur (bağlantı, metin, Wi-Fi) ve kamerayla ya da resimden QR kod oku">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--green); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  .qrbox { display: grid; place-items: center; padding: 1rem; border-radius: 14px; background: var(--soft); margin-top: .8rem; }
+  .qrbox svg { width: min(320px, 80vw); height: auto; display: block; border-radius: 6px; }
+  .cam { position: relative; max-width: 480px; margin: .8rem auto 0; border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 1; }
+  .cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cam::after { content: ''; position: absolute; inset: 18%; border: 3px solid rgba(255,255,255,.85); border-radius: 16px; box-shadow: 0 0 0 999px rgba(0,0,0,.25); pointer-events: none; }
+  .result { margin-top: 1rem; padding: .9rem 1rem; border-radius: 12px; background: var(--soft); overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>QR kod</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="QR araçları"><a href="#uret">oluştur</a><a href="#oku">oku</a></nav>
+
+<section data-tab="uret" class="panel">
+  <div class="opts"><label class="f">tür<select id="qt"><option value="text">bağlantı ya da metin</option><option value="wifi">Wi-Fi</option><option value="tel">telefon</option><option value="mail">e-posta</option></select></label></div>
+  <div id="qf"></div>
+  <div class="opts">
+    <label class="f">hata düzeltme<select id="qe"><option value="L">düşük</option><option value="M" selected>orta</option><option value="Q">yüksek</option><option value="H">en yüksek</option></select></label>
+    <label class="f">renk<input type="color" id="qc" value="#1c1a17"></label>
+    <label class="f">arka plan<input type="color" id="qb" value="#ffffff"></label>
+    <label class="f">PNG boyutu<select id="qs"><option>512</option><option selected>1024</option><option>2048</option></select></label>
+  </div>
+  <div class="qrbox" id="qr" aria-live="polite"></div>
+  <div class="row" style="margin-top:.8rem"><button class="primary" id="png">PNG indir</button><button id="svg">SVG indir</button><button id="cp">resmi kopyala</button></div>
+</section>
+
+<section data-tab="oku" class="panel">
+  <div class="row"><button class="primary" id="camgo">kamerayı aç</button><button id="camstop" hidden>kamerayı kapat</button><button id="img">resimden oku</button></div>
+  <div class="cam" id="cam" hidden><video id="vid" playsinline muted></video></div>
+  <div class="result" id="res" hidden></div>
+  <p class="muted small">Görüntü cihazında işlenir, hiçbir yere gönderilmez. Kamera izni yalnızca bu sayfa açıkken kullanılır.</p>
+</section>
+</main>
+<script>
+const QR = 'https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.js', JSQR = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+const FORMS = {
+  text: '<label class="f">içerik<textarea id="v1" style="min-height:5rem" placeholder="https://fadimrak.xyz">https://fadimrak.xyz</textarea></label>',
+  wifi: '<div class="opts"><label class="f">ağ adı (SSID)<input id="v1"></label><label class="f">şifre<input id="v2" type="text" autocomplete="off"></label><label class="f">güvenlik<select id="v3"><option>WPA</option><option>WEP</option><option value="nopass">şifresiz</option></select></label><label class="c"><input type="checkbox" id="v4"> gizli ağ</label></div>',
+  tel: '<label class="f">telefon numarası<input id="v1" type="tel" placeholder="+90 5xx xxx xx xx"></label>',
+  mail: '<div class="opts"><label class="f">alıcı<input id="v1" type="email"></label><label class="f">konu<input id="v2"></label></div><label class="f">mesaj<textarea id="v3" style="min-height:4rem"></textarea></label>',
+};
+const v = id => site.$('#' + id)?.value ?? '';
+const esc = s => s.replace(/([\\;,:"])/g, '\\$1');
+function content() {
+  const t = site.$('#qt').value;
+  if (t === 'wifi') return `WIFI:T:${v('v3')};S:${esc(v('v1'))};${v('v3') === 'nopass' ? '' : `P:${esc(v('v2'))};`}${site.$('#v4').checked ? 'H:true;' : ''};`;
+  if (t === 'tel') return 'tel:' + v('v1').replace(/[^\d+]/g, '');
+  if (t === 'mail') return `mailto:${v('v1')}?subject=${encodeURIComponent(v('v2'))}&body=${encodeURIComponent(v('v3'))}`;
+  return v('v1');
+}
+let qr = null;
+function make() {
+  const text = content();
+  if (!text.trim() || text === 'tel:') { site.$('#qr').innerHTML = '<p class="muted">İçerik gir.</p>'; qr = null; return; }
+  try {
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    qr = qrcode(0, site.$('#qe').value); qr.addData(text, 'Byte'); qr.make();
+  } catch { site.$('#qr').innerHTML = '<p class="muted">Bu içerik QR koda sığmıyor; kısalt ya da hata düzeltmeyi düşür.</p>'; qr = null; return; }
+  site.$('#qr').innerHTML = svg();
+}
+function svg() {
+  const n = qr.getModuleCount(), m = 4, s = n + m * 2; let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${s} ${s}" shape-rendering="crispEdges" role="img" aria-label="QR kod"><rect width="${s}" height="${s}" fill="${site.$('#qb').value}"/><path d="${d}" fill="${site.$('#qc').value}"/></svg>`;
+}
+function png() {
+  const n = qr.getModuleCount(), m = 4, size = +site.$('#qs').value, k = size / (n + m * 2);
+  const c = Object.assign(document.createElement('canvas'), { width: size, height: size }), x = c.getContext('2d');
+  x.fillStyle = site.$('#qb').value; x.fillRect(0, 0, size, size); x.fillStyle = site.$('#qc').value;
+  for (let r = 0; r < n; r++) for (let col = 0; col < n; col++) if (qr.isDark(r, col)) x.fillRect(Math.floor((col + m) * k), Math.floor((r + m) * k), Math.ceil(k), Math.ceil(k));
+  return new Promise(ok => c.toBlob(ok, 'image/png'));
+}
+site.$('#qt').onchange = () => { site.$('#qf').innerHTML = FORMS[site.$('#qt').value]; make(); };
+site.$('[data-tab="uret"]').addEventListener('input', e => { if (e.target.id !== 'qt') make(); });
+site.$('#png').onclick = async () => qr && site.dl(await png(), 'qr-kod.png');
+site.$('#svg').onclick = () => qr && site.dl(new Blob([svg()], { type: 'image/svg+xml' }), 'qr-kod.svg');
+site.$('#cp').onclick = async () => { if (!qr) return; try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': png() })]); toast('kopyalandı'); } catch { toast('bu tarayıcı resim kopyalamayı desteklemiyor'); } };
+
+// ---- okuma: varsa yerleşik BarcodeDetector, yoksa jsQR
+let stream = null, det = null, raf = 0;
+const canvas = document.createElement('canvas'), cx = canvas.getContext('2d', { willReadFrequently: true });
+async function decode(src, w, h) {
+  if (det) { try { const r = await det.detect(src); if (r[0]) return r[0].rawValue; } catch {} }
+  await site.load(JSQR);
+  canvas.width = w; canvas.height = h; cx.drawImage(src, 0, 0, w, h);
+  return jsQR(cx.getImageData(0, 0, w, h).data, w, h)?.data ?? null;
+}
+function show(text) {
+  const url = /^https?:\/\//i.test(text), wifi = text.match(/^WIFI:(?:.*?)S:((?:\\.|[^;])*);/);
+  site.$('#res').hidden = false;
+  site.$('#res').innerHTML = `<b>${wifi ? 'Wi-Fi ağı: ' + site.esc(wifi[1].replace(/\\(.)/g, '$1')) : 'okunan:'}</b><p style="margin:.4rem 0">${site.esc(text)}</p><div class="row l">${url ? `<a class="btn sm primary" href="${site.esc(text)}" target="_blank" rel="noopener noreferrer">bağlantıyı aç</a>` : ''}<button class="sm" id="rcp">kopyala</button></div>`;
+  site.$('#rcp').onclick = () => navigator.clipboard.writeText(text).then(() => toast('kopyalandı'));
+  if (url) toast('bağlantıyı açmadan önce adresi kontrol et', 2500);
+}
+async function scan() {
+  const vid = site.$('#vid');
+  if (!stream) return;
+  if (vid.readyState >= 2) {
+    const w = Math.min(640, vid.videoWidth), h = Math.round(vid.videoHeight * w / vid.videoWidth);
+    const t = await decode(det ? vid : vid, w, h);
+    if (t) { show(t); stop(); if (navigator.vibrate) navigator.vibrate(80); return; }
+  }
+  raf = setTimeout(scan, 200);
+}
+function stop() { clearTimeout(raf); stream?.getTracks().forEach(t => t.stop()); stream = null; site.$('#cam').hidden = true; site.$('#camstop').hidden = true; site.$('#camgo').hidden = false; }
+site.$('#camgo').onclick = async () => {
+  try {
+    if ('BarcodeDetector' in window) { try { if ((await BarcodeDetector.getSupportedFormats()).includes('qr_code')) det = new BarcodeDetector({ formats: ['qr_code'] }); } catch {} }
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const vid = site.$('#vid'); vid.srcObject = stream; await vid.play();
+    site.$('#cam').hidden = false; site.$('#camstop').hidden = false; site.$('#camgo').hidden = true; site.$('#res').hidden = true;
+    scan();
+  } catch (e) { toast(e.name === 'NotAllowedError' ? 'kamera izni verilmedi' : 'kamera açılamadı', 3000); }
+};
+site.$('#camstop').onclick = stop;
+const fileIn = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', hidden: true }); document.body.append(fileIn);
+site.$('#img').onclick = () => fileIn.click();
+fileIn.onchange = async () => {
+  const f = fileIn.files[0]; fileIn.value = ''; if (!f) return;
+  const bmp = await createImageBitmap(f), k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const t = await decode(bmp, Math.round(bmp.width * k), Math.round(bmp.height * k));
+  t ? show(t) : (site.$('#res').hidden = false, site.$('#res').textContent = 'Bu resimde QR kod bulunamadı.');
+};
+addEventListener('hashchange', () => { if (location.hash !== '#oku') stop(); });
+
+site.load(QR).then(() => { site.$('#qf').innerHTML = FORMS.text; make(); });
+</script>
+</body>
+</html>

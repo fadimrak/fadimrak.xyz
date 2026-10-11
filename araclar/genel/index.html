@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>genel araçlar · fadimrak</title>
+<meta name="description" content="Şifre üretici, döviz çevirici, hava durumu, saat dilimi çevirici, tarih farkı, renk seçici, klavye hız testi, kamera mikrofon ekran testi, dosya boyutu çevirici">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--teal); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  .out { margin-top: .8rem; padding: .8rem 1rem; border-radius: 12px; background: var(--soft); overflow-wrap: anywhere; }
+  .pw { font-family: ui-monospace, Consolas, monospace; font-size: 1.25rem; letter-spacing: .03em; }
+  .pwl { display: grid; gap: .4rem; margin-top: .8rem; }
+  .pwl button { justify-content: space-between; font-family: ui-monospace, Consolas, monospace; font-weight: 600; box-shadow: none; overflow-wrap: anywhere; text-align: left; }
+  .meter { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; margin-top: .4rem; } .meter i { display: block; height: 100%; }
+  .wx { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr)); gap: .5rem; margin-top: .8rem; }
+  .wx div { background: var(--soft); border-radius: 12px; padding: .6rem; text-align: center; font-size: .85rem; }
+  .wx b { display: block; font-size: 1.1rem; }
+  .now { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .now .big { font-size: 3rem; }
+  .zones { display: grid; gap: .45rem; margin-top: .8rem; }
+  .zones .z { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .55rem .8rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); }
+  .zones .z b { font-family: var(--head); font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+  .sw { width: 100%; height: 120px; border-radius: 14px; border: 2px solid var(--line); }
+  .pal { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: .6rem; }
+  .pal button { min-height: 40px; padding: 0; border-radius: 8px; box-shadow: none; border-width: 1.5px; }
+  .cv { display: grid; gap: .35rem; margin-top: .6rem; }
+  .cv button { justify-content: space-between; font-family: ui-monospace, Consolas, monospace; box-shadow: none; font-weight: 600; }
+  .type { font-size: 1.35rem; line-height: 1.9; padding: 1rem; border-radius: 12px; background: var(--soft); min-height: 7rem; user-select: none; }
+  .type span.cur { background: var(--yellow); color: #1c1a17; border-radius: 4px; padding: 0 .1rem; }
+  .type span.ok { color: var(--ok); } .type span.bad { color: var(--bad); text-decoration: line-through; }
+  .meterbar { height: 18px; border-radius: 99px; background: var(--soft); overflow: hidden; border: 2px solid var(--line); } .meterbar i { display: block; height: 100%; background: var(--green); width: 0; transition: width .05s; }
+  video.dev { width: 100%; max-width: 520px; border-radius: 14px; background: #000; display: block; margin: .6rem auto; }
+  #scr { position: fixed; inset: 0; z-index: 300; display: none; cursor: pointer; }
+  #scr.show { display: block; }
+  #scr p { position: absolute; bottom: 1rem; left: 0; right: 0; text-align: center; color: #888; font-size: .85rem; mix-blend-mode: difference; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>genel araçlar</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="araçlar"><a href="#sifre">şifre</a><a href="#doviz">döviz</a><a href="#hava">hava</a><a href="#saat">saat dilimi</a><a href="#tarih">tarih farkı</a><a href="#renk">renk</a><a href="#klavye">klavye hızı</a><a href="#cihaz">cihaz testi</a><a href="#boyut">dosya boyutu</a></nav>
+
+<section data-tab="sifre" class="panel">
+  <div class="opts">
+    <label class="f">uzunluk: <span id="plv">16</span><input type="range" id="pl" min="6" max="64" value="16"></label>
+    <label class="f">tür<select id="pm"><option value="rand">karışık karakter</option><option value="words">akılda kalan kelimeler</option><option value="pin">yalnızca rakam (PIN)</option></select></label>
+  </div>
+  <div class="row l" id="psets"><label class="c"><input type="checkbox" id="pu" checked> büyük harf</label><label class="c"><input type="checkbox" id="pd" checked> rakam</label><label class="c"><input type="checkbox" id="ps" checked> sembol</label><label class="c"><input type="checkbox" id="px" checked> benzer karakterleri çıkar (l, 1, O, 0)</label></div>
+  <div class="out"><div class="pw" id="pout"></div><div class="meter"><i id="pmeter"></i></div><span class="muted small" id="pinfo"></span></div>
+  <div class="row l" style="margin-top:.7rem"><button class="primary" id="pgen">yeni üret</button><button id="pcopy">kopyala</button></div>
+  <div class="pwl" id="plist"></div>
+  <p class="muted small">Şifreler tarayıcının kriptografik rastgele sayı üreteciyle bu cihazda üretilir; hiçbir yere gönderilmez ve kaydedilmez.</p>
+</section>
+
+<section data-tab="doviz" class="panel">
+  <div class="opts"><label class="f">tutar<input id="da" type="number" value="100" step="any"></label><label class="f">şundan<select id="df"></select></label><button id="dsw" aria-label="para birimlerini değiştir">⇄</button><label class="f">şuna<select id="dt"></select></label></div>
+  <div class="out" id="dout">kurlar yükleniyor…</div>
+  <div class="tw"><table class="t" id="dtab"></table></div>
+  <p class="muted small">Kurlar Avrupa Merkez Bankası'nın günlük referans kurlarıdır (<a href="https://frankfurter.dev" target="_blank" rel="noopener">Frankfurter</a> üzerinden). Bankaların alış ve satış kurlarından farklı olabilir.</p>
+</section>
+
+<section data-tab="hava" class="panel">
+  <div class="row l"><input id="hc" placeholder="şehir ara (ör. Ankara)" style="flex:1 1 200px" aria-label="şehir"><button class="primary" id="hgo">göster</button><button id="hloc">konumum</button></div>
+  <div id="hout"></div>
+  <p class="muted small">Hava durumu verisi <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0). Konum yalnızca bu istek için kullanılır.</p>
+</section>
+
+<section data-tab="saat" class="panel">
+  <div class="opts"><label class="f">tarih ve saat<input id="zt" type="datetime-local"></label><label class="f">bu saat şuranın saati<select id="zf"></select></label><button class="sm" id="znow">şimdi</button></div>
+  <div class="zones" id="zl"></div>
+  <div class="row l" style="margin-top:.7rem"><select id="zadd" aria-label="saat dilimi ekle" style="flex:1 1 220px"></select><button id="zaddb">ekle</button></div>
+</section>
+
+<section data-tab="tarih" class="panel">
+  <h2>iki tarih arası</h2>
+  <div class="opts"><label class="f">başlangıç<input id="t1" type="date"></label><label class="f">bitiş<input id="t2" type="date"></label><label class="c"><input type="checkbox" id="tinc"> bitiş gününü de say</label></div>
+  <div class="out" id="tout"></div>
+  <h2 class="sec">tarihe gün ekle</h2>
+  <div class="opts"><label class="f">tarih<input id="t3" type="date"></label><label class="f">gün (eksi de olur)<input id="t4" type="number" value="100"></label></div>
+  <div class="out" id="tout2"></div>
+</section>
+
+<section data-tab="renk" class="panel">
+  <div class="opts"><label class="f">renk<input type="color" id="cc" value="#4d7cfe" style="width:100%;height:48px"></label><label class="f">HEX ya da RGB yaz<input id="ci" placeholder="#4d7cfe ya da rgb(77,124,254)"></label><button id="cpick" hidden>ekrandan seç</button></div>
+  <div class="sw" id="csw"></div>
+  <div class="cv" id="cv"></div>
+  <p class="small muted" style="margin-bottom:.2rem">açık ve koyu tonlar (tıkla, seç)</p><div class="pal" id="cpal"></div>
+  <div class="out" id="ccon"></div>
+</section>
+
+<section data-tab="klavye" class="panel">
+  <div class="row l"><div class="modes" id="kd"><button data-s="30">30 sn</button><button data-s="60" class="on">60 sn</button><button data-s="120">2 dk</button></div><b id="ktime" style="font-family:var(--head);font-size:1.4rem">60</b><button class="sm" id="kreset">yeniden</button></div>
+  <div class="type" id="kt" style="margin-top:.8rem"></div>
+  <input id="kin" style="width:100%;margin-top:.6rem;font-size:1.2rem" placeholder="yazmaya başla, sayaç ilk harfte başlar" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="yazma alanı">
+  <div class="opts" id="kres"></div>
+</section>
+
+<section data-tab="cihaz" class="panel">
+  <h2>kamera</h2>
+  <div class="row l"><button id="camb">kamerayı aç</button><select id="cams" hidden aria-label="kamera seç"></select></div>
+  <video class="dev" id="camv" playsinline muted hidden></video><p class="muted small" id="caminfo"></p>
+  <h2 class="sec">mikrofon</h2>
+  <div class="row l"><button id="micb">mikrofonu aç</button><button id="recb" disabled>5 sn kaydet ve dinle</button></div>
+  <div class="meterbar" style="margin-top:.6rem"><i id="micm"></i></div><p class="muted small" id="micinfo"></p>
+  <h2 class="sec">ekran</h2>
+  <p class="small" id="scrinfo"></p>
+  <button id="scrb">ölü piksel testi (tam ekran renkler)</button>
+  <div id="scr" role="button" aria-label="sonraki renk"><p>dokun: sonraki renk · Esc: çık</p></div>
+  <p class="muted small">Kamera ve mikrofon görüntüsü yalnızca bu sayfada gösterilir, kaydedilmez ve gönderilmez.</p>
+</section>
+
+<section data-tab="boyut" class="panel">
+  <div class="opts"><label class="f">değer<input id="fv" type="number" value="1" step="any"></label><label class="f">birim<select id="fu"></select></label><label class="f">bağlantı hızı (Mbps)<input id="fs" type="number" value="50" step="any"></label></div>
+  <div class="tw"><table class="t" id="fout"></table></div>
+  <p class="muted small">KB, MB, GB 1000'in katlarıdır; KiB, MiB, GiB 1024'ün katlarıdır. Windows "GB" yazsa da 1024 tabanını kullanır.</p>
+</section>
+</main>
+<script>
+const E = site.esc, pad = n => String(n).padStart(2, '0');
+const rnd = n => { const a = new Uint32Array(1), lim = Math.floor(2 ** 32 / n) * n; let x; do { crypto.getRandomValues(a); x = a[0]; } while (x >= lim); return x % n; };
+
+// ---- şifre
+const SETS = { l: 'abcdefghijklmnopqrstuvwxyz', u: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', d: '0123456789', s: '!@#$%^&*()-_=+[]{};:,.?/' };
+const WORDS = 'masa kalem deniz bulut orman kitap sabah gece yıldız elma kapı yol nehir dağ köprü rüzgar bahar kış yaz güneş ay toprak taş çiçek kuş kedi köpek balık şehir köy pazar çarşı sokak bahçe ağaç yaprak kum dalga liman gemi tren uçak bisiklet kale saray müze sergi şarkı ezgi davul keman resim boya fırça defter silgi harita pusula zaman saat takvim hafta mevsim yağmur kar sis şimşek gökyüzü ışık gölge ayna pencere duvar çatı merdiven anahtar kilit fener mum ateş duman çay kahve ekmek peynir zeytin bal reçel limon portakal kiraz incir üzüm karpuz kavun fındık ceviz badem pamuk ipek yün düğme iğne iplik çanta şapka eldiven atkı bere çizme ayakkabı tabak kaşık çatal bardak sürahi tencere tava fırın'.split(' ');
+function genPw() {
+  const m = site.$('#pm').value, L = +site.$('#pl').value;
+  site.$('#psets').hidden = m !== 'rand';
+  if (m === 'words') { const n = Math.max(3, Math.round(L / 5)); const w = [...Array(n)].map(() => WORDS[rnd(WORDS.length)]); return [w.join('-') + '-' + rnd(100), n * Math.log2(WORDS.length) + Math.log2(100)]; }
+  if (m === 'pin') return [[...Array(L)].map(() => rnd(10)).join(''), L * Math.log2(10)];
+  let pool = SETS.l, req = [SETS.l];
+  for (const [id, k] of [['pu', 'u'], ['pd', 'd'], ['ps', 's']]) if (site.$('#' + id).checked) { pool += SETS[k]; req.push(SETS[k]); }
+  if (site.$('#px').checked) { pool = pool.replace(/[lI1O0o]/g, ''); req = req.map(s => s.replace(/[lI1O0o]/g, '')); }
+  let pw;
+  do { pw = [...Array(L)].map(() => pool[rnd(pool.length)]).join(''); } while (L >= req.length && !req.every(s => [...pw].some(c => s.includes(c))));
+  return [pw, L * Math.log2(pool.length)];
+}
+let pwList = [];
+function showPw() {
+  const [pw, bits] = genPw(); site.$('#pout').textContent = pw; site.$('#plv').textContent = site.$('#pl').value;
+  const lvl = bits < 40 ? ['zayıf', '#ff5a4e', 25] : bits < 64 ? ['orta', '#ff9f1c', 50] : bits < 90 ? ['güçlü', '#3bb273', 78] : ['çok güçlü', '#1f8a52', 100];
+  Object.assign(site.$('#pmeter').style, { width: lvl[2] + '%', background: lvl[1] });
+  site.$('#pinfo').textContent = `${lvl[0]} · yaklaşık ${Math.round(bits)} bit`;
+  pwList = [pw, ...pwList.filter(x => x !== pw)].slice(0, 5);
+  site.$('#plist').innerHTML = pwList.slice(1).map(p => `<button data-pw="${E(p)}"><span>${E(p)}</span><small>kopyala</small></button>`).join('');
+}
+['#pl', '#pm', '#pu', '#pd', '#ps', '#px'].forEach(s => site.$(s).addEventListener('input', showPw));
+site.$('#pgen').onclick = showPw;
+site.$('#pcopy').onclick = () => navigator.clipboard.writeText(site.$('#pout').textContent).then(() => toast('kopyalandı'));
+site.$('#plist').onclick = e => { const b = e.target.closest('[data-pw]'); if (b) navigator.clipboard.writeText(b.dataset.pw).then(() => toast('kopyalandı')); };
+
+// ---- döviz
+const CUR = { TRY: 'Türk lirası', USD: 'ABD doları', EUR: 'Euro', GBP: 'İngiliz sterlini', CHF: 'İsviçre frangı', JPY: 'Japon yeni', CAD: 'Kanada doları', AUD: 'Avustralya doları', CNY: 'Çin yuanı', SEK: 'İsveç kronu', NOK: 'Norveç kronu', DKK: 'Danimarka kronu', PLN: 'Polonya zlotisi', CZK: 'Çek korunası', HUF: 'Macar forinti', RON: 'Rumen leyi', BGN: 'Bulgar levası', KRW: 'Güney Kore wonu', INR: 'Hindistan rupisi', BRL: 'Brezilya reali', MXN: 'Meksika pesosu', ZAR: 'Güney Afrika randı', ILS: 'İsrail şekeli', SGD: 'Singapur doları', HKD: 'Hong Kong doları', NZD: 'Yeni Zelanda doları', IDR: 'Endonezya rupisi', MYR: 'Malezya ringgiti', PHP: 'Filipin pesosu', THB: 'Tayland bahtı', ISK: 'İzlanda kronu' };
+let rates = null;
+site.$('#df').innerHTML = site.$('#dt').innerHTML = Object.entries(CUR).map(([k, n]) => `<option value="${k}">${k} · ${n}</option>`).join('');
+site.$('#df').value = 'USD'; site.$('#dt').value = 'TRY';
+async function loadRates() {
+  const c = store.get('kur', null);
+  if (c && Date.now() - c.t < 6 * 36e5) { rates = c.d; return; }
+  const r = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR'); if (!r.ok) throw new Error('kur alınamadı');
+  const d = await r.json(); d.rates.EUR = 1; rates = d; store.set('kur', { t: Date.now(), d });
+}
+function doviz() {
+  if (!rates) return;
+  const a = +site.$('#da').value || 0, f = site.$('#df').value, t = site.$('#dt').value, conv = (x, from, to) => x / rates.rates[from] * rates.rates[to];
+  const fm = (x, c) => x.toLocaleString('tr-TR', { style: 'currency', currency: c, maximumFractionDigits: x < 1 ? 6 : 2 });
+  site.$('#dout').innerHTML = `<b style="font-size:1.4rem">${fm(a, f)} = ${fm(conv(a, f, t), t)}</b><br><span class="muted small">1 ${f} = ${fm(conv(1, f, t), t)} · ${new Date(rates.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} kuru</span>`;
+  site.$('#dtab').innerHTML = ['USD', 'EUR', 'GBP', 'CHF', 'JPY', 'TRY'].filter(c => c !== f).map(c => `<tr><td>${c} · ${CUR[c]}</td><td class="n">${fm(conv(a, f, c), c)}</td></tr>`).join('');
+}
+['#da', '#df', '#dt'].forEach(s => site.$(s).addEventListener('input', doviz));
+site.$('#dsw').onclick = () => { const f = site.$('#df').value; site.$('#df').value = site.$('#dt').value; site.$('#dt').value = f; doviz(); };
+
+// ---- hava (Open-Meteo)
+const WMO = { 0: 'açık', 1: 'çoğunlukla açık', 2: 'parçalı bulutlu', 3: 'kapalı', 45: 'sisli', 48: 'kırağılı sis', 51: 'hafif çisenti', 53: 'çisenti', 55: 'yoğun çisenti', 56: 'donan çisenti', 57: 'donan çisenti', 61: 'hafif yağmur', 63: 'yağmur', 65: 'şiddetli yağmur', 66: 'donan yağmur', 67: 'donan yağmur', 71: 'hafif kar', 73: 'kar', 75: 'yoğun kar', 77: 'kar taneleri', 80: 'sağanak', 81: 'sağanak', 82: 'şiddetli sağanak', 85: 'kar sağanağı', 86: 'yoğun kar sağanağı', 95: 'gök gürültülü fırtına', 96: 'dolulu fırtına', 99: 'dolulu fırtına' };
+async function hava(lat, lon, name) {
+  site.$('#hout').innerHTML = '<p class="muted">yükleniyor…</p>';
+  try {
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=7`;
+    const d = await (await fetch(u)).json(), c = d.current, dl = d.daily;
+    const hm = s => s.slice(11, 16);
+    site.$('#hout').innerHTML = `<div class="out"><div class="now"><span class="big">${Math.round(c.temperature_2m)}°</span><div><b style="font-size:1.2rem">${E(name)}</b><br>${WMO[c.weather_code] || ''} · hissedilen ${Math.round(c.apparent_temperature)}°<br><span class="muted small">nem %${c.relative_humidity_2m} · rüzgâr ${Math.round(c.wind_speed_10m)} km/sa · gün doğumu ${hm(dl.sunrise[0])}, batımı ${hm(dl.sunset[0])}</span></div></div></div>
+      <div class="wx">${dl.time.map((t, i) => `<div>${i ? new Date(t).toLocaleDateString('tr-TR', { weekday: 'short' }) : 'bugün'}<b>${Math.round(dl.temperature_2m_max[i])}° / ${Math.round(dl.temperature_2m_min[i])}°</b>${WMO[dl.weather_code[i]] || ''}<br><span class="muted">yağış %${dl.precipitation_probability_max[i] ?? 0}</span></div>`).join('')}</div>`;
+    store.set('hava-son', { lat, lon, name });
+  } catch { site.$('#hout').innerHTML = '<p class="muted">Hava durumu alınamadı. Bağlantını kontrol et.</p>'; }
+}
+site.$('#hgo').onclick = async () => {
+  const q = site.$('#hc').value.trim(); if (!q) return;
+  try {
+    const r = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=tr`)).json();
+    const p = r.results?.[0]; if (!p) return toast('şehir bulunamadı');
+    hava(p.latitude, p.longitude, [p.name, p.admin1 !== p.name ? p.admin1 : '', p.country_code !== 'TR' ? p.country : ''].filter(Boolean).join(', '));
+  } catch { toast('arama yapılamadı'); }
+};
+site.$('#hc').onkeydown = e => { if (e.key === 'Enter') site.$('#hgo').click(); };
+site.$('#hloc').onclick = () => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => hava(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'bulunduğun yer'), () => toast('konum izni verilmedi')) : toast('konum desteklenmiyor');
+
+// ---- saat dilimi
+const TZ = (Intl.supportedValuesOf?.('timeZone') || ['Europe/Istanbul', 'UTC']);
+const tzName = z => z.split('/').pop().replace(/_/g, ' ');
+let zones = store.get('saat-dilimleri', ['Europe/Istanbul', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'Asia/Tokyo']);
+site.$('#zf').innerHTML = site.$('#zadd').innerHTML = TZ.map(z => `<option value="${z}">${z.replace(/_/g, ' ')}</option>`).join('');
+site.$('#zf').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// bir saat dilimindeki duvar saatini gerçek ana çevir
+const offset = (tz, d) => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(d).map(x => [x.type, x.value])); return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(d / 1000) * 1000; };
+const fromWall = (s, tz) => { const g = Date.parse(s + 'Z'); let t = g - offset(tz, g); return g - offset(tz, t); };
+let zLive = true;
+function saat() {
+  const t = zLive ? Date.now() : fromWall(site.$('#zt').value, site.$('#zf').value);
+  site.$('#zl').innerHTML = zones.map((z, i) => { const f = new Intl.DateTimeFormat('tr-TR', { timeZone: z, hour: '2-digit', minute: '2-digit', weekday: 'short', day: 'numeric', month: 'short' }).formatToParts(t); const g = k => f.find(x => x.type === k)?.value; const off = offset(z, t) / 36e5;
+    return `<div class="z"><span>${tzName(z)}<br><small class="muted">${g('weekday')} ${g('day')} ${g('month')} · UTC${off >= 0 ? '+' : ''}${off}</small></span><span><b>${g('hour')}:${g('minute')}</b> <button class="sm ghost" data-zx="${i}" aria-label="kaldır">✕</button></span></div>`; }).join('');
+}
+site.$('#zt').oninput = site.$('#zf').oninput = () => { zLive = !site.$('#zt').value; saat(); };
+site.$('#znow').onclick = () => { zLive = true; site.$('#zt').value = ''; saat(); };
+site.$('#zaddb').onclick = () => { const z = site.$('#zadd').value; if (!zones.includes(z)) { zones.push(z); store.set('saat-dilimleri', zones); saat(); } };
+site.$('#zl').onclick = e => { const b = e.target.closest('[data-zx]'); if (b) { zones.splice(+b.dataset.zx, 1); store.set('saat-dilimleri', zones); saat(); } };
+setInterval(() => { if (zLive && location.hash === '#saat') saat(); }, 15000);
+
+// ---- tarih farkı
+const today = new Date().toLocaleDateString('sv');
+site.$('#t1').value = today; site.$('#t2').value = store.get('yks-date', '2027-06-19').slice(0, 10); site.$('#t3').value = today;
+function tarih() {
+  let a = new Date(site.$('#t1').value), b = new Date(site.$('#t2').value);
+  if (isNaN(a) || isNaN(b)) return;
+  const sign = b < a ? -1 : 1; if (sign < 0) [a, b] = [b, a];
+  const inc = site.$('#tinc').checked ? 1 : 0, days = Math.round((b - a) / 864e5) + inc;
+  let y = b.getFullYear() - a.getFullYear(), m = b.getMonth() - a.getMonth(), d = b.getDate() - a.getDate() + inc;
+  if (d < 0) { m--; d += new Date(b.getFullYear(), b.getMonth(), 0).getDate(); } if (m < 0) { y--; m += 12; }
+  let work = 0; for (let t = new Date(a); t < b || (inc && +t === +b); t.setDate(t.getDate() + 1)) { const w = t.getDay(); if (w && w < 6) work++; }
+  site.$('#tout').innerHTML = `<b style="font-size:1.3rem">${days.toLocaleString('tr-TR')} gün</b>${sign < 0 ? ' (bitiş başlangıçtan önce)' : ''}<br>${[y && y + ' yıl', m && m + ' ay', d && d + ' gün'].filter(Boolean).join(' ') || '0 gün'} · ${site.fmt(days / 7, 1)} hafta · ${work} iş günü (hafta sonları hariç) · ${(days * 24).toLocaleString('tr-TR')} saat`;
+}
+function ekle() { const d = new Date(site.$('#t3').value); if (isNaN(d)) return; d.setDate(d.getDate() + (+site.$('#t4').value || 0)); site.$('#tout2').innerHTML = `<b>${d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</b>`; }
+['#t1', '#t2', '#tinc'].forEach(s => site.$(s).addEventListener('input', tarih)); ['#t3', '#t4'].forEach(s => site.$(s).addEventListener('input', ekle));
+
+// ---- renk
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rgb2hex = rgb => '#' + rgb.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+function rgb2hsl([r, g, b]) { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0; if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; } return [Math.round(h), Math.round(s * 100), Math.round(l * 100)]; }
+function hsl2rgb(h, s, l) { s /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)); return [f(0) * 255, f(8) * 255, f(4) * 255]; }
+const lum = rgb => { const [r, g, b] = rgb.map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; };
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
+function renk(h) {
+  const rgb = hex2rgb(h), [H, S, L] = rgb2hsl(rgb), k = 1 - Math.max(...rgb) / 255, cmyk = k === 1 ? [0, 0, 0, 100] : [...rgb.map(v => Math.round((1 - v / 255 - k) / (1 - k) * 100)), Math.round(k * 100)];
+  site.$('#cc').value = h; site.$('#csw').style.background = h; store.set('renk', h);
+  site.$('#cv').innerHTML = [h.toUpperCase(), `rgb(${rgb.join(', ')})`, `hsl(${H}, ${S}%, ${L}%)`, `cmyk(${cmyk.join('%, ')}%)`].map(v => `<button data-cp="${v}"><span>${v}</span><small>kopyala</small></button>`).join('');
+  site.$('#cpal').innerHTML = [92, 82, 70, 60, L, 40, 30, 20, 10].map(l => rgb2hex(hsl2rgb(H, S, l))).map(c => `<button style="background:${c}" data-c="${c}" aria-label="${c}"></button>`).join('');
+  const w = ratio(rgb, [255, 255, 255]), b = ratio(rgb, [0, 0, 0]), comp = rgb2hex(hsl2rgb((H + 180) % 360, S, L));
+  site.$('#ccon').innerHTML = `beyaz yazıyla kontrast <b>${w.toFixed(2)}:1</b> (${w >= 4.5 ? 'okunur' : 'zayıf'}) · siyah yazıyla <b>${b.toFixed(2)}:1</b> (${b >= 4.5 ? 'okunur' : 'zayıf'})<br>tamamlayıcı renk <button class="sm" data-c="${comp}" style="background:${comp};color:${lum(hex2rgb(comp)) > .4 ? '#000' : '#fff'}">${comp}</button>`;
+}
+site.$('#cc').oninput = e => renk(e.target.value);
+site.$('#ci').oninput = e => { const v = e.target.value.trim(), m = v.match(/^#?([0-9a-f]{6}|[0-9a-f]{3})$/i), r = v.match(/(\d+)\D+(\d+)\D+(\d+)/); if (m) { let h = m[1]; if (h.length === 3) h = [...h].map(c => c + c).join(''); renk('#' + h.toLowerCase()); } else if (r) renk(rgb2hex(r.slice(1, 4).map(Number))); };
+document.addEventListener('click', e => { const c = e.target.closest('[data-c]'); if (c) renk(c.dataset.c); const p = e.target.closest('[data-cp]'); if (p) navigator.clipboard.writeText(p.dataset.cp).then(() => toast('kopyalandı')); });
+if ('EyeDropper' in window) { site.$('#cpick').hidden = false; site.$('#cpick').onclick = async () => { try { const r = await new EyeDropper().open(); renk(r.sRGBHex.length === 7 ? r.sRGBHex : rgb2hex((r.sRGBHex.match(/\d+/g) || []).map(Number))); } catch {} }; }
+
+// ---- klavye hız testi
+const KW = 'bir bu ve için ile çok daha ne gibi kadar sonra şimdi zaman insan gün yıl yer el göz iş ev su yol söz kitap okul ders soru cevap sınav konu çalışma başarı hedef plan sabah akşam gece hafta ay saat dakika deniz dağ şehir ülke dünya hayat aile arkadaş öğretmen öğrenci sınıf kalem defter bilgi düşünce fikir sevgi umut güzel büyük küçük yeni eski uzun kısa hızlı yavaş kolay zor doğru yanlış önemli farklı aynı her bazı hiç belki ancak çünkü ama fakat oysa yine hem ya ise bile artık hep sadece biraz oldukça gerçekten birlikte kendi bütün diğer başka ilk son orta alt üst iç dış ön arka sağ sol yakın uzak açık kapalı sıcak soğuk beyaz siyah kırmızı mavi yeşil sarı'.split(' ');
+let K = { dur: 60, words: [], i: 0, typed: [], start: 0, timer: 0, done: false };
+function kNew() {
+  clearInterval(K.timer); K = { dur: K.dur, words: [...Array(120)].map(() => KW[rnd(KW.length)]), i: 0, typed: [], start: 0, timer: 0, done: false };
+  site.$('#kin').value = ''; site.$('#kin').disabled = false; site.$('#ktime').textContent = K.dur; site.$('#kres').innerHTML = ''; kPaint();
+}
+function kPaint() {
+  const from = Math.max(0, K.i - 8);
+  site.$('#kt').innerHTML = K.words.slice(from, from + 30).map((w, j) => { const k = from + j; const cls = k === K.i ? 'cur' : k < K.i ? (K.typed[k] === w ? 'ok' : 'bad') : ''; return `<span class="${cls}">${w}</span>`; }).join(' ');
+}
+function kEnd() {
+  clearInterval(K.timer); K.done = true; site.$('#kin').disabled = true;
+  let ok = 0, chars = 0, total = 0; K.typed.forEach((t, k) => { total++; if (t === K.words[k]) { ok++; chars += t.length + 1; } });
+  const wpm = Math.round(chars / 5 / (K.dur / 60)), acc = total ? Math.round(ok / total * 100) : 0, best = Math.max(store.get('klavye-en', 0), wpm); store.set('klavye-en', best);
+  site.$('#kres').innerHTML = [[wpm, 'kelime / dakika'], ['%' + acc, 'doğruluk'], [ok + ' / ' + total, 'doğru kelime'], [best, 'en iyi skorun']].map(([b, s]) => `<div class="out" style="margin:0"><b style="font-family:var(--head);font-size:1.6rem">${b}</b><br><span class="muted small">${s}</span></div>`).join('');
+}
+site.$('#kin').oninput = e => {
+  if (K.done) return;
+  if (!K.start) { K.start = Date.now(); K.timer = setInterval(() => { const left = Math.max(0, K.dur - Math.floor((Date.now() - K.start) / 1000)); site.$('#ktime').textContent = left; if (!left) kEnd(); }, 200); }
+  const v = e.target.value;
+  if (/\s$/.test(v)) { const w = v.trim(); if (w) { K.typed[K.i] = w.toLocaleLowerCase('tr'); K.i++; } e.target.value = ''; kPaint(); }
+};
+site.$('#kd').onclick = e => { const b = e.target.closest('[data-s]'); if (!b) return; K.dur = +b.dataset.s; site.$$('#kd button').forEach(x => x.classList.toggle('on', x === b)); kNew(); };
+site.$('#kreset').onclick = kNew;
+
+// ---- cihaz testi
+let camS = null, micS = null, actx = null;
+async function cam(id) {
+  camS?.getTracks().forEach(t => t.stop());
+  try {
+    camS = await navigator.mediaDevices.getUserMedia({ video: id ? { deviceId: { exact: id } } : { width: { ideal: 1920 } }, audio: false });
+    const v = site.$('#camv'); v.srcObject = camS; v.hidden = false; await v.play();
+    const s = camS.getVideoTracks()[0].getSettings(); site.$('#caminfo').textContent = `${camS.getVideoTracks()[0].label || 'kamera'} · ${s.width} × ${s.height}${s.frameRate ? ' · ' + Math.round(s.frameRate) + ' fps' : ''}`;
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    if (devs.length > 1) { site.$('#cams').hidden = false; site.$('#cams').innerHTML = devs.map((d, i) => `<option value="${d.deviceId}" ${d.deviceId === s.deviceId ? 'selected' : ''}>${E(d.label || 'kamera ' + (i + 1))}</option>`).join(''); }
+    site.$('#camb').textContent = 'kamerayı kapat';
+  } catch (e) { site.$('#caminfo').textContent = e.name === 'NotAllowedError' ? 'Kamera izni verilmedi.' : 'Kamera bulunamadı ya da açılamadı.'; }
+}
+site.$('#camb').onclick = () => { if (camS) { camS.getTracks().forEach(t => t.stop()); camS = null; site.$('#camv').hidden = true; site.$('#camb').textContent = 'kamerayı aç'; site.$('#caminfo').textContent = ''; } else cam(); };
+site.$('#cams').onchange = e => cam(e.target.value);
+site.$('#micb').onclick = async () => {
+  if (micS) { micS.getTracks().forEach(t => t.stop()); micS = null; site.$('#micb').textContent = 'mikrofonu aç'; site.$('#recb').disabled = true; site.$('#micm').style.width = 0; return; }
+  try {
+    micS = await navigator.mediaDevices.getUserMedia({ audio: true });
+    actx ||= new AudioContext(); await actx.resume();
+    const an = actx.createAnalyser(); an.fftSize = 1024; actx.createMediaStreamSource(micS).connect(an);
+    const buf = new Float32Array(an.fftSize);
+    const loop = () => { if (!micS) return; an.getFloatTimeDomainData(buf); const rms = Math.sqrt(buf.reduce((a, v) => a + v * v, 0) / buf.length); site.$('#micm').style.width = Math.min(100, rms * 300) + '%'; requestAnimationFrame(loop); };
+    loop(); site.$('#micb').textContent = 'mikrofonu kapat'; site.$('#recb').disabled = !('MediaRecorder' in window);
+    site.$('#micinfo').textContent = (micS.getAudioTracks()[0].label || 'mikrofon') + ' · konuş, çubuk hareket etmeli';
+  } catch (e) { site.$('#micinfo').textContent = e.name === 'NotAllowedError' ? 'Mikrofon izni verilmedi.' : 'Mikrofon bulunamadı.'; }
+};
+site.$('#recb').onclick = () => {
+  const rec = new MediaRecorder(micS), parts = []; rec.ondataavailable = e => parts.push(e.data);
+  rec.onstop = () => { const a = new Audio(URL.createObjectURL(new Blob(parts, { type: rec.mimeType }))); a.play(); site.$('#micinfo').textContent = 'kayıt çalınıyor…'; a.onended = () => site.$('#micinfo').textContent = 'kayıt bitti'; };
+  rec.start(); site.$('#recb').disabled = true; let n = 5; site.$('#micinfo').textContent = 'kaydediliyor… 5';
+  const t = setInterval(() => { n--; site.$('#micinfo').textContent = 'kaydediliyor… ' + n; if (!n) { clearInterval(t); rec.stop(); site.$('#recb').disabled = false; } }, 1000);
+};
+let hz = 0; { let f = 0, t0 = performance.now(); const c = t => { f++; if (t - t0 < 1000) requestAnimationFrame(c); else { hz = Math.round(f * 1000 / (t - t0)); scrInfo(); } }; requestAnimationFrame(c); }
+function scrInfo() { site.$('#scrinfo').innerHTML = `ekran <b>${screen.width} × ${screen.height}</b> · gerçek piksel ${Math.round(screen.width * devicePixelRatio)} × ${Math.round(screen.height * devicePixelRatio)} · piksel oranı ${devicePixelRatio} · renk derinliği ${screen.colorDepth} bit${hz ? ` · yenileme hızı yaklaşık ${hz} Hz` : ''} · pencere ${innerWidth} × ${innerHeight}`; }
+const COLS = ['#ff0000', '#00ff00', '#0000ff', '#ffffff', '#000000', '#808080']; let ci = 0;
+site.$('#scrb').onclick = async () => { ci = 0; const s = site.$('#scr'); s.style.background = COLS[0]; s.classList.add('show'); try { await s.requestFullscreen(); } catch {} };
+site.$('#scr').onclick = () => { ci++; if (ci >= COLS.length) return scrOff(); site.$('#scr').style.background = COLS[ci]; };
+function scrOff() { site.$('#scr').classList.remove('show'); if (document.fullscreenElement) document.exitFullscreen(); }
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) site.$('#scr').classList.remove('show'); });
+addEventListener('hashchange', () => { if (location.hash !== '#cihaz') { camS?.getTracks().forEach(t => t.stop()); camS = null; micS?.getTracks().forEach(t => t.stop()); micS = null; site.$('#camv').hidden = true; site.$('#camb').textContent = 'kamerayı aç'; site.$('#micb').textContent = 'mikrofonu aç'; } });
+
+// ---- dosya boyutu
+const FU = [['b', 'bit', 1 / 8], ['B', 'bayt', 1], ['KB', 'kilobayt', 1e3], ['MB', 'megabayt', 1e6], ['GB', 'gigabayt', 1e9], ['TB', 'terabayt', 1e12], ['KiB', 'kibibayt', 1024], ['MiB', 'mebibayt', 1024 ** 2], ['GiB', 'gibibayt', 1024 ** 3], ['TiB', 'tebibayt', 1024 ** 4]];
+site.$('#fu').innerHTML = FU.map(([u, n]) => `<option value="${u}">${u} · ${n}</option>`).join(''); site.$('#fu').value = 'GB';
+function boyut() {
+  const bytes = (+site.$('#fv').value || 0) * FU.find(f => f[0] === site.$('#fu').value)[2], mbps = +site.$('#fs').value || 0;
+  const t = mbps ? bytes * 8 / (mbps * 1e6) : 0, dur = t < 60 ? Math.ceil(t) + ' sn' : t < 3600 ? Math.floor(t / 60) + ' dk ' + Math.round(t % 60) + ' sn' : Math.floor(t / 3600) + ' sa ' + Math.round(t % 3600 / 60) + ' dk';
+  site.$('#fout').innerHTML = FU.map(([u, n, k]) => `<tr><td>${n} (${u})</td><td class="n">${(bytes / k).toLocaleString('tr-TR', { maximumFractionDigits: 6 })}</td></tr>`).join('') + (mbps ? `<tr><td><b>${mbps} Mbps ile indirme</b></td><td class="n"><b>${dur}</b></td></tr>` : '');
+}
+['#fv', '#fu', '#fs'].forEach(s => site.$(s).addEventListener('input', boyut));
+
+// ---- başlangıç
+showPw(); tarih(); ekle(); renk(store.get('renk', '#4d7cfe')); kNew(); boyut(); saat(); scrInfo();
+loadRates().then(doviz).catch(() => site.$('#dout').textContent = 'Kurlar alınamadı. İnternet bağlantını kontrol et.');
+const hs = store.get('hava-son', null);
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { if (s.dataset.tab === 'hava' && !site.$('#hout').innerHTML) { if (hs) hava(hs.lat, hs.lon, hs.name); else { site.$('#hc').value = 'Ankara'; site.$('#hgo').click(); } } if (s.dataset.tab === 'saat') saat(); }));
+</script>
+</body>
+</html>
