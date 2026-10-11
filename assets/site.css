@@ -60,8 +60,9 @@ input[type=checkbox], input[type=radio] { min-height: 0; width: 1.15rem; height:
 input[type=range] { box-shadow: none; border: 0; padding: 0; accent-color: var(--accent); background: transparent; }
 input[type=color] { padding: 2px; width: 56px; }
 input[type=file] { width: 100%; }
-label.f { display: grid; gap: .3rem; font-weight: 600; font-size: .85rem; }
-label.f > input, label.f > select { width: 100%; }
+/* Etiket metni ve içindeki <span> değeri tek satırda kalsın, alan altına gelsin */
+label.f { display: block; font-weight: 600; font-size: .85rem; }
+label.f > input, label.f > select, label.f > textarea { display: block; width: 100%; margin-top: .3rem; font-weight: 400; }
 label.c { display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }
 .row { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; align-items: center; }
 .row.l { justify-content: flex-start; }

@@ -31,6 +31,11 @@ const ICON = {
   hesap: I('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>'),
   yazi: I('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
   genel: I('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>'),
+  rastgele: I('<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>'),
+  medya: I('<rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10 6-3.5v11l-6-3.5"/>'),
+  muzik: I('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
+  gelistirici: I('<path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 4l-4 16"/>'),
+  gizlilik: I('<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>'),
 };
 // [grup anahtarı, başlık, renk, [ad, adres, açıklama]]
 const GROUPS = [
@@ -50,23 +55,46 @@ const GROUPS = [
   ['resim', 'resim', 'var(--teal)', [
     ['sıkıştır', '/araclar/resim/#sikistir', 'boyutu küçült'], ['boyutlandır', '/araclar/resim/#boyut', 'piksel ya da yüzde'], ['kırp', '/araclar/resim/#kirp', 'serbest ya da oranlı'],
     ['format çevir', '/araclar/resim/#cevir', 'PNG, JPG, WebP'], ['arka plan kaldır', '/araclar/resim/#arkaplan', 'yapay zekâ, cihazında çalışır'], ['taranmış belge efekti', '/araclar/resim/#tarama', 'fotoğrafı tarama gibi yap'],
-    ['resimden yazı oku', '/araclar/resim/#ocr', 'Türkçe OCR'],
+    ['resimden yazı oku', '/araclar/resim/#ocr', 'Türkçe OCR'], ['favicon üretici', '/araclar/resim/#favicon', 'site simgesi, ICO ve PNG'], ['kolaj', '/araclar/resim/#kolaj', 'resimleri tek karede birleştir'],
+    ['bulanıklaştır', '/araclar/resim/#bulanik', 'yüz, plaka, adres gizle'],
   ]],
   ['hesap', 'hesap ve matematik', 'var(--blue)', [
     ['bilimsel hesap makinesi', '/araclar/hesap/#bilimsel', 'trigonometri, log, üs'], ['fonksiyon grafiği', '/araclar/hesap/#grafik', 'üç fonksiyona kadar'], ['denklem çözücü', '/araclar/hesap/#denklem', 'tek bilinmeyen ve sistemler'],
     ['matris', '/araclar/hesap/#matris', 'determinant, ters, çarpım'], ['birim çevirici', '/araclar/hesap/#birim', 'uzunluk, kütle, sıcaklık…'], ['yüzde', '/araclar/hesap/#yuzde', 'zam, indirim, değişim'],
     ['ortalama ve not', '/araclar/hesap/#ortalama', 'ağırlıklı ortalama'], ['taban dönüştürücü', '/araclar/hesap/#taban', 'ikilik, onaltılık'], ['asal, EBOB, EKOK', '/araclar/hesap/#asal', 'çarpanlar ve bölenler'],
-    ['türev ve integral', '/araclar/hesap/#turev', 'sembolik türev, sayısal integral'],
+    ['türev ve integral', '/araclar/hesap/#turev', 'sembolik türev, sayısal integral'], ['kredi ve faiz', '/araclar/hesap/#kredi', 'taksit, ödeme planı, birikim'], ['KDV', '/araclar/hesap/#kdv', 'dahil, hariç'],
+    ['yaş', '/araclar/hesap/#yas', 'gün, hafta, doğum günü'], ['vücut kitle indeksi', '/araclar/hesap/#vki', 'boy ve kiloya göre'],
   ]],
   ['yazi', 'yazı', 'var(--purple)', [
     ['kelime sayacı, okuma süresi', '/araclar/yazi/#sayac', 'karakter, kelime, cümle'], ['büyük / küçük harf', '/araclar/yazi/#harf', 'Türkçe kurallarla'], ['metin karşılaştır', '/araclar/yazi/#fark', 'farkları renklendir'],
-    ['markdown editörü', '/araclar/yazi/#markdown', 'canlı önizleme'], ['yazım ve tekrar denetimi', '/araclar/yazi/#yazim', 'sık yapılan hatalar'],
+    ['markdown editörü', '/araclar/yazi/#markdown', 'canlı önizleme'], ['yazım ve tekrar denetimi', '/araclar/yazi/#yazim', 'sık yapılan hatalar'], ['Türkçe karakter düzelt', '/araclar/yazi/#turkce', 'cagri → çağrı'],
+    ['satır sırala, tekrar sil', '/araclar/yazi/#satir', 'A-Z, karıştır, numarala'], ['lorem ipsum', '/araclar/yazi/#lorem', 'yer tutucu metin'], ['slug', '/araclar/yazi/#slug', 'başlıktan bağlantı adı'],
   ]],
   ['genel', 'genel', 'var(--green)', [
     ['QR kod oluştur', '/araclar/qr/#uret', 'bağlantı, metin, Wi-Fi'], ['QR kod oku', '/araclar/qr/#oku', 'kamerayla ya da resimden'], ['şifre üretici', '/araclar/genel/#sifre', 'güçlü ve rastgele'],
     ['döviz çevirici', '/araclar/genel/#doviz', 'günlük kurlar'], ['hava durumu', '/araclar/genel/#hava', '7 günlük tahmin'], ['saat dilimi', '/araclar/genel/#saat', 'dünya saatleri'],
     ['tarih farkı', '/araclar/genel/#tarih', 'gün, hafta, iş günü'], ['renk seçici', '/araclar/genel/#renk', 'HEX, RGB, HSL, kontrast'], ['klavye hız testi', '/araclar/genel/#klavye', 'dakikada kaç kelime'],
     ['kamera, mikrofon, ekran testi', '/araclar/genel/#cihaz', 'cihazını dene'], ['dosya boyutu çevirici', '/araclar/genel/#boyut', 'MB, GB, indirme süresi'],
+  ]],
+  ['rastgele', 'rastgele', 'var(--pink)', [
+    ['çark çevir', '/araclar/rastgele/#cark', 'kendi seçeneklerinle'], ['zar at', '/araclar/rastgele/#zar', '1-6 zar, 4-20 yüz'], ['yazı tura', '/araclar/rastgele/#yazitura', 'adil para atışı'],
+    ['rastgele sayı', '/araclar/rastgele/#sayi', 'aralık, tekrarsız'], ['takımlara böl', '/araclar/rastgele/#takim', 'sınıfı ya da arkadaşları'], ['kura çek', '/araclar/rastgele/#kura', 'listeden kazanan seç'],
+  ]],
+  ['medya', 'ses ve video', 'var(--red)', [
+    ['ekran kaydedici', '/araclar/medya/#ekran', 'sesli ekran kaydı'], ['ses kaydedici', '/araclar/medya/#ses', 'mikrofondan kayıt'], ['metni sesli oku', '/araclar/medya/#oku', 'Türkçe seslendirme'],
+    ['sesi yazıya çevir', '/araclar/medya/#yaz', 'konuş, yazıya dönsün'], ['videodan GIF', '/araclar/medya/#gif', 'kısa bölümü GIF yap'],
+  ]],
+  ['muzik', 'müzik', 'var(--purple)', [
+    ['metronom', '/araclar/muzik/#metronom', 'tempo ve ölçü'], ['akort aleti', '/araclar/muzik/#akort', 'gitar ve diğer çalgılar'], ['piyano', '/araclar/muzik/#piyano', 'iki oktav, klavyeyle çal'],
+    ['davul makinesi', '/araclar/muzik/#davul', '16 adımlı ritim'],
+  ]],
+  ['gelistirici', 'geliştirici', 'var(--blue)', [
+    ['JSON biçimlendirici', '/araclar/gelistirici/#json', 'biçimlendir, küçült, doğrula'], ['regex test', '/araclar/gelistirici/#regex', 'eşleşmeler ve gruplar'], ['Base64, URL kodlama', '/araclar/gelistirici/#kodla', 'kodla ve çöz'],
+    ['hash (SHA)', '/araclar/gelistirici/#hash', 'metin ya da dosya özeti'], ['UUID üretici', '/araclar/gelistirici/#uuid', 'toplu üretim'], ['Unix zaman damgası', '/araclar/gelistirici/#zaman', 'tarihe ve geri çevir'],
+    ['JWT çözücü', '/araclar/gelistirici/#jwt', 'başlık ve içerik'],
+  ]],
+  ['gizlilik', 'gizlilik', 'var(--green)', [
+    ['fotoğraftan konum sil', '/araclar/gizlilik/#exif', 'EXIF ve GPS bilgisi'], ['dosya şifrele', '/araclar/gizlilik/#sifrele', 'parolayla, AES-256'], ['şifre gücü', '/araclar/gizlilik/#parola', 'kırılma süresi tahmini'],
   ]],
 ];
 function render() {

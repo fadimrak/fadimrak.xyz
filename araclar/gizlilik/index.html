@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gizlilik araçları · fadimrak</title>
+<meta name="description" content="Fotoğraftan konum ve EXIF bilgisini sil, dosyayı parolayla şifrele, şifre gücünü test et. Hepsi cihazında çalışır.">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--green); }
+  .files { display: grid; gap: .5rem; margin-top: .8rem; }
+  .files .f2 { display: grid; grid-template-columns: 64px 1fr auto; gap: .7rem; align-items: center; padding: .55rem .7rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); }
+  .files img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+  .files small { display: block; color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+  .warn { color: var(--bad); font-weight: 700; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  .meter { height: 12px; border-radius: 99px; background: var(--soft); overflow: hidden; border: 2px solid var(--line); margin-top: .7rem; } .meter i { display: block; height: 100%; width: 0; transition: width .2s, background .2s; }
+  .pwres { margin-top: .7rem; } .pwres b { font-family: var(--head); font-size: 1.3rem; }
+  .pwres ul { margin: .4rem 0 0; padding-left: 1.1rem; }
+  .note { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>gizlilik</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="gizlilik araçları"><a href="#exif">fotoğraftan konum sil</a><a href="#sifrele">dosya şifrele</a><a href="#parola">şifre gücü</a></nav>
+<p class="note" style="margin-top:0">Bu sayfadaki hiçbir dosya ya da şifre cihazından çıkmaz.</p>
+
+<section data-tab="exif" class="panel">
+  <h2>fotoğraftan konum ve EXIF bilgisini sil</h2>
+  <p class="note" style="margin-top:0">Telefonla çekilen fotoğraflar çoğu zaman çekildiği yerin koordinatlarını, tarihi ve cihaz modelini içinde taşır. Paylaşmadan önce temizle.</p>
+  <div class="drop" id="edrop"><b>fotoğrafları seç ya da buraya sürükle</b><span class="note">JPG, PNG, WebP</span></div>
+  <div class="files" id="elist"></div>
+  <div class="row l" style="margin-top:.7rem"><button class="primary" id="eall" hidden>hepsini temizle ve indir (ZIP)</button></div>
+</section>
+
+<section data-tab="sifrele" class="panel">
+  <h2>dosyayı parolayla şifrele</h2>
+  <div class="drop" id="cdrop"><b>dosya seç ya da buraya sürükle</b><span class="note">şifrelemek için herhangi bir dosya, çözmek için .fxenc dosyası</span></div>
+  <p id="cname" class="note"></p>
+  <div class="opts"><label class="f">parola<input id="cp1" type="password" autocomplete="new-password"></label><label class="f">parola (tekrar)<input id="cp2" type="password" autocomplete="new-password"></label></div>
+  <div class="row l"><button class="primary" id="cgo" disabled>şifrele</button><span class="note" id="cmsg"></span></div>
+  <p class="note">AES-256-GCM ile şifrelenir, anahtar paroladan PBKDF2 (600.000 tur) ile türetilir. Parolayı unutursan dosya kurtarılamaz; bu site parolanı bilmez. Şifreli dosyayı açmak için yine bu sayfayı kullan.</p>
+</section>
+
+<section data-tab="parola" class="panel">
+  <h2>şifre gücü</h2>
+  <div class="row l"><input id="pw" type="password" autocomplete="off" placeholder="denenecek şifre" aria-label="şifre" style="flex:1 1 240px"><label class="c"><input type="checkbox" id="pwshow"> göster</label></div>
+  <div class="meter"><i id="pwm"></i></div>
+  <div class="pwres" id="pwr"></div>
+  <p class="note">Tahmini süre, saldırganın şifre veritabanını ele geçirip saniyede 10 milyar deneme yaptığı durum içindir. Güçlü ve ezberlenebilir bir şifre için <a href="/araclar/genel/#sifre">şifre üretici</a>nin kelime modunu dene.</p>
+</section>
+</main>
+<script>
+const E = site.esc, kb = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+const ZIP = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+
+// ---- EXIF okuma (JPEG): kamera, tarih ve GPS
+function exif(buf) {
+  const v = new DataView(buf); if (v.getUint16(0) !== 0xFFD8) return null;
+  let o = 2;
+  while (o < v.byteLength - 4) {
+    const mk = v.getUint16(o), len = v.getUint16(o + 2);
+    if (mk === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) {
+      const t = o + 10, le = v.getUint16(t) === 0x4949, u16 = p => v.getUint16(t + p, le), u32 = p => v.getUint32(t + p, le);
+      const str = (p, n) => { let s = ''; for (let i = 0; i < n - 1 && t + p + i < v.byteLength; i++) { const c = v.getUint8(t + p + i); if (!c) break; s += String.fromCharCode(c); } return s.trim(); };
+      const ifd = p => { const out = {}; const n = u16(p); for (let i = 0; i < n; i++) { const e = p + 2 + i * 12, tag = u16(e), type = u16(e + 2), cnt = u32(e + 4), val = e + 8, at = cnt * ([0, 1, 1, 2, 4, 8][type] || 1) > 4 ? u32(val) : val; out[tag] = { type, cnt, at }; } return out; };
+      const rat = p => u32(p) / (u32(p + 4) || 1), res = {}, i0 = ifd(u32(4));
+      if (i0[0x010F]) res.marka = str(i0[0x010F].at, i0[0x010F].cnt);
+      if (i0[0x0110]) res.model = str(i0[0x0110].at, i0[0x0110].cnt);
+      if (i0[0x8769]) { const ex = ifd(u32(i0[0x8769].at)); if (ex[0x9003]) res.tarih = str(ex[0x9003].at, ex[0x9003].cnt); }
+      if (!res.tarih && i0[0x0132]) res.tarih = str(i0[0x0132].at, i0[0x0132].cnt);
+      if (i0[0x8825]) {
+        const g = ifd(u32(i0[0x8825].at)), dms = e => rat(e.at) + rat(e.at + 8) / 60 + rat(e.at + 16) / 3600;
+        if (g[2] && g[4]) { let lat = dms(g[2]), lon = dms(g[4]); if (str(g[1]?.at ?? 0, 2) === 'S') lat = -lat; if (str(g[3]?.at ?? 0, 2) === 'W') lon = -lon; if (lat || lon) res.gps = [lat, lon]; }
+      }
+      return res;
+    }
+    if ((mk & 0xFF00) !== 0xFF00) break;
+    o += 2 + len;
+  }
+  return {};
+}
+let EF = [];
+site.drop(site.$('#edrop'), async fs => {
+  for (const f of fs.filter(f => f.type.startsWith('image/'))) {
+    let info = null; try { info = f.type === 'image/jpeg' ? exif(await f.arrayBuffer()) : null; } catch {}
+    EF.push({ f, info, u: URL.createObjectURL(f) });
+  }
+  paintE();
+}, { accept: 'image/*', multiple: true });
+function paintE() {
+  site.$('#elist').innerHTML = EF.map((x, i) => {
+    const d = x.info, bits = [];
+    if (d?.gps) bits.push(`<span class="warn">konum var: ${d.gps.map(n => n.toFixed(5)).join(', ')}</span> <a href="https://www.openstreetmap.org/?mlat=${d.gps[0]}&mlon=${d.gps[1]}#map=16/${d.gps[0]}/${d.gps[1]}" target="_blank" rel="noopener">haritada gör</a>`);
+    if (d?.marka || d?.model) bits.push(E([d.marka, d.model].filter(Boolean).join(' ')));
+    if (d?.tarih) bits.push('çekim: ' + E(d.tarih));
+    const desc = bits.length ? bits.join(' · ') : x.f.type === 'image/jpeg' ? 'görünür meta veri bulunamadı' : 'meta veri temizlenecek';
+    return `<div class="f2"><img src="${x.u}" alt=""><div><b>${E(x.f.name)}</b><small>${desc}</small></div><button class="sm" data-clean="${i}">temizle, indir</button></div>`;
+  }).join('');
+  site.$('#eall').hidden = EF.length < 2;
+}
+// Yeniden kodlama tüm meta verileri atar; yön bilgisi önce görüntüye uygulanır, fotoğraf yan dönmez
+async function clean(x) {
+  const bmp = await createImageBitmap(x.f, { imageOrientation: 'from-image' }), c = Object.assign(document.createElement('canvas'), { width: bmp.width, height: bmp.height }), ctx = c.getContext('2d');
+  const type = x.f.type === 'image/png' ? 'image/png' : x.f.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+  if (type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); }
+  ctx.drawImage(bmp, 0, 0);
+  const b = await new Promise(r => c.toBlob(r, type, .95));
+  return [x.f.name.replace(/(\.[^.]+)?$/, '-temiz$1'), b];
+}
+site.$('#elist').onclick = async e => { const b = e.target.closest('[data-clean]'); if (!b) return; try { const [n, bl] = await clean(EF[+b.dataset.clean]); site.dl(bl, n); toast('temizlendi'); } catch { toast('bu resim açılamadı'); } };
+site.$('#eall').onclick = async e => {
+  e.target.disabled = true;
+  try { await site.load(ZIP); const z = new JSZip(); for (const x of EF) { const [n, b] = await clean(x); z.file(n, b); } site.dl(await z.generateAsync({ type: 'blob' }), 'temiz-fotograflar.zip'); }
+  catch { toast('bazı resimler açılamadı'); } finally { e.target.disabled = false; }
+};
+
+// ---- dosya şifreleme: "FXENC1" + tuz(16) + iv(12) + AES-GCM( ad uzunluğu(2) + ad + dosya )
+const MAGIC = new TextEncoder().encode('FXENC1');
+let CF = null, decrypt = false;
+const key = async (pw, salt) => crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' }, await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']), { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+site.drop(site.$('#cdrop'), async fs => {
+  CF = fs[0]; const head = new Uint8Array(await CF.slice(0, 6).arrayBuffer());
+  decrypt = head.every((b, i) => b === MAGIC[i]);
+  site.$('#cname').textContent = `${CF.name} · ${kb(CF.size)} · ${decrypt ? 'şifreli dosya, çözülecek' : 'şifrelenecek'}`;
+  site.$('#cp2').closest('label').hidden = decrypt; site.$('#cgo').textContent = decrypt ? 'çöz' : 'şifrele'; site.$('#cgo').disabled = false; site.$('#cmsg').textContent = '';
+});
+site.$('#cgo').onclick = async e => {
+  const pw = site.$('#cp1').value; if (!pw) return toast('parolayı gir');
+  if (!decrypt && pw !== site.$('#cp2').value) return toast('parolalar aynı değil');
+  if (!decrypt && pw.length < 8) return toast('en az 8 karakterlik bir parola seç');
+  e.target.disabled = true; site.$('#cmsg').textContent = decrypt ? 'çözülüyor…' : 'şifreleniyor…';
+  try {
+    const data = new Uint8Array(await CF.arrayBuffer());
+    if (!decrypt) {
+      const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), name = new TextEncoder().encode(CF.name);
+      const plain = new Uint8Array(2 + name.length + data.length); new DataView(plain.buffer).setUint16(0, name.length); plain.set(name, 2); plain.set(data, 2 + name.length);
+      const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await key(pw, salt), plain));
+      site.dl(new Blob([MAGIC, salt, iv, ct]), CF.name + '.fxenc'); site.$('#cmsg').textContent = 'şifrelendi; parolayı bir yere not et';
+    } else {
+      const salt = data.slice(6, 22), iv = data.slice(22, 34);
+      const plain = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, await key(pw, salt), data.slice(34)));
+      const n = new DataView(plain.buffer).getUint16(0), name = new TextDecoder().decode(plain.slice(2, 2 + n));
+      site.dl(new Blob([plain.slice(2 + n)]), name || 'cozulen-dosya'); site.$('#cmsg').textContent = 'çözüldü: ' + name;
+    }
+  } catch { site.$('#cmsg').textContent = decrypt ? 'parola yanlış ya da dosya bozuk' : 'şifrelenemedi (dosya çok büyük olabilir)'; }
+  finally { e.target.disabled = false; }
+};
+
+// ---- şifre gücü
+const COMMON = '123456 123456789 12345678 12345 1234567 1234567890 password qwerty 111111 123123 abc123 000000 1234 iloveyou admin welcome monkey dragon letmein football sifre parola sifre123 galatasaray fenerbahce besiktas trabzonspor asdasd qweqwe 123qwe qwe123 1q2w3e 1q2w3e4r asdfgh asdf zxcvbn aaaaaa istanbul ankara izmir turkiye sevgilim askim canim bilgisayar 12341234 11111111 00000000 cimbom fener kartal 112233 121212 654321 666666 7777777 987654321 superman batman pokemon minecraft'.split(' ');
+const ROWS = ['qwertyuıopğü', 'asdfghjklşi', 'zxcvbnmöç', 'abcdefghijklmnopqrstuvwxyz', '01234567890'];
+function strength(p) {
+  if (!p) return null;
+  const low = p.toLocaleLowerCase('tr'), plain = low.replace(/[@4]/g, 'a').replace(/3/g, 'e').replace(/[1!]/g, 'i').replace(/0/g, 'o').replace(/\$|5/g, 's').replace(/7/g, 't');
+  let pool = 0; if (/[a-zçğıöşü]/.test(p)) pool += 32; if (/[A-ZÇĞİÖŞÜ]/.test(p)) pool += 32; if (/\d/.test(p)) pool += 10; if (/[^A-Za-z0-9çğıöşüÇĞİÖŞÜ]/.test(p)) pool += 33;
+  const tips = []; let eff = 0, i = 0;
+  // ardışık (abc, 123, qwe) ve tekrarlanan (aaa) parçalar tek karakter gibi sayılır
+  while (i < low.length) {
+    let j = i + 1;
+    while (j < low.length && low[j] === low[i]) j++;
+    if (j - i >= 3) { eff += 1 + Math.log2(j - i) / Math.log2(Math.max(pool, 2)); tips.push('aynı karakteri art arda tekrarlama'); i = j; continue; }
+    j = i + 1;
+    const step = r => r.indexOf(low[j]) - r.indexOf(low[j - 1]) === 1 && r.indexOf(low[j - 1]) >= 0;
+    const row = ROWS.find(r => r.includes(low[i]) && r.includes(low[i + 1] ?? '') && r.indexOf(low[i + 1]) - r.indexOf(low[i]) === 1);
+    if (row) { while (j < low.length && step(row)) j++; if (j - i >= 3) { eff += 1.5; tips.push('klavye ya da alfabe sırası (qwe, abc, 123) kolay tahmin edilir'); i = j; continue; } }
+    eff++; i++;
+  }
+  let bits = eff * Math.log2(Math.max(pool, 2));
+  // baştaki ve sondaki rakam ya da sembolleri at (Galatasaray1905 -> galatasaray), sonra 4 -> a gibi değişimleri geri çevir
+  const core = low.replace(/[\d\W_]+$/, '').replace(/^[\d\W_]+/, ''), coreL = core.replace(/[@4]/g, 'a').replace(/3/g, 'e').replace(/[1!]/g, 'i').replace(/0/g, 'o').replace(/\$|5/g, 's').replace(/7/g, 't');
+  if ([low, plain, core, coreL].some(x => COMMON.includes(x))) { bits = Math.min(bits, 12 + (p.length - core.length) * 3.3); tips.push('çok kullanılan şifrelerden biri ya da ona çok benziyor'); }
+  if (/(19|20)\d\d/.test(p)) { bits -= 6; tips.push('yıl ya da doğum tarihi tahmin edilebilir'); }
+  if (p.length < 12) tips.push('uzunluk en etkili korumadır: en az 12 karakter kullan');
+  if (pool <= 32) tips.push('büyük harf, rakam ya da sembol ekle');
+  return { bits: Math.max(0, bits), tips: [...new Set(tips)] };
+}
+function dur(s) {
+  const U = [[3153600000, 'yüzyıl'], [31536000, 'yıl'], [2592000, 'ay'], [86400, 'gün'], [3600, 'saat'], [60, 'dakika'], [1, 'saniye']];
+  if (s < 1) return 'bir saniyeden kısa'; if (s > 3153600000 * 1000) return 'binlerce yüzyıl';
+  const [d, n] = U.find(([d]) => s >= d); return `yaklaşık ${Math.round(s / d).toLocaleString('tr-TR')} ${n}`;
+}
+site.$('#pw').oninput = () => {
+  const r = strength(site.$('#pw').value), m = site.$('#pwm');
+  if (!r) { m.style.width = 0; site.$('#pwr').innerHTML = ''; return; }
+  const lv = r.bits < 28 ? ['çok zayıf', 'var(--red)', 12] : r.bits < 40 ? ['zayıf', 'var(--orange)', 32] : r.bits < 60 ? ['orta', 'var(--yellow)', 55] : r.bits < 80 ? ['güçlü', 'var(--green)', 80] : ['çok güçlü', 'var(--ok)', 100];
+  Object.assign(m.style, { width: lv[2] + '%', background: lv[1] });
+  site.$('#pwr').innerHTML = `<b>${lv[0]}</b> · yaklaşık ${Math.round(r.bits)} bit<br>kırılma süresi: ${dur(2 ** r.bits / 2 / 1e10)}${r.tips.length ? `<ul>${r.tips.map(t => `<li>${t}</li>`).join('')}</ul>` : ''}`;
+};
+site.$('#pwshow').onchange = e => site.$('#pw').type = e.target.checked ? 'text' : 'password';
+</script>
+</body>
+</html>

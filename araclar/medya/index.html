@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ses ve video · fadimrak</title>
+<meta name="description" content="Ekran kaydedici, ses kaydedici, metni sesli okuma, konuşmayı yazıya çevirme, videodan GIF">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--red); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  .rec { display: flex; align-items: center; gap: .6rem; font-family: var(--head); font-weight: 900; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+  .rec i { width: 14px; height: 14px; border-radius: 99px; background: var(--bad); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  video.out, audio.out { width: 100%; margin-top: .8rem; border-radius: 12px; background: #000; }
+  audio.out { background: none; }
+  .meterbar { height: 16px; border-radius: 99px; background: var(--soft); overflow: hidden; border: 2px solid var(--line); margin-top: .6rem; } .meterbar i { display: block; height: 100%; background: var(--green); width: 0; }
+  .clips { display: grid; gap: .5rem; margin-top: .8rem; }
+  .clips .c { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; padding: .5rem .7rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); }
+  .clips audio { flex: 1 1 220px; height: 40px; }
+  .note { font-size: .85rem; color: var(--muted); }
+  .live { min-height: 12rem; }
+  .gifout { display: grid; place-items: center; margin-top: .8rem; padding: 8px; border-radius: 14px; background: var(--soft); }
+  .gifout img { max-width: 100%; }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>ses ve video</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="ses ve video araçları"><a href="#ekran">ekran kaydı</a><a href="#ses">ses kaydı</a><a href="#oku">metni sesli oku</a><a href="#yaz">sesi yazıya çevir</a><a href="#gif">videodan GIF</a></nav>
+
+<section data-tab="ekran" class="panel">
+  <h2>ekran kaydedici</h2>
+  <div class="row l"><label class="c"><input type="checkbox" id="emic"> mikrofonu da kaydet</label><label class="c"><input type="checkbox" id="esys" checked> sekme ya da sistem sesi</label></div>
+  <div class="row l" style="margin-top:.7rem"><button class="primary" id="ego">kaydı başlat</button><button id="estop" hidden>durdur</button><span class="rec" id="etime" hidden><i></i><span>00:00</span></span></div>
+  <video class="out" id="evid" controls hidden></video>
+  <div class="row l" style="margin-top:.6rem"><button id="edl" hidden>indir</button></div>
+  <p class="note" id="enote">Kayıt bu cihazda tutulur, hiçbir yere yüklenmez. Telefon tarayıcıları ekran kaydını genellikle desteklemez; bilgisayarda Chrome, Edge ya da Firefox kullan.</p>
+</section>
+
+<section data-tab="ses" class="panel">
+  <h2>ses kaydedici</h2>
+  <div class="row l"><button class="primary" id="sgo">kaydet</button><button id="sstop" hidden>durdur</button><span class="rec" id="stime" hidden><i></i><span>00:00</span></span></div>
+  <div class="meterbar"><i id="smeter"></i></div>
+  <div class="clips" id="clips"></div>
+  <p class="note">Kayıtlar sayfayı kapatınca silinir; saklamak istediklerini indir.</p>
+</section>
+
+<section data-tab="oku" class="panel">
+  <h2>metni sesli oku</h2>
+  <textarea id="ttext" placeholder="Okunacak metni yaz ya da yapıştır." aria-label="okunacak metin">Merhaba, bu metni tarayıcının kendi sesi okuyor.</textarea>
+  <div class="opts"><label class="f">ses<select id="tvoice"></select></label><label class="f">hız: <span id="trv">1</span><input id="trate" type="range" min=".5" max="2" step=".1" value="1"></label><label class="f">ton: <span id="tpv">1</span><input id="tpitch" type="range" min=".5" max="2" step=".1" value="1"></label></div>
+  <div class="row l"><button class="primary" id="tgo">oku</button><button id="tpause">duraklat</button><button id="tstop">durdur</button></div>
+  <p class="note">Sesler cihazında yüklü olanlardır; Türkçe ses yoksa sistem ayarlarından Türkçe konuşma paketi eklenebilir. Tarayıcılar bu sesi dosya olarak kaydetmeye izin vermez.</p>
+</section>
+
+<section data-tab="yaz" class="panel">
+  <h2>sesi yazıya çevir</h2>
+  <div class="row l"><label class="c">dil<select id="ylang"><option value="tr-TR">Türkçe</option><option value="en-US">İngilizce</option><option value="de-DE">Almanca</option></select></label><button class="primary" id="ygo">dinlemeye başla</button><button id="ystop" hidden>durdur</button><span class="note" id="ystat"></span></div>
+  <textarea class="live" id="yout" placeholder="Konuştukların burada yazıya dökülür." aria-label="yazıya dökülen konuşma" style="margin-top:.7rem"></textarea>
+  <div class="row l" style="margin-top:.6rem"><button id="ycp">kopyala</button><button id="yclr">temizle</button></div>
+  <p class="note">Chrome ve Edge konuşmayı tanımak için sesi kendi sunucularına (Google, Microsoft) gönderir; bu siteye bir şey gelmez. Safari bazı cihazlarda cihaz üzerinde çalışır. Firefox bu özelliği desteklemiyor.</p>
+</section>
+
+<section data-tab="gif" class="panel">
+  <h2>videodan GIF</h2>
+  <div class="drop" id="gdrop"><b>video seç ya da buraya sürükle</b><span class="note">MP4, WebM, MOV</span></div>
+  <video id="gvid" class="out" controls muted playsinline hidden></video>
+  <div class="opts"><label class="f">başlangıç (sn)<input id="gs" type="number" value="0" min="0" step=".1"></label><label class="f">süre (sn, en çok 15)<input id="gd" type="number" value="4" min=".5" max="15" step=".5"></label><label class="f">kare hızı<select id="gf"><option>8</option><option selected>12</option><option>15</option></select></label><label class="f">genişlik<select id="gw"><option>240</option><option selected>360</option><option>480</option><option>640</option></select></label></div>
+  <div class="row l"><button class="primary" id="ggo" disabled>GIF yap</button><button id="gdl" hidden>indir</button><span class="note" id="ginfo"></span></div>
+  <div class="bar" id="gbar" hidden style="margin-top:.6rem"><i style="width:0"></i></div>
+  <div class="gifout" id="gout" hidden></div>
+  <p class="note">Video cihazından çıkmaz. Uzun ve geniş GIF'ler hızla büyür; paylaşım için 3-6 saniye ve 360 px genelde yeterli.</p>
+</section>
+</main>
+<script>
+const pad = n => String(n).padStart(2, '0');
+const clock = ms => `${pad(Math.floor(ms / 6e4))}:${pad(Math.floor(ms / 1000) % 60)}`;
+const kb = n => n > 1048576 ? site.fmt(n / 1048576, 1) + ' MB' : Math.round(n / 1024) + ' KB';
+const mime = (...l) => l.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+const extOf = t => t.includes('mp4') ? 'mp4' : t.includes('ogg') ? 'ogg' : 'webm';
+function timer(el) { const t0 = Date.now(); el.hidden = false; const iv = setInterval(() => site.$('span', el).textContent = clock(Date.now() - t0), 500); return () => { clearInterval(iv); el.hidden = true; site.$('span', el).textContent = '00:00'; }; }
+
+// ---- ekran kaydı
+let eRec, eStreams = [], eBlob, eStopT;
+site.$('#ego').onclick = async () => {
+  if (!navigator.mediaDevices?.getDisplayMedia) return toast('bu tarayıcı ekran kaydını desteklemiyor', 3000);
+  try {
+    const scr = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: site.$('#esys').checked });
+    eStreams = [scr];
+    let tracks = [...scr.getVideoTracks()];
+    const mic = site.$('#emic').checked ? await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null) : null;
+    if (mic) eStreams.push(mic);
+    const auds = [scr, mic].filter(s => s && s.getAudioTracks().length);
+    if (auds.length > 1) { const ac = new AudioContext(), dst = ac.createMediaStreamDestination(); auds.forEach(s => ac.createMediaStreamSource(s).connect(dst)); tracks.push(...dst.stream.getAudioTracks()); }
+    else if (auds.length) tracks.push(...auds[0].getAudioTracks());
+    const type = mime('video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4');
+    eRec = new MediaRecorder(new MediaStream(tracks), type ? { mimeType: type } : {});
+    const parts = []; eRec.ondataavailable = e => e.data.size && parts.push(e.data);
+    eRec.onstop = () => {
+      eStopT(); eStreams.forEach(s => s.getTracks().forEach(t => t.stop()));
+      eBlob = new Blob(parts, { type: eRec.mimeType || 'video/webm' });
+      const v = site.$('#evid'); v.src = URL.createObjectURL(eBlob); v.hidden = false; site.$('#edl').hidden = false;
+      site.$('#ego').hidden = false; site.$('#estop').hidden = true; site.$('#enote').textContent = `kayıt hazır · ${kb(eBlob.size)}`;
+    };
+    scr.getVideoTracks()[0].onended = () => eRec.state !== 'inactive' && eRec.stop();
+    eRec.start(1000); eStopT = timer(site.$('#etime'));
+    site.$('#ego').hidden = true; site.$('#estop').hidden = false; site.$('#edl').hidden = true; site.$('#evid').hidden = true;
+  } catch (e) { if (e.name !== 'NotAllowedError') toast('kayıt başlatılamadı', 3000); }
+};
+site.$('#estop').onclick = () => eRec?.state !== 'inactive' && eRec.stop();
+site.$('#edl').onclick = () => eBlob && site.dl(eBlob, `ekran-kaydi-${new Date().toLocaleString('sv').replace(/[: ]/g, '-')}.${extOf(eBlob.type)}`);
+
+// ---- ses kaydı
+let sRec, sStream, sStopT, sRaf, sN = 0;
+site.$('#sgo').onclick = async () => {
+  try {
+    sStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const ac = new AudioContext(), an = ac.createAnalyser(); an.fftSize = 1024; ac.createMediaStreamSource(sStream).connect(an);
+    const buf = new Float32Array(an.fftSize);
+    (function loop() { an.getFloatTimeDomainData(buf); site.$('#smeter').style.width = Math.min(100, Math.sqrt(buf.reduce((a, v) => a + v * v, 0) / buf.length) * 300) + '%'; sRaf = requestAnimationFrame(loop); })();
+    const type = mime('audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg');
+    sRec = new MediaRecorder(sStream, type ? { mimeType: type } : {});
+    const parts = []; sRec.ondataavailable = e => e.data.size && parts.push(e.data);
+    sRec.onstop = () => {
+      sStopT(); cancelAnimationFrame(sRaf); site.$('#smeter').style.width = 0; sStream.getTracks().forEach(t => t.stop()); ac.close();
+      const b = new Blob(parts, { type: sRec.mimeType || 'audio/webm' }), u = URL.createObjectURL(b), name = `ses-kaydi-${++sN}.${extOf(b.type)}`;
+      site.$('#clips').insertAdjacentHTML('afterbegin', `<div class="c"><b>${sN}. kayıt</b><audio controls src="${u}"></audio><a class="btn sm" href="${u}" download="${name}">indir · ${kb(b.size)}</a></div>`);
+      site.$('#sgo').hidden = false; site.$('#sstop').hidden = true;
+    };
+    sRec.start(); sStopT = timer(site.$('#stime')); site.$('#sgo').hidden = true; site.$('#sstop').hidden = false;
+  } catch (e) { toast(e.name === 'NotAllowedError' ? 'mikrofon izni verilmedi' : 'mikrofon açılamadı', 3000); }
+};
+site.$('#sstop').onclick = () => sRec?.state !== 'inactive' && sRec.stop();
+
+// ---- metni sesli oku
+const synth = window.speechSynthesis;
+function voices() {
+  if (!synth) return site.$('#tvoice').innerHTML = '<option>desteklenmiyor</option>';
+  const v = synth.getVoices().slice().sort((a, b) => (b.lang.startsWith('tr') - a.lang.startsWith('tr')) || a.lang.localeCompare(b.lang));
+  site.$('#tvoice').innerHTML = v.map((x, i) => `<option value="${site.esc(x.name)}">${site.esc(x.name)} (${x.lang})</option>`).join('') || '<option value="">varsayılan</option>';
+}
+if (synth) { voices(); synth.onvoiceschanged = voices; }
+site.$('#trate').oninput = e => site.$('#trv').textContent = e.target.value;
+site.$('#tpitch').oninput = e => site.$('#tpv').textContent = e.target.value;
+site.$('#tgo').onclick = () => {
+  if (!synth) return toast('bu tarayıcı sesli okumayı desteklemiyor');
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(site.$('#ttext').value), v = synth.getVoices().find(x => x.name === site.$('#tvoice').value);
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'tr-TR';
+  u.rate = +site.$('#trate').value; u.pitch = +site.$('#tpitch').value;
+  synth.speak(u);
+};
+site.$('#tpause').onclick = () => { if (!synth) return; synth.paused ? synth.resume() : synth.pause(); site.$('#tpause').textContent = synth.paused ? 'devam' : 'duraklat'; };
+site.$('#tstop').onclick = () => { synth?.cancel(); site.$('#tpause').textContent = 'duraklat'; };
+
+// ---- sesi yazıya çevir
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, base = '';
+site.$('#ygo').onclick = () => {
+  if (!SR) return toast('bu tarayıcı konuşma tanımayı desteklemiyor; Chrome, Edge ya da Safari dene', 3500);
+  rec = new SR(); rec.lang = site.$('#ylang').value; rec.continuous = true; rec.interimResults = true;
+  base = site.$('#yout').value ? site.$('#yout').value.trimEnd() + ' ' : '';
+  rec.onresult = e => {
+    let fin = '', tmp = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) (e.results[i].isFinal ? (fin += e.results[i][0].transcript) : (tmp += e.results[i][0].transcript));
+    if (fin) base += fin.trim() + ' ';
+    site.$('#yout').value = base + tmp;
+  };
+  rec.onerror = e => site.$('#ystat').textContent = e.error === 'not-allowed' ? 'mikrofon izni verilmedi' : e.error === 'no-speech' ? 'ses duyulmadı' : 'hata: ' + e.error;
+  rec.onend = () => { site.$('#ygo').hidden = false; site.$('#ystop').hidden = true; if (!/hata|izin/.test(site.$('#ystat').textContent)) site.$('#ystat').textContent = 'durdu'; };
+  rec.start(); site.$('#ystat').textContent = 'dinliyor…'; site.$('#ygo').hidden = true; site.$('#ystop').hidden = false;
+};
+site.$('#ystop').onclick = () => rec?.stop();
+site.$('#ycp').onclick = () => navigator.clipboard.writeText(site.$('#yout').value).then(() => toast('kopyalandı'));
+site.$('#yclr').onclick = () => { site.$('#yout').value = ''; base = ''; };
+
+// ---- videodan GIF (gifenc, tarayıcıda)
+const GIFENC = 'https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js';
+let gBlob = null;
+site.drop(site.$('#gdrop'), fs => {
+  const f = fs.find(f => f.type.startsWith('video/')); if (!f) return toast('bir video seç');
+  const v = site.$('#gvid'); v.src = URL.createObjectURL(f); v.hidden = false; site.$('#ggo').disabled = false; site.$('#gdl').hidden = true; site.$('#gout').hidden = true;
+  v.onloadedmetadata = () => site.$('#ginfo').textContent = `${v.videoWidth} × ${v.videoHeight} · ${site.fmt(v.duration, 1)} sn`;
+}, { accept: 'video/*' });
+const seek = (v, t) => new Promise(r => { v.onseeked = () => r(); v.currentTime = t; });
+site.$('#ggo').onclick = async e => {
+  const v = site.$('#gvid'), b = e.target, bar = site.$('#gbar');
+  const start = Math.max(0, +site.$('#gs').value || 0), dur = Math.min(15, Math.max(.5, +site.$('#gd').value || 4), v.duration - start), fps = +site.$('#gf').value;
+  if (!(dur > 0)) return toast('başlangıç videonun süresini aşıyor');
+  const W = Math.min(+site.$('#gw').value, v.videoWidth), H = Math.round(v.videoHeight * W / v.videoWidth / 2) * 2, n = Math.max(1, Math.round(dur * fps));
+  b.disabled = true; bar.hidden = false; v.pause();
+  try {
+    const { GIFEncoder, quantize, applyPalette } = await import(GIFENC);
+    const c = Object.assign(document.createElement('canvas'), { width: W, height: H }), x = c.getContext('2d', { willReadFrequently: true }), gif = GIFEncoder();
+    for (let i = 0; i < n; i++) {
+      await seek(v, start + i / fps);
+      x.drawImage(v, 0, 0, W, H);
+      const d = x.getImageData(0, 0, W, H).data, pal = quantize(d, 256), idx = applyPalette(d, pal);
+      gif.writeFrame(idx, W, H, { palette: pal, delay: Math.round(1000 / fps) });
+      site.$('i', bar).style.width = (i + 1) / n * 100 + '%'; site.$('#ginfo').textContent = `kare ${i + 1} / ${n}`;
+    }
+    gif.finish();
+    gBlob = new Blob([gif.bytes()], { type: 'image/gif' });
+    site.$('#gout').innerHTML = `<img src="${URL.createObjectURL(gBlob)}" alt="oluşturulan GIF">`; site.$('#gout').hidden = false; site.$('#gdl').hidden = false;
+    site.$('#ginfo').textContent = `${W} × ${H} · ${n} kare · ${kb(gBlob.size)}`;
+  } catch (err) { console.error(err); toast('GIF oluşturulamadı', 3000); }
+  finally { b.disabled = false; bar.hidden = true; }
+};
+site.$('#gdl').onclick = () => gBlob && site.dl(gBlob, 'video.gif');
+addEventListener('hashchange', () => { if (location.hash !== '#oku') synth?.cancel(); });
+</script>
+</body>
+</html>

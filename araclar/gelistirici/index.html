@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geliştirici araçları · fadimrak</title>
+<meta name="description" content="JSON biçimlendirici, regex test, Base64 ve URL kodlama, SHA hash, UUID, Unix zaman damgası, JWT çözücü">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--blue); }
+  textarea, .mono, input.mono { font-family: ui-monospace, Consolas, 'Cascadia Mono', monospace; font-size: .88rem; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+  .msg { margin-top: .6rem; font-size: .88rem; }
+  .hl { white-space: pre-wrap; overflow-wrap: anywhere; padding: .8rem 1rem; border: 2px solid var(--line); border-radius: 12px; background: var(--card); min-height: 5rem; line-height: 1.6; }
+  .hl mark { background: color-mix(in srgb, var(--yellow) 70%, transparent); color: inherit; border-radius: 3px; }
+  .kv { display: grid; gap: .4rem; margin-top: .7rem; }
+  .kv button { justify-content: space-between; text-align: left; box-shadow: none; font-weight: 500; overflow-wrap: anywhere; }
+  .kv button b { min-width: 6rem; }
+  .kv button code { flex: 1; overflow-wrap: anywhere; }
+  .note { font-size: .85rem; color: var(--muted); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .6rem; align-items: end; margin: .6rem 0; }
+  @media (max-width: 680px) { .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>geliştirici</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="geliştirici araçları"><a href="#json">JSON</a><a href="#regex">regex</a><a href="#kodla">Base64, URL</a><a href="#hash">hash</a><a href="#uuid">UUID</a><a href="#zaman">zaman damgası</a><a href="#jwt">JWT</a></nav>
+
+<section data-tab="json" class="panel">
+  <div class="two"><textarea id="ji" placeholder='{"ad":"fadimrak","yil":2027}' aria-label="JSON girdi" style="min-height:18rem"></textarea><textarea id="jo" readonly aria-label="sonuç" style="min-height:18rem"></textarea></div>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" data-j="2">biçimlendir</button><button data-j="0">küçült</button><label class="c"><input type="checkbox" id="jsort"> anahtarları sırala</label><button id="jcp">kopyala</button></div>
+  <p class="msg" id="jmsg"></p>
+</section>
+
+<section data-tab="regex" class="panel">
+  <div class="opts"><label class="f" style="grid-column:span 2">desen<input id="rp" class="mono" value="(\d{3})\s?(\d{3})\s?(\d{2})\s?(\d{2})"></label><div class="row l"><label class="c"><input type="checkbox" data-f="g" checked> g</label><label class="c"><input type="checkbox" data-f="i"> i</label><label class="c"><input type="checkbox" data-f="m"> m</label><label class="c"><input type="checkbox" data-f="s"> s</label><label class="c"><input type="checkbox" data-f="u"> u</label></div></div>
+  <textarea id="rt" aria-label="test metni">Telefonlar: 532 123 45 67, 5551234567 ve 212 444 00 00.</textarea>
+  <label class="f" style="margin-top:.6rem">değiştir (isteğe bağlı, $1 gibi gruplar kullanılabilir)<input id="rr" class="mono" placeholder="($1) $2 $3 $4"></label>
+  <p class="msg" id="rmsg"></p>
+  <div class="hl" id="rout"></div>
+  <div class="kv" id="rgroups"></div>
+</section>
+
+<section data-tab="kodla" class="panel">
+  <textarea id="ki" aria-label="girdi">fadimrak.xyz'de Türkçe karakter: çğıöşü</textarea>
+  <div class="row l" style="margin-top:.6rem"><button data-k="b64e">Base64 kodla</button><button data-k="b64d">Base64 çöz</button><button data-k="urle">URL kodla</button><button data-k="urld">URL çöz</button><button data-k="htmle">HTML kaçış</button><button id="kfile">dosyayı Base64 yap</button></div>
+  <textarea id="ko" readonly aria-label="sonuç" style="margin-top:.6rem"></textarea>
+  <div class="row l" style="margin-top:.6rem"><button id="kcp">kopyala</button><span class="msg" id="kmsg"></span></div>
+</section>
+
+<section data-tab="hash" class="panel">
+  <textarea id="hi" aria-label="metin">merhaba</textarea>
+  <div class="row l" style="margin-top:.6rem"><button id="hfile">dosya seç</button><span class="note" id="hname">metnin özeti hesaplanıyor</span></div>
+  <div class="kv" id="hout"></div>
+  <label class="f" style="margin-top:.8rem">karşılaştır (bilinen özeti yapıştır)<input id="hcmp" class="mono" placeholder="ör. sha256 değeri"></label>
+  <p class="msg" id="hmsg"></p>
+  <p class="note">Özetler tarayıcının kendi kripto arayüzüyle hesaplanır, dosya hiçbir yere gönderilmez. MD5 güvensiz olduğu için tarayıcılarda yoktur.</p>
+</section>
+
+<section data-tab="uuid" class="panel">
+  <div class="row l"><label class="c">adet<input id="un" type="number" value="5" min="1" max="500" style="width:90px"></label><label class="c"><input type="checkbox" id="uup"> büyük harf</label><label class="c"><input type="checkbox" id="uhy" checked> tireli</label><button class="primary" id="ugo">üret</button><button id="ucp">hepsini kopyala</button></div>
+  <textarea id="uo" readonly aria-label="UUID listesi" style="margin-top:.6rem;min-height:12rem"></textarea>
+</section>
+
+<section data-tab="zaman" class="panel">
+  <div class="kv" id="znow"></div>
+  <div class="opts"><label class="f">Unix zaman damgası (saniye ya da milisaniye)<input id="zts" class="mono" inputmode="numeric"></label><label class="f">ya da tarih ve saat<input id="zdt" type="datetime-local" step="1"></label></div>
+  <div class="kv" id="zout"></div>
+</section>
+
+<section data-tab="jwt" class="panel">
+  <textarea id="wt" class="mono" placeholder="eyJhbGciOi..." aria-label="JWT"></textarea>
+  <p class="msg" id="wmsg"></p>
+  <div class="two" style="margin-top:.6rem"><label class="f">başlık<textarea id="wh" readonly></textarea></label><label class="f">içerik<textarea id="wp" readonly></textarea></label></div>
+  <p class="note">İmza doğrulanmaz; yalnızca içerik okunur. Gerçek oturum belirteçlerini güvenmediğin sitelere yapıştırma; bu sayfa hiçbir şey göndermez.</p>
+</section>
+</main>
+<script>
+const E = site.esc, copy = t => navigator.clipboard.writeText(t).then(() => toast('kopyalandı'));
+const msg = (id, t, ok) => { const el = site.$(id); el.textContent = t; el.className = 'msg ' + (ok == null ? '' : ok ? 'ok' : 'bad'); };
+const pick = (accept, cb) => { const i = Object.assign(document.createElement('input'), { type: 'file', accept }); i.onchange = () => i.files[0] && cb(i.files[0]); i.click(); };
+
+// ---- JSON
+function json(indent) {
+  const s = site.$('#ji').value; if (!s.trim()) return msg('#jmsg', '');
+  try {
+    let v = JSON.parse(s);
+    const sort = x => Array.isArray(x) ? x.map(sort) : x && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, sort(x[k])])) : x;
+    if (site.$('#jsort').checked) v = sort(v);
+    site.$('#jo').value = JSON.stringify(v, null, indent);
+    msg('#jmsg', `geçerli JSON · ${site.$('#jo').value.length.toLocaleString('tr-TR')} karakter`, true);
+  } catch (e) {
+    const p = +(e.message.match(/position (\d+)/)?.[1] ?? -1), before = p >= 0 ? s.slice(0, p) : '', line = before.split('\n').length, col = p - before.lastIndexOf('\n');
+    msg('#jmsg', 'geçersiz: ' + e.message + (p >= 0 && !/line/.test(e.message) ? ` (satır ${line}, sütun ${col})` : ''), false);
+  }
+}
+site.$$('[data-j]').forEach(b => b.onclick = () => json(+b.dataset.j));
+site.$('#ji').addEventListener('input', () => json(2));
+site.$('#jcp').onclick = () => copy(site.$('#jo').value);
+
+// ---- regex
+function regex() {
+  const flags = site.$$('[data-f]').filter(c => c.checked).map(c => c.dataset.f).join(''), t = site.$('#rt').value.slice(0, 20000);
+  let re; try { re = new RegExp(site.$('#rp').value, flags); } catch (e) { msg('#rmsg', 'desen hatalı: ' + e.message, false); site.$('#rout').textContent = t; site.$('#rgroups').innerHTML = ''; return; }
+  if (!site.$('#rp').value) { msg('#rmsg', ''); site.$('#rout').textContent = t; site.$('#rgroups').innerHTML = ''; return; }
+  const ms = flags.includes('g') ? [...t.matchAll(re)].slice(0, 500) : [t.match(re)].filter(Boolean);
+  let h = '', last = 0;
+  for (const m of ms) { if (m[0] === '' ) continue; h += E(t.slice(last, m.index)) + `<mark>${E(m[0])}</mark>`; last = m.index + m[0].length; }
+  site.$('#rout').innerHTML = h + E(t.slice(last));
+  const rep = site.$('#rr').value;
+  msg('#rmsg', `${ms.length} eşleşme` + (rep ? ' · değiştirilmiş hali aşağıda' : ''), ms.length > 0);
+  site.$('#rgroups').innerHTML = (rep ? `<button data-copy="${E(t.replace(re, rep))}"><b>sonuç</b><code>${E(t.replace(re, rep))}</code></button>` : '') +
+    ms.slice(0, 50).map((m, i) => `<button data-copy="${E(m[0])}"><b>${i + 1}. eşleşme</b><code>${E(m[0])}${m.length > 1 ? ' → ' + m.slice(1).map((g, j) => `$${j + 1}: ${E(g ?? '')}`).join(' · ') : ''}</code></button>`).join('');
+}
+['#rp', '#rt', '#rr'].forEach(s => site.$(s).addEventListener('input', regex)); site.$$('[data-f]').forEach(c => c.onchange = regex);
+document.addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
+
+// ---- Base64 ve URL (Türkçe karakterler için UTF-8)
+const b64e = s => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+const b64d = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')), c => c.charCodeAt(0)));
+const KOD = { b64e, b64d, urle: encodeURIComponent, urld: s => decodeURIComponent(s.replace(/\+/g, ' ')), htmle: E };
+site.$$('[data-k]').forEach(b => b.onclick = () => { try { site.$('#ko').value = KOD[b.dataset.k](site.$('#ki').value); msg('#kmsg', ''); } catch { msg('#kmsg', 'çözülemedi: girdi bu biçimde değil', false); } });
+site.$('#kfile').onclick = () => pick('*/*', f => { const r = new FileReader(); r.onload = () => { site.$('#ko').value = r.result; msg('#kmsg', `${f.name} · data URL olarak`, true); }; r.readAsDataURL(f); });
+site.$('#kcp').onclick = () => copy(site.$('#ko').value);
+
+// ---- hash
+let hashes = {};
+async function hash(buf, label) {
+  site.$('#hname').textContent = label;
+  hashes = {};
+  for (const a of ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512']) hashes[a] = [...new Uint8Array(await crypto.subtle.digest(a, buf))].map(b => b.toString(16).padStart(2, '0')).join('');
+  site.$('#hout').innerHTML = Object.entries(hashes).map(([a, h]) => `<button data-copy="${h}"><b>${a}</b><code>${h}</code></button>`).join('');
+  cmp();
+}
+function cmp() { const v = site.$('#hcmp').value.trim().toLowerCase(); if (!v) return msg('#hmsg', ''); const hit = Object.entries(hashes).find(([, h]) => h === v); msg('#hmsg', hit ? `eşleşiyor (${hit[0]})` : 'eşleşmiyor', !!hit); }
+site.$('#hi').addEventListener('input', () => hash(new TextEncoder().encode(site.$('#hi').value), 'metnin özeti'));
+site.$('#hfile').onclick = () => pick('*/*', async f => hash(await f.arrayBuffer(), `${f.name} (${(f.size / 1048576).toFixed(2)} MB)`));
+site.$('#hcmp').oninput = cmp;
+hash(new TextEncoder().encode(site.$('#hi').value), 'metnin özeti');
+
+// ---- UUID
+function uuid() {
+  const n = Math.min(500, Math.max(1, +site.$('#un').value || 1));
+  site.$('#uo').value = [...Array(n)].map(() => { let u = crypto.randomUUID(); if (!site.$('#uhy').checked) u = u.replace(/-/g, ''); return site.$('#uup').checked ? u.toUpperCase() : u; }).join('\n');
+}
+site.$('#ugo').onclick = uuid; ['#uup', '#uhy'].forEach(s => site.$(s).onchange = uuid); site.$('#ucp').onclick = () => copy(site.$('#uo').value); uuid();
+
+// ---- zaman damgası
+const fmtD = d => [['yerel saat', d.toLocaleString('tr-TR', { dateStyle: 'full', timeStyle: 'medium' })], ['UTC', d.toUTCString()], ['ISO 8601', d.toISOString()], ['saniye', Math.floor(d / 1000)], ['milisaniye', +d]];
+const kv = rows => rows.map(([k, v]) => `<button data-copy="${E(v)}"><b>${k}</b><code>${E(v)}</code></button>`).join('');
+function now() { if (location.hash === '#zaman') site.$('#znow').innerHTML = kv([['şu an (saniye)', Math.floor(Date.now() / 1000)], ['şu an (milisaniye)', Date.now()]]); }
+site.$('#zts').oninput = () => { const v = site.$('#zts').value.trim(); if (!/^-?\d+$/.test(v)) return site.$('#zout').innerHTML = ''; const n = +v, d = new Date(Math.abs(n) < 1e11 ? n * 1000 : n); site.$('#zout').innerHTML = kv(fmtD(d)); };
+site.$('#zdt').oninput = () => { const d = new Date(site.$('#zdt').value); if (!isNaN(d)) site.$('#zout').innerHTML = kv(fmtD(d)); };
+setInterval(now, 1000); now();
+
+// ---- JWT
+function jwt() {
+  const t = site.$('#wt').value.trim(), p = t.split('.');
+  if (!t) { msg('#wmsg', ''); site.$('#wh').value = site.$('#wp').value = ''; return; }
+  try {
+    if (p.length < 2) throw 0;
+    const h = JSON.parse(b64d(p[0])), b = JSON.parse(b64d(p[1]));
+    site.$('#wh').value = JSON.stringify(h, null, 2); site.$('#wp').value = JSON.stringify(b, null, 2);
+    const at = k => b[k] ? new Date(b[k] * 1000).toLocaleString('tr-TR') : null, exp = b.exp && b.exp * 1000 < Date.now();
+    msg('#wmsg', [h.alg && `algoritma ${h.alg}`, at('iat') && `oluşturulma ${at('iat')}`, at('exp') && `bitiş ${at('exp')}${exp ? ' (süresi dolmuş)' : ''}`].filter(Boolean).join(' · ') || 'çözüldü', !exp);
+  } catch { msg('#wmsg', 'geçerli bir JWT değil', false); site.$('#wh').value = site.$('#wp').value = ''; }
+}
+site.$('#wt').addEventListener('input', jwt);
+</script>
+</body>
+</html>

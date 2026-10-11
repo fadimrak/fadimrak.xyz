@@ -43,7 +43,7 @@
 <body>
 <header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>hesap</h1><div class="acts"></div></header>
 <main class="wide">
-<nav class="tabs" aria-label="hesap araçları"><a href="#bilimsel">bilimsel</a><a href="#grafik">grafik</a><a href="#denklem">denklem</a><a href="#matris">matris</a><a href="#birim">birim</a><a href="#yuzde">yüzde</a><a href="#ortalama">ortalama</a><a href="#taban">taban</a><a href="#asal">asal, EBOB, EKOK</a><a href="#turev">türev, integral</a></nav>
+<nav class="tabs" aria-label="hesap araçları"><a href="#bilimsel">bilimsel</a><a href="#grafik">grafik</a><a href="#denklem">denklem</a><a href="#matris">matris</a><a href="#birim">birim</a><a href="#yuzde">yüzde</a><a href="#ortalama">ortalama</a><a href="#taban">taban</a><a href="#asal">asal, EBOB, EKOK</a><a href="#turev">türev, integral</a><a href="#kredi">kredi, faiz</a><a href="#kdv">KDV</a><a href="#yas">yaş</a><a href="#vki">vücut kitle indeksi</a></nav>
 
 <section data-tab="bilimsel" class="panel">
   <div class="calc">
@@ -126,6 +126,33 @@ x - y = 1</textarea>
   <div class="opts"><label class="f">x noktası (türev değeri için)<input id="tx" type="number" value="1" step="any"></label><label class="f">integral alt sınır<input id="ta" type="number" value="0" step="any"></label><label class="f">integral üst sınır<input id="tb" type="number" value="2" step="any"></label></div>
   <div class="out" id="tout"></div>
   <p class="note">Türev sembolik hesaplanır. Belirli integral sayısal (Simpson yöntemi) hesaplanır; belirsiz integral gösterilmez.</p>
+</section>
+<section data-tab="kredi" class="panel">
+  <h2>kredi taksiti</h2>
+  <div class="opts"><label class="f">kredi tutarı (₺)<input id="kt" type="number" value="100000" step="any"></label><label class="f">aylık faiz (%)<input id="kr" type="number" value="3.5" step="any"></label><label class="f">vade (ay)<input id="kn" type="number" value="24" min="1"></label><label class="c"><input type="checkbox" id="kv" checked> KKDF ve BSMV ekle</label></div>
+  <div class="out" id="kout"></div>
+  <details style="margin-top:.6rem"><summary>ödeme planı</summary><div class="tw"><table class="t" id="kplan"></table></div></details>
+  <p class="note">Bireysel kredilerde faizin üzerine %15 KKDF ve %15 BSMV eklenir; konut kredilerinde bu vergiler yoktur, kutuyu kaldır. Bankanın dosya masrafı ve sigortası dahil değildir.</p>
+  <h2 class="sec">bileşik faiz ve birikim</h2>
+  <div class="opts"><label class="f">başlangıç (₺)<input id="bp" type="number" value="10000" step="any"></label><label class="f">her ay eklenen (₺)<input id="bm" type="number" value="1000" step="any"></label><label class="f">yıllık getiri (%)<input id="br" type="number" value="40" step="any"></label><label class="f">süre (yıl)<input id="by" type="number" value="3" step="any"></label></div>
+  <div class="out" id="bout2"></div>
+  <p class="note">Faiz her ay eklenir (aylık bileşik). Vergi ve enflasyon hesaba katılmaz.</p>
+</section>
+
+<section data-tab="kdv" class="panel">
+  <div class="opts"><label class="f">tutar (₺)<input id="vt" type="number" value="1000" step="any"></label><label class="f">KDV oranı<select id="vo"><option value="20">%20</option><option value="10">%10</option><option value="1">%1</option><option value="x">diğer</option></select></label><label class="f" id="vxw" hidden>oran (%)<input id="vx" type="number" value="18" step="any"></label><label class="f">girilen tutar<select id="vm"><option value="haric">KDV hariç</option><option value="dahil">KDV dahil</option></select></label></div>
+  <div class="out" id="vout"></div>
+</section>
+
+<section data-tab="yas" class="panel">
+  <div class="opts"><label class="f">doğum tarihi<input id="yd" type="date" value="2008-01-01"></label><label class="f">hesaplanacak tarih<input id="yn" type="date"></label></div>
+  <div class="out" id="yout"></div>
+</section>
+
+<section data-tab="vki" class="panel">
+  <div class="opts"><label class="f">boy (cm)<input id="hb" type="number" value="175" step="any"></label><label class="f">kilo (kg)<input id="hk" type="number" value="70" step="any"></label></div>
+  <div class="out" id="hout"></div>
+  <p class="note">Dünya Sağlık Örgütü sınıflaması, yetişkinler içindir. 18 yaş altında yaşa ve cinsiyete göre persentil tabloları kullanılır. Kas oranı yüksek kişilerde VKİ yanıltıcı olabilir; sağlıkla ilgili kararlar için bir hekime danış.</p>
 </section>
 </main>
 <script>
@@ -359,6 +386,60 @@ site.load(MATH).then(() => {
   site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { if (s.dataset.tab === 'grafik') plot(); }));
   if (location.hash === '#grafik') plot();
 });
+// ---- kredi ve bileşik faiz
+const TL = v => (isFinite(v) ? v : 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 });
+function kredi() {
+  const P = +site.$('#kt').value || 0, n = Math.max(1, Math.round(+site.$('#kn').value || 1)), r = (+site.$('#kr').value || 0) / 100 * (site.$('#kv').checked ? 1.3 : 1);
+  const A = r ? P * r / (1 - (1 + r) ** -n) : P / n;
+  site.$('#kout').innerHTML = `<b>aylık taksit ${TL(A)}</b><br>toplam geri ödeme ${TL(A * n)} · toplam faiz ve vergi ${TL(A * n - P)} · vergiyle aylık maliyet %${(r * 100).toLocaleString('tr-TR', { maximumFractionDigits: 3 })}`;
+  let rest = P, rows = '';
+  for (let i = 1; i <= n; i++) { const fz = rest * r, an = A - fz; rest = Math.max(0, rest - an); rows += `<tr><td>${i}</td><td class="n">${TL(A)}</td><td class="n">${TL(an)}</td><td class="n">${TL(fz)}</td><td class="n">${TL(rest)}</td></tr>`; }
+  site.$('#kplan').innerHTML = '<tr><th>ay</th><th class="n">taksit</th><th class="n">anapara</th><th class="n">faiz ve vergi</th><th class="n">kalan</th></tr>' + rows;
+}
+function birikim() {
+  const P = +site.$('#bp').value || 0, M = +site.$('#bm').value || 0, r = (+site.$('#br').value || 0) / 100 / 12, n = Math.round((+site.$('#by').value || 0) * 12);
+  const fv = r ? P * (1 + r) ** n + M * (((1 + r) ** n - 1) / r) : P + M * n, put = P + M * n;
+  site.$('#bout2').innerHTML = `<b>${n} ay sonra ${TL(fv)}</b><br>yatırılan ${TL(put)} · getiri ${TL(fv - put)}`;
+}
+['#kt', '#kr', '#kn', '#kv'].forEach(s => site.$(s).addEventListener('input', kredi));
+['#bp', '#bm', '#br', '#by'].forEach(s => site.$(s).addEventListener('input', birikim));
+kredi(); birikim();
+
+// ---- KDV
+function kdv() {
+  site.$('#vxw').hidden = site.$('#vo').value !== 'x';
+  const t = +site.$('#vt').value || 0, o = (site.$('#vo').value === 'x' ? +site.$('#vx').value || 0 : +site.$('#vo').value) / 100;
+  const net = site.$('#vm').value === 'haric' ? t : t / (1 + o), k = net * o;
+  site.$('#vout').innerHTML = `KDV hariç <b>${TL(net)}</b> · KDV (%${(o * 100).toLocaleString('tr-TR')}) <b>${TL(k)}</b> · KDV dahil <b>${TL(net + k)}</b>`;
+}
+['#vt', '#vo', '#vx', '#vm'].forEach(s => site.$(s).addEventListener('input', kdv));
+kdv();
+
+// ---- yaş
+site.$('#yn').value = new Date().toLocaleDateString('sv');
+function yas() {
+  const d = new Date(site.$('#yd').value + 'T00:00'), n = new Date(site.$('#yn').value + 'T00:00');
+  if (isNaN(d) || isNaN(n) || n < d) { site.$('#yout').textContent = 'Doğum tarihi hesaplanacak tarihten önce olmalı.'; return; }
+  let y = n.getFullYear() - d.getFullYear(), m = n.getMonth() - d.getMonth(), g = n.getDate() - d.getDate();
+  if (g < 0) { m--; g += new Date(n.getFullYear(), n.getMonth(), 0).getDate(); } if (m < 0) { y--; m += 12; }
+  const days = Math.round((n - d) / 864e5);
+  let next = new Date(n.getFullYear(), d.getMonth(), d.getDate()); if (next < n) next.setFullYear(n.getFullYear() + 1);
+  const left = Math.round((next - n) / 864e5);
+  site.$('#yout').innerHTML = `<b>${y} yaş ${m} ay ${g} gün</b><br>${days.toLocaleString('tr-TR')} gün · ${Math.floor(days / 7).toLocaleString('tr-TR')} hafta · yaklaşık ${(days * 24).toLocaleString('tr-TR')} saat<br>doğduğun gün: ${d.toLocaleDateString('tr-TR', { weekday: 'long' })} · ${left ? `sonraki doğum gününe ${left} gün var` : 'bugün doğum günün, iyi ki doğdun'}`;
+}
+['#yd', '#yn'].forEach(s => site.$(s).addEventListener('input', yas));
+yas();
+
+// ---- vücut kitle indeksi
+function vki() {
+  const h = (+site.$('#hb').value || 0) / 100, k = +site.$('#hk').value || 0;
+  if (!h || !k) { site.$('#hout').textContent = 'Boy ve kiloyu gir.'; return; }
+  const b = k / h / h, cat = b < 18.5 ? 'zayıf' : b < 25 ? 'normal' : b < 30 ? 'fazla kilolu' : b < 35 ? 'obez (1. derece)' : b < 40 ? 'obez (2. derece)' : 'obez (3. derece)';
+  const f = v => v.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+  site.$('#hout').innerHTML = `<b>VKİ ${f(b)} · ${cat}</b><br>bu boy için normal aralık: ${f(18.5 * h * h)} – ${f(24.9 * h * h)} kg`;
+}
+['#hb', '#hk'].forEach(s => site.$(s).addEventListener('input', vki));
+vki();
 </script>
 </body>
 </html>

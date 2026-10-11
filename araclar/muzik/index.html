@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>müzik · fadimrak</title>
+<meta name="description" content="Metronom, akort aleti, piyano ve davul makinesi; tarayıcıda çalışır">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--purple); }
+  .bpm { text-align: center; font-family: var(--head); font-weight: 900; font-size: clamp(3rem, 14vw, 5rem); line-height: 1; font-variant-numeric: tabular-nums; }
+  .bpm small { display: block; font-family: 'Outfit', sans-serif; font-size: .9rem; font-weight: 600; color: var(--muted); }
+  .beats { display: flex; gap: .6rem; justify-content: center; margin: 1rem 0; }
+  .beats i { width: 22px; height: 22px; border-radius: 99px; border: 2px solid var(--line); background: var(--soft); transition: background .05s; }
+  .beats i.on { background: var(--purple); } .beats i.acc.on { background: var(--red); }
+  .wide-range { width: 100%; }
+  .tuner { text-align: center; }
+  .tuner .note { font-family: var(--head); font-weight: 900; font-size: clamp(3.5rem, 18vw, 6rem); line-height: 1; }
+  .gauge { position: relative; width: min(100%, 360px); height: 120px; margin: .8rem auto; }
+  .gauge svg { width: 100%; height: 100%; overflow: visible; }
+  .gauge line.n { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; transition: transform .12s; transform-origin: 180px 110px; }
+  .ok-tune { color: var(--ok); }
+  .strings { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; margin-top: .6rem; }
+  .piano { position: relative; display: flex; height: 190px; user-select: none; touch-action: none; margin: 1rem 0; overflow-x: auto; overflow-y: hidden; padding-right: 2px; }
+  .piano .w { flex: 1 0 34px; border: 2px solid var(--line); border-radius: 0 0 8px 8px; background: #fffdf8; margin-right: -2px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: .4rem; font-size: .7rem; color: #6a6358; cursor: pointer; }
+  .piano .b { position: absolute; top: 0; width: 4%; height: 60%; background: #1c1a17; border-radius: 0 0 6px 6px; z-index: 2; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: .3rem; font-size: .62rem; color: #aaa; }
+  .piano .on { background: var(--yellow) !important; }
+  .piano .b.on { background: var(--purple) !important; }
+  .seq { display: grid; grid-template-columns: 70px repeat(16, minmax(22px, 1fr)); gap: 4px; margin-top: 1rem; overflow-x: auto; }
+  .seq span { font-size: .8rem; font-weight: 700; align-self: center; }
+  .seq button { min-height: 34px; padding: 0; border-radius: 6px; box-shadow: none; border-width: 1.5px; }
+  .seq button:nth-of-type(4n+1) { border-width: 2.5px; }
+  .seq button.on { background: var(--c); }
+  .seq button.cur { outline: 3px solid var(--ink); outline-offset: -1px; }
+  .muted2 { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>müzik</h1><div class="acts"></div></header>
+<main>
+<nav class="tabs" aria-label="müzik araçları"><a href="#metronom">metronom</a><a href="#akort">akort</a><a href="#piyano">piyano</a><a href="#davul">davul makinesi</a></nav>
+
+<section data-tab="metronom" class="panel">
+  <div class="bpm"><span id="mbv">100</span><small>vuruş / dakika</small></div>
+  <input class="wide-range" id="mb" type="range" min="30" max="250" value="100" aria-label="tempo">
+  <div class="beats" id="mbeats"></div>
+  <div class="row"><button class="sm" data-d="-5">−5</button><button class="sm" data-d="-1">−1</button><button class="primary" id="mgo">başlat</button><button class="sm" data-d="1">+1</button><button class="sm" data-d="5">+5</button></div>
+  <div class="row" style="margin-top:.8rem"><label class="c">ölçü<select id="mm"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select></label><label class="c"><input type="checkbox" id="macc" checked> ilk vuruş vurgulu</label><button class="sm" id="mtap">tempoya dokun</button></div>
+</section>
+
+<section data-tab="akort" class="panel tuner">
+  <div class="note" id="tn">–</div>
+  <div class="muted2" id="tf">mikrofonu açıp bir tel çal</div>
+  <div class="gauge"><svg viewBox="0 0 360 120"><path d="M30 110 A150 150 0 0 1 330 110" fill="none" stroke="var(--soft)" stroke-width="14" stroke-linecap="round"/><path d="M168 18 L192 18" stroke="var(--ok)" stroke-width="14" stroke-linecap="round"/><line class="n" id="tneedle" x1="180" y1="110" x2="180" y2="22"/></svg></div>
+  <div class="muted2" id="tc">sapma: –</div>
+  <div class="row" style="margin-top:.8rem"><button class="primary" id="tgo">mikrofonu aç</button><label class="c">La (A4) =<input id="ta4" type="number" value="440" min="400" max="480" style="width:90px"> Hz</label></div>
+  <div class="strings" id="tstr"></div>
+  <p class="muted2">Ses cihazında işlenir, kaydedilmez. Sessiz bir ortamda tek tel çal.</p>
+</section>
+
+<section data-tab="piyano" class="panel">
+  <div class="row l"><label class="c">ses<select id="pw"><option value="triangle">yumuşak</option><option value="sine">saf</option><option value="square">8-bit</option><option value="sawtooth">sert</option></select></label><span class="muted2">Klavyeden: Z S X D C V G B H N J M (alt oktav), Q 2 W 3 E R 5 T 6 Y 7 U (üst oktav)</span></div>
+  <div class="piano" id="piano"></div>
+</section>
+
+<section data-tab="davul" class="panel">
+  <div class="row l"><button class="primary" id="dgo">çal</button><label class="c">tempo<input id="dt" type="number" value="100" min="60" max="200" style="width:90px"></label><button class="sm" id="dpre">örnek ritim</button><button class="sm ghost" id="dclr">temizle</button></div>
+  <div class="seq" id="seq"></div>
+  <p class="muted2">Kutulara dokunarak vuruş ekle; ritim 16 adımda bir döner ve kaydedilir.</p>
+</section>
+</main>
+<script>
+let ac;
+const AC = () => { ac ||= new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); return ac; };
+const env = (g, t, peak, a, d) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); };
+
+// ---- metronom (zamanlama ses saatine göre, sekme yavaşlasa da kaymaz)
+let mOn = false, mNext = 0, mBeat = 0, mIv, taps = [];
+const bpm = () => +site.$('#mb').value;
+function setBpm(v) { v = Math.max(30, Math.min(250, Math.round(v))); site.$('#mb').value = v; site.$('#mbv').textContent = v; store.set('metronom', v); }
+function beats() { const n = +site.$('#mm').value; site.$('#mbeats').innerHTML = [...Array(n)].map((_, i) => `<i class="${i === 0 && site.$('#macc').checked ? 'acc' : ''}"></i>`).join(''); }
+function click(t, acc) { const a = AC(), o = a.createOscillator(), g = a.createGain(); o.frequency.value = acc ? 1600 : 1000; env(g, t, acc ? .7 : .45, .002, .05); o.connect(g).connect(a.destination); o.start(t); o.stop(t + .08); }
+function sched() {
+  const n = +site.$('#mm').value;
+  while (mNext < ac.currentTime + .12) {
+    const b = mBeat % n; click(mNext, b === 0 && site.$('#macc').checked);
+    setTimeout(() => site.$$('#mbeats i').forEach((x, i) => x.classList.toggle('on', i === b)), Math.max(0, (mNext - ac.currentTime) * 1000));
+    mNext += 60 / bpm(); mBeat++;
+  }
+}
+site.$('#mgo').onclick = () => {
+  mOn = !mOn; site.$('#mgo').textContent = mOn ? 'durdur' : 'başlat';
+  if (mOn) { AC(); mNext = ac.currentTime + .05; mBeat = 0; mIv = setInterval(sched, 25); } else { clearInterval(mIv); site.$$('#mbeats i').forEach(x => x.classList.remove('on')); }
+};
+site.$('#mb').oninput = e => setBpm(e.target.value);
+site.$$('[data-d]').forEach(b => b.onclick = () => setBpm(bpm() + +b.dataset.d));
+site.$('#mm').onchange = beats; site.$('#macc').onchange = beats;
+site.$('#mtap').onclick = () => { const t = performance.now(); if (taps.length && t - taps.at(-1) > 2000) taps = []; taps.push(t); taps = taps.slice(-5); if (taps.length > 1) setBpm(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1))); };
+setBpm(store.get('metronom', 100)); beats();
+
+// ---- akort (öz ilişki ile perde bulma)
+const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], SOLFEJ = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' };
+const GUITAR = [['E2', 40], ['A2', 45], ['D3', 50], ['G3', 55], ['B3', 59], ['E4', 64]];
+let tStream = null, tIv;
+const a4 = () => +site.$('#ta4').value || 440;
+const freqOf = m => a4() * 2 ** ((m - 69) / 12);
+function pitch(buf, sr) {
+  let n = buf.length, rms = 0; for (const v of buf) rms += v * v; if (Math.sqrt(rms / n) < .01) return -1;
+  let r1 = 0, r2 = n - 1;
+  for (let i = 0; i < n / 2; i++) if (Math.abs(buf[i]) < .2) { r1 = i; break; }
+  for (let i = 1; i < n / 2; i++) if (Math.abs(buf[n - i]) < .2) { r2 = n - i; break; }
+  buf = buf.slice(r1, r2); n = buf.length;
+  const c = new Float32Array(n);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n - i; j++) c[i] += buf[j] * buf[j + i];
+  let d = 0; while (d < n - 1 && c[d] > c[d + 1]) d++;
+  let mv = -1, mp = -1; for (let i = d; i < n; i++) if (c[i] > mv) { mv = c[i]; mp = i; }
+  let T = mp; const x1 = c[T - 1], x2 = c[T], x3 = c[T + 1], a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+  if (a) T -= b / (2 * a);
+  return sr / T;
+}
+site.$('#tstr').innerHTML = 'gitar: ' + GUITAR.map(([n, m]) => `<button class="sm" data-tone="${m}">${n}</button>`).join('');
+site.$('#tstr').onclick = e => { const b = e.target.closest('[data-tone]'); if (!b) return; const a = AC(), o = a.createOscillator(), g = a.createGain(); o.type = 'triangle'; o.frequency.value = freqOf(+b.dataset.tone); env(g, a.currentTime, .4, .01, 1.6); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 1.7); };
+site.$('#tgo').onclick = async () => {
+  if (tStream) { tStream.getTracks().forEach(t => t.stop()); tStream = null; clearInterval(tIv); site.$('#tgo').textContent = 'mikrofonu aç'; return; }
+  try {
+    tStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    const a = AC(), an = a.createAnalyser(); an.fftSize = 2048; a.createMediaStreamSource(tStream).connect(an);
+    const buf = new Float32Array(an.fftSize); site.$('#tgo').textContent = 'mikrofonu kapat';
+    tIv = setInterval(() => {
+      an.getFloatTimeDomainData(buf); const f = pitch(buf, a.sampleRate);
+      if (f < 30 || f > 2000) return;
+      const m = Math.round(12 * Math.log2(f / a4()) + 69), cents = Math.round(1200 * Math.log2(f / freqOf(m))), nm = NAMES[m % 12];
+      site.$('#tn').textContent = nm + Math.floor(m / 12 - 1); site.$('#tn').classList.toggle('ok-tune', Math.abs(cents) <= 5);
+      site.$('#tf').textContent = `${f.toFixed(1)} Hz${SOLFEJ[nm] ? ' · ' + SOLFEJ[nm] : ''}`;
+      site.$('#tc').textContent = Math.abs(cents) <= 5 ? 'akortlu' : cents < 0 ? `${-cents} sent pes, sık` : `${cents} sent tiz, gevşet`;
+      site.$('#tneedle').style.transform = `rotate(${Math.max(-50, Math.min(50, cents)) * 1.4}deg)`;
+    }, 90);
+  } catch (e) { toast(e.name === 'NotAllowedError' ? 'mikrofon izni verilmedi' : 'mikrofon açılamadı', 3000); }
+};
+
+// ---- piyano
+const KEYS = 'z s x d c v g b h n j m q 2 w 3 e r 5 t 6 y 7 u'.split(' '), live = {};
+function piano() {
+  const whites = [], blacks = [];
+  for (let i = 0; i < 24; i++) { const m = 60 + i, nm = NAMES[m % 12]; (nm.includes('#') ? blacks : whites).push([m, nm, KEYS[i]]); }
+  site.$('#piano').innerHTML = whites.map(([m, nm, k]) => `<div class="w" data-m="${m}">${nm}${Math.floor(m / 12 - 1)}<br>${k.toUpperCase()}</div>`).join('') +
+    blacks.map(([m, , k]) => { const wi = whites.findIndex(w => w[0] === m - 1); return `<div class="b" data-m="${m}" style="left:calc(${(wi + 1) / whites.length * 100}% - 2%)">${k.toUpperCase()}</div>`; }).join('');
+}
+function noteOn(m) {
+  if (live[m]) return; const a = AC(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
+  o.type = site.$('#pw').value; o.frequency.value = freqOf(m);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.35, t + .01); g.gain.exponentialRampToValueAtTime(.18, t + .35);
+  o.connect(g).connect(a.destination); o.start(); live[m] = { o, g };
+  site.$(`#piano [data-m="${m}"]`)?.classList.add('on');
+}
+function noteOff(m) {
+  const n = live[m]; if (!n) return; const t = ac.currentTime;
+  n.g.gain.cancelScheduledValues(t); n.g.gain.setValueAtTime(Math.max(n.g.gain.value, .0001), t); n.g.gain.exponentialRampToValueAtTime(.0001, t + .35); n.o.stop(t + .4);
+  delete live[m]; site.$(`#piano [data-m="${m}"]`)?.classList.remove('on');
+}
+const pd = {};
+site.$('#piano').addEventListener('pointerdown', e => { const k = e.target.closest('[data-m]'); if (!k) return; site.$('#piano').setPointerCapture(e.pointerId); pd[e.pointerId] = +k.dataset.m; noteOn(+k.dataset.m); });
+site.$('#piano').addEventListener('pointermove', e => { if (!(e.pointerId in pd)) return; const k = document.elementFromPoint(e.clientX, e.clientY)?.closest('#piano [data-m]'); const m = k ? +k.dataset.m : null; if (m !== pd[e.pointerId]) { noteOff(pd[e.pointerId]); if (m) noteOn(m); pd[e.pointerId] = m; } });
+const up = e => { if (e.pointerId in pd) { noteOff(pd[e.pointerId]); delete pd[e.pointerId]; } };
+site.$('#piano').addEventListener('pointerup', up); site.$('#piano').addEventListener('pointercancel', up);
+addEventListener('keydown', e => { if (location.hash !== '#piyano' || e.repeat || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; const i = KEYS.indexOf(e.key.toLowerCase()); if (i >= 0) noteOn(60 + i); });
+addEventListener('keyup', e => { const i = KEYS.indexOf(e.key.toLowerCase()); if (i >= 0) noteOff(60 + i); });
+piano();
+
+// ---- davul makinesi (sesler anlık sentezlenir)
+const TR = [['kick', 'bas', '#ff5a4e'], ['snare', 'trampet', '#ffd23f'], ['hat', 'zil', '#4d7cfe'], ['clap', 'el', '#3bb273'], ['tom', 'tom', '#8f5cf7']];
+let P = store.get('davul', null) || TR.map(() => Array(16).fill(0)), dOn = false, dStep = 0, dNext = 0, dIv;
+let noise;
+const noiseBuf = () => { if (noise) return noise; const a = AC(), b = a.createBuffer(1, a.sampleRate, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return noise = b; };
+function hit(k, t) {
+  const a = AC(), g = a.createGain(); g.connect(a.destination);
+  const osc = (f0, f1, dur) => { const o = a.createOscillator(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur); o.connect(g); o.start(t); o.stop(t + dur + .05); };
+  const nz = (type, f, dur, at = 0) => { const s = a.createBufferSource(), fl = a.createBiquadFilter(), gg = a.createGain(); s.buffer = noiseBuf(); fl.type = type; fl.frequency.value = f; s.connect(fl).connect(gg).connect(a.destination); env(gg, t + at, k === 'hat' ? .25 : .6, .001, dur); s.start(t + at); s.stop(t + at + dur + .05); };
+  if (k === 'kick') { env(g, t, 1, .002, .4); osc(150, 45, .15); }
+  if (k === 'snare') { env(g, t, .4, .001, .1); osc(190, 120, .1); nz('highpass', 1200, .18); }
+  if (k === 'hat') nz('highpass', 7500, .05);
+  if (k === 'clap') [0, .012, .024].forEach((d, i) => nz('bandpass', 1500, i === 2 ? .16 : .02, d));
+  if (k === 'tom') { env(g, t, .8, .002, .3); osc(220, 110, .25); }
+}
+function grid() {
+  site.$('#seq').innerHTML = TR.map(([k, n, c], r) => `<span>${n}</span>` + P[r].map((v, i) => `<button class="${v ? 'on' : ''}" style="--c:${c}" data-r="${r}" data-s="${i}" aria-pressed="${!!v}" aria-label="${n} ${i + 1}. adım"></button>`).join('')).join('');
+}
+site.$('#seq').onclick = e => { const b = e.target.closest('[data-r]'); if (!b) return; const r = +b.dataset.r, s = +b.dataset.s; P[r][s] ^= 1; store.set('davul', P); b.classList.toggle('on', !!P[r][s]); b.setAttribute('aria-pressed', !!P[r][s]); if (P[r][s] && !dOn) hit(TR[r][0], AC().currentTime); };
+function dSched() {
+  while (dNext < ac.currentTime + .12) {
+    const s = dStep % 16; TR.forEach(([k], r) => P[r][s] && hit(k, dNext));
+    setTimeout(() => site.$$('#seq button').forEach(b => b.classList.toggle('cur', +b.dataset.s === s)), Math.max(0, (dNext - ac.currentTime) * 1000));
+    dNext += 60 / Math.max(60, Math.min(200, +site.$('#dt').value || 100)) / 4; dStep++;
+  }
+}
+site.$('#dgo').onclick = () => { dOn = !dOn; site.$('#dgo').textContent = dOn ? 'durdur' : 'çal'; if (dOn) { AC(); dNext = ac.currentTime + .05; dStep = 0; dIv = setInterval(dSched, 25); } else { clearInterval(dIv); site.$$('#seq button').forEach(b => b.classList.remove('cur')); } };
+site.$('#dclr').onclick = () => { P = TR.map(() => Array(16).fill(0)); store.set('davul', P); grid(); };
+site.$('#dpre').onclick = () => { const s = str => [...str].map(Number); P = [s('1000001010000000'), s('0000100000001000'), s('1010101010101010'), s('0000000000000001'), s('0000000000000110')]; store.set('davul', P); grid(); };
+grid();
+addEventListener('hashchange', () => { if (dOn && location.hash !== '#davul') site.$('#dgo').click(); if (mOn && location.hash !== '#metronom') site.$('#mgo').click(); });
+</script>
+</body>
+</html>

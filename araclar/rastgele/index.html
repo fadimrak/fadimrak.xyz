@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rastgele · fadimrak</title>
+<meta name="description" content="Çark çevir, zar at, yazı tura, rastgele sayı, takımlara böl, kura çek">
+<meta name="theme-color" content="#f6f0e4">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js"></script>
+<style>
+  :root { --accent: var(--pink); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+  .wheel { position: relative; width: min(100%, 420px); margin: 0 auto; }
+  .wheel canvas { width: 100%; height: auto; display: block; }
+  .wheel::after { content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); border: 14px solid transparent; border-top: 24px solid var(--ink); border-bottom: 0; }
+  .res { text-align: center; font-family: var(--head); font-weight: 900; font-size: clamp(1.6rem, 6vw, 2.4rem); min-height: 2.6rem; margin: .6rem 0; overflow-wrap: anywhere; }
+  .dice { display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }
+  .die { width: 76px; height: 76px; border: 2px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: 3px 3px 0 var(--sh); display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 10px; }
+  .die i { width: 13px; height: 13px; border-radius: 99px; background: var(--ink); place-self: center; visibility: hidden; }
+  .die i.on { visibility: visible; }
+  .die.num { display: grid; place-items: center; font-family: var(--head); font-weight: 900; font-size: 1.8rem; grid-template: none; }
+  .roll { animation: roll .45s ease-out; }
+  @keyframes roll { 0% { transform: rotate(-30deg) scale(.8); } 60% { transform: rotate(15deg) scale(1.08); } 100% { transform: none; } }
+  .coin { width: 150px; height: 150px; margin: 1rem auto; position: relative; transform-style: preserve-3d; transition: transform 1.4s cubic-bezier(.2, .8, .2, 1); }
+  .coin div { position: absolute; inset: 0; border-radius: 50%; display: grid; place-items: center; backface-visibility: hidden; font-family: var(--head); font-weight: 900; font-size: 1.5rem; border: 3px solid var(--line); box-shadow: inset 0 0 0 8px rgba(0,0,0,.08); background: var(--yellow); color: #1c1a17; }
+  .coin .b { transform: rotateY(180deg); background: #ffc56b; }
+  .teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: .7rem; margin-top: 1rem; }
+  .teams .panel { padding: .8rem 1rem; box-shadow: 3px 3px 0 var(--sh); }
+  .teams h3 { margin: 0 0 .4rem; font-size: 1rem; }
+  .teams ol { margin: 0; padding-left: 1.2rem; }
+  .nums { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; margin-top: .8rem; }
+  .nums span { min-width: 3rem; padding: .4rem .6rem; text-align: center; border: 2px solid var(--line); border-radius: 10px; background: var(--card); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .note { font-size: .85rem; color: var(--muted); }
+  @media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>rastgele</h1><div class="acts"></div></header>
+<main class="wide">
+<nav class="tabs" aria-label="rastgele araçlar"><a href="#cark">çark</a><a href="#zar">zar</a><a href="#yazitura">yazı tura</a><a href="#sayi">sayı</a><a href="#takim">takımlara böl</a><a href="#kura">kura</a></nav>
+<p class="note" style="margin-top:0">Sonuçlar tarayıcının kriptografik rastgele sayı üreteciyle belirlenir; hiçbir seçenek kayırılmaz.</p>
+
+<section data-tab="cark" class="panel">
+  <div class="two">
+    <div><div class="wheel"><canvas id="wc" width="840" height="840" aria-label="çark"></canvas></div><div class="res" id="wres" aria-live="polite"></div><div class="row"><button class="primary" id="wspin">çevir</button></div></div>
+    <div><label class="f">seçenekler (her satıra bir tane)<textarea id="wopts" style="min-height:14rem"></textarea></label><label class="c" style="margin-top:.5rem"><input type="checkbox" id="wrm"> çıkanı listeden sil</label></div>
+  </div>
+</section>
+
+<section data-tab="zar" class="panel">
+  <div class="row"><label class="c">zar sayısı<select id="dn"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label><label class="c">yüz<select id="ds"><option value="6" selected>6</option><option value="4">4</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="20">20</option></select></label></div>
+  <div class="dice" id="dice"></div>
+  <div class="res" id="dres" aria-live="polite"></div>
+  <div class="row"><button class="primary" id="droll">at</button></div>
+  <p class="note" id="dhist" style="text-align:center"></p>
+</section>
+
+<section data-tab="yazitura" class="panel">
+  <div class="coin" id="coin"><div>YAZI</div><div class="b">TURA</div></div>
+  <div class="res" id="cres" aria-live="polite"></div>
+  <div class="row"><button class="primary" id="cflip">at</button></div>
+  <p class="note" id="cstat" style="text-align:center"></p>
+</section>
+
+<section data-tab="sayi" class="panel">
+  <div class="row"><label class="f">en az<input id="na" type="number" value="1" style="width:120px"></label><label class="f">en çok<input id="nb" type="number" value="100" style="width:120px"></label><label class="f">kaç tane<input id="nc" type="number" value="1" min="1" max="1000" style="width:120px"></label><label class="c"><input type="checkbox" id="nu" checked> tekrar etmesin</label></div>
+  <div class="nums" id="nout" aria-live="polite"></div>
+  <div class="row" style="margin-top:.8rem"><button class="primary" id="ngo">üret</button><button id="ncp">kopyala</button></div>
+</section>
+
+<section data-tab="takim" class="panel">
+  <div class="two">
+    <label class="f">kişiler (her satıra bir isim)<textarea id="tn" style="min-height:12rem"></textarea></label>
+    <div><div class="row l"><label class="f">nasıl bölünsün<select id="tm"><option value="n">takım sayısına göre</option><option value="s">takım büyüklüğüne göre</option></select></label><label class="f">sayı<input id="tk" type="number" value="2" min="1" style="width:100px"></label></div><div class="row l" style="margin-top:.6rem"><button class="primary" id="tgo">böl</button><button id="tcp">kopyala</button></div></div>
+  </div>
+  <div class="teams" id="tout"></div>
+</section>
+
+<section data-tab="kura" class="panel">
+  <div class="two">
+    <label class="f">katılımcılar (her satıra bir isim)<textarea id="kn" style="min-height:12rem"></textarea></label>
+    <div><label class="f">kaç kişi çekilsin<input id="kc" type="number" value="1" min="1" style="width:100px"></label><div class="row l" style="margin-top:.6rem"><button class="primary" id="kgo">kura çek</button></div><div class="res" id="kres" aria-live="polite"></div><ol id="kout"></ol></div>
+  </div>
+</section>
+</main>
+<script>
+// Eşit olasılıklı rastgele tamsayı [0, n)
+const rnd = n => { const a = new Uint32Array(1), lim = Math.floor(2 ** 32 / n) * n; let x; do { crypto.getRandomValues(a); x = a[0]; } while (x >= lim); return x % n; };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const lines = id => site.$(id).value.split('\n').map(s => s.trim()).filter(Boolean);
+const keep = (id, key, def) => { const el = site.$(id); el.value = store.get(key, def); el.addEventListener('input', () => store.set(key, el.value)); };
+const COLORS = ['#ff5a4e', '#ffd23f', '#4d7cfe', '#3bb273', '#ff9f1c', '#8f5cf7', '#1fb5a8', '#ff6fae'];
+
+// ---- çark
+keep('#wopts', 'cark', 'pizza\nhamburger\ndöner\nmakarna\nlahmacun\nmantı');
+let angle = 0, spinning = false;
+function drawWheel() {
+  const c = site.$('#wc'), x = c.getContext('2d'), o = lines('#wopts'), n = Math.max(1, o.length), R = c.width / 2, ink = getComputedStyle(document.body).color;
+  x.clearRect(0, 0, c.width, c.height); x.save(); x.translate(R, R); x.rotate(angle);
+  for (let i = 0; i < n; i++) {
+    const a0 = i * 2 * Math.PI / n - Math.PI / 2, a1 = a0 + 2 * Math.PI / n;
+    x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R - 8, a0, a1); x.closePath();
+    x.fillStyle = o.length ? COLORS[i % COLORS.length === 0 && i === n - 1 && n % COLORS.length === 1 ? 1 : i % COLORS.length] : '#ddd'; x.fill();
+    x.lineWidth = 4; x.strokeStyle = '#1c1a17'; x.stroke();
+    x.save(); x.rotate((a0 + a1) / 2); x.textAlign = 'right'; x.textBaseline = 'middle'; x.fillStyle = '#1c1a17';
+    const t = o[i] || 'seçenek ekle'; x.font = `700 ${Math.max(18, Math.min(44, 360 / n + 14))}px Outfit, sans-serif`;
+    x.fillText(t.length > 18 ? t.slice(0, 17) + '…' : t, R - 36, 0); x.restore();
+  }
+  x.restore(); x.beginPath(); x.arc(R, R, 34, 0, 7); x.fillStyle = ink; x.fill();
+}
+site.$('#wopts').addEventListener('input', () => { if (!spinning) drawWheel(); });
+site.$('#wspin').onclick = () => {
+  const o = lines('#wopts'); if (o.length < 2 || spinning) return o.length < 2 && toast('en az iki seçenek gir');
+  spinning = true; site.$('#wres').textContent = '';
+  const n = o.length, win = rnd(n), seg = 2 * Math.PI / n;
+  // kazanan dilimin ortası en üstteki oka gelsin (dilim içinde rastgele bir nokta)
+  const target = -(win * seg + seg * (.15 + .7 * rnd(1000) / 1000)), from = angle, to = from + 2 * Math.PI * (6 + rnd(3)) + ((target - from) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); // saat yönünde
+  const t0 = performance.now(), dur = 4800;
+  (function f(t) {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - (1 - p) ** 4;
+    angle = from + (to - from) * e; drawWheel();
+    if (p < 1) return requestAnimationFrame(f);
+    spinning = false; site.$('#wres').textContent = o[win];
+    if (site.$('#wrm').checked) { o.splice(win, 1); site.$('#wopts').value = o.join('\n'); store.set('cark', site.$('#wopts').value); setTimeout(drawWheel, 900); }
+  })(t0);
+};
+
+// ---- zar
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+let dh = [];
+function dice(vals, sides) {
+  site.$('#dice').innerHTML = vals.map(v => sides === 6 ? `<div class="die roll" aria-label="${v}">${[...Array(9)].map((_, i) => `<i class="${PIPS[v].includes(i) ? 'on' : ''}"></i>`).join('')}</div>` : `<div class="die num roll">${v}</div>`).join('');
+}
+site.$('#droll').onclick = () => {
+  const n = +site.$('#dn').value, s = +site.$('#ds').value, v = [...Array(n)].map(() => rnd(s) + 1);
+  dice(v, s); site.$('#dres').textContent = n > 1 ? `toplam ${v.reduce((a, b) => a + b, 0)}` : '';
+  dh = [v.join('+'), ...dh].slice(0, 8); site.$('#dhist').textContent = dh.length > 1 ? 'önceki: ' + dh.slice(1).join(' · ') : '';
+};
+dice([1, 1], 6);
+
+// ---- yazı tura
+let rot = 0, cs = { y: 0, t: 0 };
+site.$('#cflip').onclick = () => {
+  const r = rnd(2); rot += 360 * (4 + rnd(3)) + (r ? 180 : 0) - (rot % 360);
+  site.$('#coin').style.transform = `rotateY(${rot}deg)`; site.$('#cres').textContent = '';
+  site.$('#cflip').disabled = true;
+  setTimeout(() => { site.$('#cres').textContent = r ? 'TURA' : 'YAZI'; cs[r ? 't' : 'y']++; site.$('#cstat').textContent = `yazı ${cs.y} · tura ${cs.t}`; site.$('#cflip').disabled = false; }, 1400);
+};
+
+// ---- sayı
+function sayi() {
+  let a = Math.ceil(+site.$('#na').value), b = Math.floor(+site.$('#nb').value), c = Math.min(1000, Math.max(1, +site.$('#nc').value || 1));
+  if (a > b) [a, b] = [b, a];
+  const span = b - a + 1;
+  if (site.$('#nu').checked && c > span) { toast(`bu aralıkta en çok ${span} farklı sayı var`); c = span; }
+  let out;
+  if (site.$('#nu').checked) { const set = new Set(); while (set.size < c) set.add(a + rnd(span)); out = [...set]; }
+  else out = [...Array(c)].map(() => a + rnd(span));
+  site.$('#nout').innerHTML = out.map(v => `<span>${v}</span>`).join('');
+}
+site.$('#ngo').onclick = sayi;
+site.$('#ncp').onclick = () => navigator.clipboard.writeText(site.$$('#nout span').map(s => s.textContent).join(', ')).then(() => toast('kopyalandı'));
+sayi();
+
+// ---- takımlar
+keep('#tn', 'takim', 'Ali\nAyşe\nMehmet\nZeynep\nCan\nElif\nEmre\nSelin');
+let teams = [];
+site.$('#tgo').onclick = () => {
+  const p = shuffle(lines('#tn')), k = Math.max(1, +site.$('#tk').value || 1);
+  if (p.length < 2) return toast('en az iki isim gir');
+  const n = site.$('#tm').value === 'n' ? Math.min(k, p.length) : Math.ceil(p.length / k);
+  teams = [...Array(n)].map(() => []); p.forEach((x, i) => teams[i % n].push(x));
+  site.$('#tout').innerHTML = teams.map((t, i) => `<div class="panel" style="border-top:6px solid ${COLORS[i % COLORS.length]}"><h3>${i + 1}. takım</h3><ol>${t.map(x => `<li>${site.esc(x)}</li>`).join('')}</ol></div>`).join('');
+};
+site.$('#tcp').onclick = () => teams.length && navigator.clipboard.writeText(teams.map((t, i) => `${i + 1}. takım: ${t.join(', ')}`).join('\n')).then(() => toast('kopyalandı'));
+
+// ---- kura
+keep('#kn', 'kura', 'Ali\nAyşe\nMehmet\nZeynep\nCan\nElif');
+site.$('#kgo').onclick = () => {
+  const p = lines('#kn'), c = Math.min(p.length, Math.max(1, +site.$('#kc').value || 1));
+  if (p.length < 2) return toast('en az iki isim gir');
+  const win = shuffle(p.slice()).slice(0, c), b = site.$('#kgo'); b.disabled = true; site.$('#kout').innerHTML = '';
+  let i = 0; const t0 = performance.now();
+  (function f() {
+    const el = performance.now() - t0;
+    site.$('#kres').textContent = p[i++ % p.length];
+    if (el < 1800) return setTimeout(f, 40 + el / 20);
+    site.$('#kres').textContent = win[0];
+    site.$('#kout').innerHTML = c > 1 ? win.map(w => `<li>${site.esc(w)}</li>`).join('') : '';
+    b.disabled = false;
+  })();
+};
+
+drawWheel();
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { if (s.dataset.tab === 'cark') drawWheel(); }));
+</script>
+</body>
+</html>

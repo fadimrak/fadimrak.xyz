@@ -40,7 +40,7 @@
 <body>
 <header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>yazı araçları</h1><div class="acts"></div></header>
 <main class="wide">
-<nav class="tabs" aria-label="yazı araçları"><a href="#sayac">sayaç ve okuma süresi</a><a href="#harf">büyük / küçük harf</a><a href="#fark">karşılaştır</a><a href="#markdown">markdown</a><a href="#yazim">yazım ve tekrar</a></nav>
+<nav class="tabs" aria-label="yazı araçları"><a href="#sayac">sayaç ve okuma süresi</a><a href="#harf">büyük / küçük harf</a><a href="#fark">karşılaştır</a><a href="#markdown">markdown</a><a href="#yazim">yazım ve tekrar</a><a href="#turkce">Türkçe karakter</a><a href="#satir">satır sırala</a><a href="#lorem">lorem ipsum</a><a href="#slug">slug</a></nav>
 
 <section data-tab="sayac" class="panel">
   <textarea class="shared" placeholder="Metni buraya yapıştır ya da yaz." aria-label="metin" spellcheck="true" lang="tr"></textarea>
@@ -71,6 +71,33 @@
   <div class="row l" style="margin-top:.6rem"><button class="primary" id="ycheck">denetle</button><span class="muted small" id="yinfo"></span></div>
   <div class="finds" id="yout"></div>
   <p class="muted small">Sık yapılan yazım yanlışları, bitişik yazılan "mi" soru eki ve art arda tekrar eden kelimeler aranır. Diğer yazım hataları için tarayıcının kendi denetimi (kırmızı alt çizgi) açıktır; dil ayarı Türkçe değilse göstermeyebilir.</p>
+</section>
+<section data-tab="turkce" class="panel">
+  <div class="two"><label class="f">Türkçe karaktersiz metin<textarea id="tri" placeholder="cok guzel bir gun, ogrenciler disarida" aria-label="Türkçe karaktersiz metin"></textarea></label><label class="f">düzeltilmiş<textarea id="tro" readonly aria-label="düzeltilmiş metin"></textarea></label></div>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="trgo">düzelt</button><button id="trcp">kopyala</button><span class="muted small" id="trinfo"></span></div>
+  <p class="muted small">Her kelime için en sık kullanılan Türkçe yazılışı seçilir (ör. cagri → çağrı). Zaten Türkçe harf içeren kelimelere dokunulmaz. Nadir kelimeler ve özel adlar düzelmeyebilir, sonucu bir kez gözden geçir.</p>
+</section>
+
+<section data-tab="satir" class="panel">
+  <textarea id="li" placeholder="her satıra bir öğe" aria-label="satırlar" style="min-height:14rem"></textarea>
+  <div class="row l" style="margin-top:.6rem">
+    <button class="sm" data-ln="az">A → Z</button><button class="sm" data-ln="za">Z → A</button><button class="sm" data-ln="kisa">kısadan uzuna</button><button class="sm" data-ln="uzun">uzundan kısaya</button><button class="sm" data-ln="ters">ters çevir</button><button class="sm" data-ln="karistir">karıştır</button>
+    <button class="sm" data-ln="tekrar">tekrarları sil</button><button class="sm" data-ln="bos">boş satırları sil</button><button class="sm" data-ln="kirp">baş/son boşlukları sil</button><button class="sm" data-ln="numara">numarala</button><button class="sm primary" id="lncp">kopyala</button>
+  </div>
+  <p class="muted small" id="lninfo"></p>
+</section>
+
+<section data-tab="lorem" class="panel">
+  <div class="row l"><label class="f">paragraf<input id="lp" type="number" min="1" max="50" value="3" style="width:110px"></label><label class="f">paragraf başına cümle<input id="ls" type="number" min="1" max="30" value="5" style="width:110px"></label><label class="c"><input type="checkbox" id="lstart" checked> "Lorem ipsum dolor sit amet" ile başla</label></div>
+  <textarea id="lout" readonly aria-label="üretilen metin" style="margin-top:.7rem;min-height:14rem"></textarea>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="lgo">yeniden üret</button><button id="lcp">kopyala</button><span class="muted small" id="linfo"></span></div>
+</section>
+
+<section data-tab="slug" class="panel">
+  <label class="f">başlık<input id="si" value="Türkçe Başlıktan Bağlantı Üretme: Nasıl Yapılır?" style="width:100%"></label>
+  <div class="row l" style="margin-top:.6rem"><label class="c">ayırıcı<select id="ssep"><option>-</option><option>_</option></select></label><label class="c"><input type="checkbox" id="slow" checked> küçük harf</label></div>
+  <div class="diff" id="sout" style="font-family:ui-monospace,Consolas,monospace"></div>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="scp">kopyala</button></div>
 </section>
 </main>
 <script>
@@ -159,6 +186,66 @@ site.$('#ycheck').onclick = check;
 
 setText(store.get('yazi-metin', ''));
 site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { if (s.dataset.tab === 'markdown') mdRender(); }));
+// ---- Türkçe karakter düzeltici: sıklık listesindeki en yaygın yazılış (cagri -> çağrı)
+let TR = null;
+const ASC = s => s.replace(/[çğıöşüâîû]/g, c => 'cgiosuaiu'['çğıöşüâîû'.indexOf(c)]);
+async function trFix() {
+  if (!TR) { site.$('#trinfo').textContent = 'sözlük yükleniyor…'; TR = new Map(); (await (await fetch('tr-harf.txt')).text()).split('\n').forEach(w => TR.set(ASC(w), w)); }
+  let n = 0;
+  site.$('#tro').value = site.$('#tri').value.replace(/[A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû]+/g, w => {
+    if (/[ÇĞİÖŞÜçğıöşüÂÎÛâîû]/.test(w)) return w;
+    const hit = TR.get(w.toLowerCase());
+    if (!hit) return w;
+    const r = w.length > 1 && w === w.toUpperCase() ? hit.toLocaleUpperCase('tr') : /^[A-Z]/.test(w) ? hit.charAt(0).toLocaleUpperCase('tr') + hit.slice(1) : hit;
+    if (r !== w) n++;
+    return r;
+  });
+  site.$('#trinfo').textContent = `${n} kelime düzeltildi`;
+}
+site.$('#trgo').onclick = trFix;
+site.$('#tri').addEventListener('input', () => { clearTimeout(trFix.t); trFix.t = setTimeout(trFix, 400); });
+site.$('#trcp').onclick = () => navigator.clipboard.writeText(site.$('#tro').value).then(() => toast('kopyalandı'));
+
+// ---- satır araçları
+const coll = new Intl.Collator('tr', { numeric: true, sensitivity: 'base' });
+const LN = {
+  az: L => L.sort(coll.compare), za: L => L.sort(coll.compare).reverse(), kisa: L => L.sort((a, b) => a.length - b.length), uzun: L => L.sort((a, b) => b.length - a.length),
+  ters: L => L.reverse(), karistir: L => { for (let i = L.length - 1; i > 0; i--) { const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1); [L[i], L[j]] = [L[j], L[i]]; } return L; },
+  tekrar: L => [...new Set(L)], bos: L => L.filter(l => l.trim()), kirp: L => L.map(l => l.trim()), numara: L => L.map((l, i) => `${i + 1}. ${l.replace(/^\d+\.\s/, '')}`),
+};
+site.$$('[data-ln]').forEach(b => b.onclick = () => {
+  const before = site.$('#li').value.split('\n'), after = LN[b.dataset.ln](before.slice());
+  site.$('#li').value = after.join('\n');
+  site.$('#lninfo').textContent = `${after.length} satır` + (after.length !== before.length ? ` (${before.length - after.length} satır silindi)` : '');
+});
+site.$('#lncp').onclick = () => navigator.clipboard.writeText(site.$('#li').value).then(() => toast('kopyalandı'));
+
+// ---- lorem ipsum
+const LW = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum curabitur pretium tincidunt lacus nunc vitae mauris integer pellentesque habitant morbi tristique senectus netus malesuada fames turpis egestas'.split(' ');
+const pick = n => Math.floor(Math.random() * n);
+function lorem() {
+  const P = Math.min(50, Math.max(1, +site.$('#lp').value || 3)), S = Math.min(30, Math.max(1, +site.$('#ls').value || 5));
+  const sent = () => { const w = [...Array(6 + pick(10))].map(() => LW[pick(LW.length)]); for (let i = 3; i < w.length - 2; i += 4 + pick(4)) w[i] += ','; const s = w.join(' '); return s[0].toUpperCase() + s.slice(1) + '.'; };
+  const ps = [...Array(P)].map(() => [...Array(S)].map(sent).join(' '));
+  if (site.$('#lstart').checked) ps[0] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' + ps[0].split('. ').slice(1).join('. ');
+  site.$('#lout').value = ps.join('\n\n');
+  site.$('#linfo').textContent = `${words(site.$('#lout').value).length} kelime`;
+}
+['#lp', '#ls', '#lstart'].forEach(s => site.$(s).addEventListener('input', lorem));
+site.$('#lgo').onclick = lorem;
+site.$('#lcp').onclick = () => navigator.clipboard.writeText(site.$('#lout').value).then(() => toast('kopyalandı'));
+lorem();
+
+// ---- slug
+function slug() {
+  const sep = site.$('#ssep').value;
+  let s = site.$('#si').value.replace(/[çğıöşüÇĞİÖŞÜâîûÂÎÛ]/g, c => 'cgiosuCGIOSUaiuAIU'['çğıöşüÇĞİÖŞÜâîûÂÎÛ'.indexOf(c)]).normalize('NFKD').replace(/[̀-ͯ]/g, '');
+  if (site.$('#slow').checked) s = s.toLowerCase();
+  site.$('#sout').textContent = s.replace(/[^A-Za-z0-9]+/g, sep).replace(new RegExp(`^\\${sep}+|\\${sep}+$`, 'g'), '') || '—';
+}
+['#si', '#ssep', '#slow'].forEach(s => site.$(s).addEventListener('input', slug));
+site.$('#scp').onclick = () => navigator.clipboard.writeText(site.$('#sout').textContent).then(() => toast('kopyalandı'));
+slug();
 </script>
 </body>
 </html>

@@ -24,12 +24,17 @@
   .prog { margin-top: .6rem; }
   textarea.ocr { min-height: 14rem; margin-top: .8rem; }
   .note { font-size: .85rem; color: var(--muted); }
+  .klist { display: flex; gap: .5rem; flex-wrap: wrap; margin: .7rem 0; }
+  .kit { width: 96px; display: grid; gap: .2rem; justify-items: center; }
+  .kit img { width: 96px; height: 72px; object-fit: cover; border-radius: 8px; border: 2px solid var(--line); }
+  .kit button { min-height: 28px; padding: 0 .45rem; }
+  .crop .bz { position: absolute; border: 2px dashed #fff; outline: 2px dashed #1c1a17; pointer-events: none; }
 </style>
 </head>
 <body>
 <header class="wide"><a class="back" href="/araclar/">← araçlar</a><h1>resim araçları</h1><div class="acts"></div></header>
 <main class="wide">
-<nav class="tabs" aria-label="resim araçları"><a href="#sikistir">sıkıştır</a><a href="#boyut">boyutlandır</a><a href="#kirp">kırp</a><a href="#cevir">format çevir</a><a href="#arkaplan">arka plan kaldır</a><a href="#tarama">tarama efekti</a><a href="#ocr">yazı oku (OCR)</a></nav>
+<nav class="tabs" aria-label="resim araçları"><a href="#sikistir">sıkıştır</a><a href="#boyut">boyutlandır</a><a href="#kirp">kırp</a><a href="#cevir">format çevir</a><a href="#arkaplan">arka plan kaldır</a><a href="#tarama">tarama efekti</a><a href="#ocr">yazı oku (OCR)</a><a href="#favicon">favicon</a><a href="#kolaj">kolaj</a><a href="#bulanik">bulanıklaştır</a></nav>
 <p class="note" style="margin-top:0">Resmin hiçbir sunucuya yüklenmez; işlemler tarayıcında yapılır.</p>
 <div class="panel">
   <div class="drop" id="drop"><b>resim seç ya da buraya sürükle</b><span class="note">JPG, PNG, WebP, GIF, BMP</span></div>
@@ -79,6 +84,31 @@
 </section>
 <div class="prev" id="prev" hidden></div>
 <p class="info" id="pinfo"></p>
+<section data-tab="favicon" class="panel">
+  <h2>favicon üretici</h2>
+  <div class="opts"><label class="f">yerleşim<select id="ffit"><option value="kirp">ortadan kare kırp</option><option value="sigdir">tamamını sığdır</option></select></label><label class="f">kenar boşluğu: <span id="fpadv">0</span>%<input id="fpad" type="range" min="0" max="25" value="0"></label><label class="f">köşe yuvarlaklığı: <span id="fradv">0</span>%<input id="frad" type="range" min="0" max="100" value="0"></label><label class="c"><input type="checkbox" id="fbg"> arka plan rengi</label><label class="f">renk<input id="fcol" type="color" value="#ffffff"></label></div>
+  <div class="row l"><button class="primary" id="fgo">ZIP indir</button><button id="fico">yalnızca favicon.ico</button></div>
+  <label class="f" style="margin-top:.8rem">sitenin &lt;head&gt; bölümüne ekle<textarea id="fsnip" readonly style="min-height:5.5rem;font-family:ui-monospace,Consolas,monospace;font-size:.85rem">&lt;link rel="icon" href="/favicon.ico" sizes="any"&gt;
+&lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;
+&lt;link rel="apple-touch-icon" href="/apple-touch-icon.png"&gt;</textarea></label>
+  <p class="note">ZIP içinde favicon.ico (16, 32, 48 px), 16 ve 32 px PNG, Apple için 180 px ve Android için 192 ile 512 px simgeler bulunur.</p>
+</section>
+
+<section data-tab="kolaj" class="panel">
+  <h2>kolaj</h2>
+  <div class="drop" id="kdrop"><b>resimleri seç</b><span class="note">2-16 resim; sırayı aşağıdan değiştirebilirsin</span></div>
+  <div class="klist" id="klist"></div>
+  <div class="opts"><label class="f">düzen<select id="kd"><option value="grid">ızgara</option><option value="row">yan yana</option><option value="col">alt alta</option></select></label><label class="f">oran<select id="ko"><option value="1">kare (1:1)</option><option value="0.8">dikey (4:5)</option><option value="1.7778">yatay (16:9)</option><option value="0.5625">hikâye (9:16)</option></select></label><label class="f">genişlik<select id="kw"><option>1080</option><option selected>1600</option><option>2400</option></select></label><label class="f">boşluk: <span id="kgv">12</span> px<input id="kg" type="range" min="0" max="60" value="12"></label><label class="f">köşe: <span id="krv">0</span> px<input id="kr2" type="range" min="0" max="60" value="0"></label><label class="f">arka plan<input id="kb" type="color" value="#ffffff"></label></div>
+  <div class="prev" id="kprev" hidden></div>
+  <div class="row l" style="margin-top:.6rem"><button class="primary" id="kjpg">JPG indir</button><button id="kpng">PNG indir</button></div>
+</section>
+
+<section data-tab="bulanik" class="panel">
+  <h2>bulanıklaştır, pikselleştir</h2>
+  <div class="opts"><label class="f">yöntem<select id="bmod"><option value="blur">bulanık</option><option value="piksel">piksel</option></select></label><label class="f">güç: <span id="bsv">5</span><input id="bs" type="range" min="1" max="10" value="5"></label></div>
+  <p class="note">Gizlemek istediğin yerin (yüz, plaka, adres) üzerinde sürükleyerek alan seç; istediğin kadar alan ekleyebilirsin.</p>
+  <div class="row l"><button id="bundo">son alanı geri al</button><button id="bclr">temizle</button><button class="primary" id="bdl">indir</button></div>
+</section>
 </main>
 <script>
 const TF = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js';
@@ -114,10 +144,11 @@ let prevT;
 function preview() { clearTimeout(prevT); prevT = setTimeout(previewNow, 120); }
 async function previewNow() {
   const box = site.$('#prev'), info = site.$('#pinfo');
-  box.hidden = !I; info.textContent = ''; if (!I) return;
+  box.hidden = !I || tab === 'kolaj'; info.textContent = ''; if (!I) return;
   if (tab === 'kirp') return cropUI();
   if (tab === 'arkaplan') { box.innerHTML = ''; box.append(bgOut || Object.assign(new Image(), { src: I.url })); return; }
   if (tab === 'ocr') { box.innerHTML = ''; box.append(Object.assign(new Image(), { src: I.url })); return; }
+  if (EXTRA_PREV[tab]) return EXTRA_PREV[tab](box, info);
   const r = await render(tab);
   if (!r) { box.innerHTML = ''; box.append(Object.assign(new Image(), { src: I.url })); return; }
   const u = URL.createObjectURL(r.blob); box.innerHTML = ''; box.append(Object.assign(new Image(), { src: u, alt: 'önizleme' }));
@@ -257,6 +288,117 @@ site.$('#otxt').onclick = () => site.dl(new Blob([site.$('#oout').value], { type
 
 function show() { tab = location.hash.slice(1) || 'sikistir'; previewNow(); }
 site.$$('[data-tab]').forEach(s => s.addEventListener('show', show));
+// ---- ek sekmeler: önizleme kancaları
+var EXTRA_PREV = {};
+const ZIPJS = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+
+// ---- favicon
+function favCanvas(size) {
+  const pad = +site.$('#fpad').value / 100, rad = +site.$('#frad').value / 100, inner = size * (1 - 2 * pad);
+  return canvas(size, size, x => {
+    if (rad) { x.beginPath(); x.roundRect(0, 0, size, size, rad * size / 2); x.clip(); }
+    if (site.$('#fbg').checked) { x.fillStyle = site.$('#fcol').value; x.fillRect(0, 0, size, size); }
+    if (site.$('#ffit').value === 'kirp') { const s = Math.min(I.w, I.h); x.drawImage(I.bmp, (I.w - s) / 2, (I.h - s) / 2, s, s, size * pad, size * pad, inner, inner); }
+    else { const k = inner / Math.max(I.w, I.h), w = I.w * k, h = I.h * k; x.drawImage(I.bmp, (size - w) / 2, (size - h) / 2, w, h); }
+  });
+}
+const pngBytes = async size => new Uint8Array(await (await toBlob(favCanvas(size), 'image/png')).arrayBuffer());
+// .ico: içine PNG gömülü simge dosyası (Windows Vista sonrası ve tüm tarayıcılar destekler)
+async function icoBlob(sizes = [16, 32, 48]) {
+  const pngs = await Promise.all(sizes.map(pngBytes)), head = 6 + 16 * sizes.length;
+  const buf = new Uint8Array(head + pngs.reduce((a, p) => a + p.length, 0)), dv = new DataView(buf.buffer);
+  dv.setUint16(2, 1, true); dv.setUint16(4, sizes.length, true);
+  let off = head;
+  sizes.forEach((s, i) => { const e = 6 + 16 * i; buf[e] = buf[e + 1] = s >= 256 ? 0 : s; dv.setUint16(e + 4, 1, true); dv.setUint16(e + 6, 32, true); dv.setUint32(e + 8, pngs[i].length, true); dv.setUint32(e + 12, off, true); buf.set(pngs[i], off); off += pngs[i].length; });
+  return new Blob([buf], { type: 'image/x-icon' });
+}
+EXTRA_PREV.favicon = (box, info) => {
+  site.$('#fpadv').textContent = site.$('#fpad').value; site.$('#fradv').textContent = site.$('#frad').value;
+  box.innerHTML = '<div class="row" style="align-items:flex-end;gap:1rem">' + [16, 32, 48, 96, 180].map(s => `<figure style="margin:0;text-align:center"><img src="${favCanvas(s).toDataURL()}" width="${Math.min(s, 120)}" height="${Math.min(s, 120)}" alt="${s} px" style="image-rendering:${s < 48 ? 'pixelated' : 'auto'}"><figcaption class="note">${s}</figcaption></figure>`).join('') + '</div>';
+  info.textContent = 'Önizleme; küçük boyutlar gerçek piksel olarak gösterilir.';
+};
+site.$('#fico').onclick = async () => { if (!I) return toast('önce bir resim seç'); site.dl(await icoBlob(), 'favicon.ico'); };
+site.$('#fgo').onclick = async e => {
+  if (!I) return toast('önce bir resim seç');
+  e.target.disabled = true;
+  try {
+    await site.load(ZIPJS); const z = new JSZip();
+    z.file('favicon.ico', await icoBlob());
+    for (const [n, s] of [['favicon-16x16.png', 16], ['favicon-32x32.png', 32], ['apple-touch-icon.png', 180], ['android-chrome-192x192.png', 192], ['android-chrome-512x512.png', 512]]) z.file(n, await pngBytes(s));
+    z.file('kullanim.html', site.$('#fsnip').value + '\n');
+    site.dl(await z.generateAsync({ type: 'blob' }), 'favicon.zip');
+  } finally { e.target.disabled = false; }
+};
+
+// ---- kolaj
+let KL = [];
+site.drop(site.$('#kdrop'), async fs => {
+  for (const f of fs.filter(f => f.type.startsWith('image/')).slice(0, 16 - KL.length)) { try { KL.push({ name: f.name, bmp: await createImageBitmap(f), u: URL.createObjectURL(f) }); } catch {} }
+  paintK(); kolaj();
+}, { accept: 'image/*', multiple: true });
+function paintK() {
+  site.$('#klist').innerHTML = KL.map((k, i) => `<div class="kit"><img src="${k.u}" alt=""><div class="row"><button class="sm ghost" data-km="${i}" data-d="-1" aria-label="sola">←</button><button class="sm ghost" data-kx="${i}" aria-label="çıkar">✕</button><button class="sm ghost" data-km="${i}" data-d="1" aria-label="sağa">→</button></div></div>`).join('');
+}
+site.$('#klist').onclick = e => {
+  const m = e.target.closest('[data-km]'), x = e.target.closest('[data-kx]');
+  if (m) { const i = +m.dataset.km, j = i + +m.dataset.d; if (j >= 0 && j < KL.length) [KL[i], KL[j]] = [KL[j], KL[i]]; }
+  if (x) KL.splice(+x.dataset.kx, 1);
+  paintK(); kolaj();
+};
+function kolajCanvas() {
+  const n = KL.length, W = +site.$('#kw').value, H = Math.round(W / +site.$('#ko').value), g = +site.$('#kg').value * W / 1080, rad = +site.$('#kr2').value * W / 1080, lay = site.$('#kd').value;
+  const cols = lay === 'row' ? n : lay === 'col' ? 1 : Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
+  const cw = (W - g * (cols + 1)) / cols, ch = (H - g * (rows + 1)) / rows;
+  return canvas(W, H, x => {
+    x.fillStyle = site.$('#kb').value; x.fillRect(0, 0, W, H);
+    KL.forEach((k, i) => {
+      const r = Math.floor(i / cols), inRow = Math.min(cols, n - r * cols), c = i - r * cols, shift = (cols - inRow) * (cw + g) / 2;
+      const X = g + c * (cw + g) + shift, Y = g + r * (ch + g), s = Math.max(cw / k.bmp.width, ch / k.bmp.height), sw = cw / s, sh = ch / s;
+      x.save(); x.beginPath(); x.roundRect(X, Y, cw, ch, rad); x.clip();
+      x.drawImage(k.bmp, (k.bmp.width - sw) / 2, (k.bmp.height - sh) / 2, sw, sh, X, Y, cw, ch); x.restore();
+    });
+  });
+}
+function kolaj() {
+  ['kg', 'kr'].forEach(id => site.$(`#${id}v`).textContent = site.$(id === 'kr' ? '#kr2' : '#kg').value);
+  const box = site.$('#kprev'); box.hidden = KL.length < 2;
+  if (KL.length < 2) return;
+  const c = kolajCanvas(); c.style.maxWidth = '100%'; c.style.maxHeight = '60vh'; box.innerHTML = ''; box.append(c);
+}
+['#kd', '#ko', '#kw', '#kg', '#kr2', '#kb'].forEach(s => site.$(s).addEventListener('input', kolaj));
+site.$('#kjpg').onclick = async () => { if (KL.length < 2) return toast('en az iki resim seç'); site.dl(await toBlob(kolajCanvas(), 'image/jpeg', .92), 'kolaj.jpg'); };
+site.$('#kpng').onclick = async () => { if (KL.length < 2) return toast('en az iki resim seç'); site.dl(await toBlob(kolajCanvas(), 'image/png'), 'kolaj.png'); };
+EXTRA_PREV.kolaj = box => { box.hidden = true; };
+site.$$('[data-tab]').forEach(s => s.addEventListener('show', () => { site.$('#drop').closest('.panel').hidden = s.dataset.tab === 'kolaj'; }));
+
+// ---- bulanıklaştır / pikselleştir
+let BR = [];
+function blurCanvas() {
+  const pix = site.$('#bmod').value === 'piksel', st = +site.$('#bs').value;
+  return canvas(I.w, I.h, x => {
+    x.drawImage(I.bmp, 0, 0);
+    for (const r of BR) {
+      // alanı küçültüp geri büyüt: yumuşatma açıksa bulanık, kapalıysa pikselli görünür
+      const block = Math.max(2, Math.min(I.w, I.h) * st / (pix ? 160 : 260)), w = Math.max(1, Math.round(r.w / block)), h = Math.max(1, Math.round(r.h / block));
+      let small = canvas(w, h, sx => sx.drawImage(x.canvas, r.x, r.y, r.w, r.h, 0, 0, w, h));
+      if (!pix) small = canvas(w * 2, h * 2, sx => sx.drawImage(small, 0, 0, w * 2, h * 2));
+      x.save(); x.imageSmoothingEnabled = !pix; x.drawImage(small, r.x, r.y, r.w, r.h); x.restore();
+    }
+  });
+}
+EXTRA_PREV.bulanik = box => {
+  site.$('#bsv').textContent = site.$('#bs').value;
+  const c = blurCanvas(); c.style.cssText = 'display:block;max-width:100%;max-height:60vh';
+  box.innerHTML = '<div class="crop" style="cursor:crosshair"></div>'; const wrap = site.$('.crop', box); wrap.append(c);
+  let st = null, cur = null;
+  const pt = e => { const b = c.getBoundingClientRect(), k = I.w / b.width; return [Math.max(0, Math.min(I.w, (e.clientX - b.left) * k)), Math.max(0, Math.min(I.h, (e.clientY - b.top) * k))]; };
+  wrap.onpointerdown = e => { wrap.setPointerCapture(e.pointerId); st = pt(e); cur = document.createElement('div'); cur.className = 'bz'; wrap.append(cur); };
+  wrap.onpointermove = e => { if (!st) return; const p = pt(e), k = c.getBoundingClientRect().width / I.w; Object.assign(cur.style, { left: Math.min(st[0], p[0]) * k + 'px', top: Math.min(st[1], p[1]) * k + 'px', width: Math.abs(p[0] - st[0]) * k + 'px', height: Math.abs(p[1] - st[1]) * k + 'px' }); };
+  wrap.onpointerup = e => { if (!st) return; const p = pt(e), r = { x: Math.min(st[0], p[0]), y: Math.min(st[1], p[1]), w: Math.abs(p[0] - st[0]), h: Math.abs(p[1] - st[1]) }; st = null; if (r.w > 4 && r.h > 4) BR.push(r); previewNow(); };
+};
+site.$('#bundo').onclick = () => { BR.pop(); previewNow(); };
+site.$('#bclr').onclick = () => { BR = []; previewNow(); };
+site.$('#bdl').onclick = async () => { if (!I) return toast('önce bir resim seç'); const t = I.type === 'image/png' ? 'image/png' : 'image/jpeg'; site.dl(await toBlob(blurCanvas(), t, .92), `${base()}-gizli.${ext(t)}`); };
 </script>
 </body>
 </html>
