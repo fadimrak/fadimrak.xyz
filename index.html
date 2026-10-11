@@ -9,7 +9,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <script src="/assets/site.js"></script>
 <meta property="og:title" content="fadimrak">
-<meta property="og:description" content="07.2027">
+<meta property="og:description" content="YKS kaynakları, tarayıcıda çalışan araçlar ve oyunlar">
 <meta property="og:url" content="https://fadimrak.xyz/">
 <meta property="og:type" content="website">
 <style>
@@ -17,12 +17,9 @@
   body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; background: #0a0a0a; color: #e6e6e6; font-family: ui-monospace, Menlo, Consolas, monospace; }
   .card { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding: 2.5rem 3rem; background: rgba(10,10,10,.75); border: 1px solid #222; border-radius: 14px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 10px 40px rgba(0,0,0,.6); }
   .card > * { opacity: 0; animation: in 1.2s ease forwards; }
-  p { animation-delay: .3s; }
-  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: .35; }
+  #topo { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: .35; }
   h1 { margin: 0; font-size: 2.5rem; font-weight: 400; letter-spacing: .15em; }
-  p { margin: 0; display: flex; align-items: center; gap: .6rem; color: #777; font-size: .9rem; }
-  .spin { width: .75rem; height: .75rem; border: 1.5px solid #333; border-top-color: #e6e6e6; border-radius: 50%; animation: spin .9s linear infinite; }
-  .links { margin-top: .75rem; display: flex; gap: 1.1rem; animation-delay: .6s; }
+  .links { margin-top: .25rem; display: flex; gap: 1.1rem; animation-delay: .6s; }
   a { color: #777; display: flex; transition: color .3s; }
   a:hover { color: #e6e6e6; }
   a svg { width: 22px; height: 22px; fill: currentColor; }
@@ -34,8 +31,11 @@
   a:focus-visible, .mini button:focus-visible { outline: 1px solid #777; outline-offset: 4px; border-radius: 4px; }
   html[data-theme=light] { filter: invert(1); }
   html[data-theme=light].inv { filter: none; }
-  .card { transition: transform .25s ease-out; will-change: transform; }
-  canvas { transform: scale(1.08); transition: transform .4s ease-out; }
+  .card { position: relative; z-index: 1; transition: transform .25s ease-out; will-change: transform; }
+  #topo { transform: scale(1.08); transition: transform .4s ease-out; }
+  /* Kartın etrafında dönen yılan halkası (assets/yilan.mp4: üst yarı renk, alt yarı saydamlık) */
+  .stage { position: relative; display: grid; place-items: center; }
+  #ouro { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; opacity: 0; animation: fade 1.6s .4s ease forwards; }
   .count { margin: 0; display: flex; align-items: center; gap: .35rem; color: #555; font-size: .7rem; animation-delay: .9s; }
   .count svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
   .toast { position: fixed; bottom: 2rem; left: 50%; transform: translate(-50%, 10px); padding: .5rem 1rem; background: #111; border: 1px solid #222; border-radius: 8px; color: #aaa; font-size: .8rem; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
@@ -45,14 +45,17 @@
   html { transition: filter .6s; }
   html.inv { filter: invert(1); }
   @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fade { to { opacity: 1; } }
+  body { overflow: hidden; }
+  @media (max-width: 480px) { .card { padding: 1.5rem 1.4rem; gap: .6rem; } h1 { font-size: 1.75rem; } .links { gap: .9rem; } }
 </style>
 </head>
 <body>
 <canvas id="topo"></canvas>
+<div class="stage">
+<canvas id="ouro" aria-hidden="true"></canvas>
 <main class="card">
 <h1>fadimrak</h1>
-<p>07.2027 <span class="spin" aria-label="yükleniyor"></span></p>
 <div class="links">
 <a href="/yks/" class="st" aria-label="YKS" title="YKS"><svg viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5M22 9v6"/></svg></a>
 <a href="/araclar/" class="st" aria-label="araçlar" title="araçlar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></a>
@@ -62,6 +65,7 @@
 <div class="mini"><button data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button data-act="theme" aria-label="açık / koyu tema" title="tema"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button></div>
 <span class="count" title="ziyaret"><svg viewBox="0 0 24 24" aria-label="ziyaret"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="count">–</span></span>
 </main>
+</div>
 <footer class="foot">fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>
 <div class="toast" id="toast"></div>
 <script src="topography.js"></script>
@@ -77,7 +81,7 @@ console.log('%c' + String.raw`
 |  _| (_| | (_| | | | | | | | | | (_| |   <
 |_|  \__,_|\__,_|_|_| |_| |_|_|  \__,_|_|\_\
 `, 'color:#e6e6e6;font-family:monospace');
-console.log("%cmerak ettin demek. 07.2027'de görüşürüz.", 'color:#777');
+console.log('%cmerak ettin demek.', 'color:#777');
 
 // kart eğilmesi (fare) + arka plan kayması (telefon)
 addEventListener('mousemove', e => {
@@ -107,6 +111,43 @@ addEventListener('keydown', e => {
     toast(document.documentElement.classList.toggle('inv') ? 'ışıklar açıldı' : 'ışıklar kapandı');
   }
 });
+
+// Yılan halkası: videonun üst yarısı renk, alt yarısı saydamlık; WebGL ile birleştirilip kartın arkasına çizilir
+(() => {
+  const cv = document.getElementById('ouro'), gl = cv.getContext('webgl', { premultipliedAlpha: true, antialias: false });
+  if (!gl) return cv.remove();
+  const vid = Object.assign(document.createElement('video'), { src: '/assets/yilan.mp4', muted: true, loop: true, playsInline: true, preload: 'auto' });
+  // Bazı tarayıcılar sayfada olmayan videonun karelerini çözmüyor: görünmez olarak ekle
+  vid.setAttribute('muted', ''); vid.setAttribute('playsinline', ''); vid.setAttribute('aria-hidden', 'true');
+  vid.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0';
+  document.body.append(vid);
+  const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, 'attribute vec2 a; varying vec2 u; void main() { u = vec2(a.x * .5 + .5, .5 - a.y * .5); gl_Position = vec4(a, 0., 1.); }'));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, 'precision mediump float; varying vec2 u; uniform sampler2D t; void main() { vec3 c = texture2D(t, vec2(u.x, u.y * .5)).rgb; float al = texture2D(t, vec2(u.x, .5 + u.y * .5)).r; gl_FragColor = vec4(c * al, al); }'));
+  gl.bindAttribLocation(prog, 0, 'a'); gl.linkProgram(prog); gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+  for (const [k, v] of [['TEXTURE_WRAP_S', 'CLAMP_TO_EDGE'], ['TEXTURE_WRAP_T', 'CLAMP_TO_EDGE'], ['TEXTURE_MIN_FILTER', 'LINEAR'], ['TEXTURE_MAG_FILTER', 'LINEAR']]) gl.texParameteri(gl.TEXTURE_2D, gl[k], gl[v]);
+  const draw = () => { if (vid.readyState < 2) return; gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, vid); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); };
+  const tick = () => { draw(); vid.requestVideoFrameCallback ? vid.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
+  // Halkanın iç boşluğu videonun ~%70'i: kart sığacak kadar büyüt, ama ekrandan taşırma
+  const size = () => {
+    const s = Math.round(Math.min(Math.hypot(card.offsetWidth, card.offsetHeight) / .68, Math.min(innerWidth, innerHeight) * .98));
+    cv.style.width = cv.style.height = s + 'px';
+    cv.width = cv.height = Math.min(960, Math.round(s * Math.min(2, devicePixelRatio || 1)));
+    gl.viewport(0, 0, cv.width, cv.height); draw();
+  };
+  addEventListener('resize', size); size();
+  vid.addEventListener('loadeddata', draw);
+  // Otomatik oynatma engellenirse ilk dokunuşta başlat
+  vid.play().catch(() => addEventListener('pointerdown', () => vid.play(), { once: true }));
+  // Tarayıcı arka plandaki sekmede videoyu durdurur; sekmeye dönünce devam etsin
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && vid.paused) vid.play().catch(() => {}); });
+  tick();
+})();
 
 // ortak ziyaretçi sayacı (oturum başına bir kez artar)
 (async () => {
