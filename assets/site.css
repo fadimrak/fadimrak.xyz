@@ -76,7 +76,7 @@ label.c { display: inline-flex; align-items: center; gap: .45rem; cursor: pointe
 .modes button.on, .modes button.on:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
 
 /* Sekmeler: bir sayfada birden çok araç */
-.tabs { display: flex; gap: .45rem; overflow-x: auto; padding: 4px 4px 10px; margin: 0 -4px .75rem; scrollbar-width: thin; }
+.tabs { display: flex; gap: .45rem; overflow-x: auto; padding: 8px 4px 10px; margin: 0 -4px .75rem; scrollbar-width: thin; position: sticky; top: 0; z-index: 20; background: var(--bg); }
 .tabs a { flex: none; white-space: nowrap; padding: .5rem .9rem; border: 2px solid var(--line); border-radius: 99px; background: var(--card); text-decoration: none; font-weight: 700; font-size: .88rem; box-shadow: 2px 2px 0 var(--sh); transition: background .15s, color .15s; }
 .tabs a:hover { background: var(--soft); }
 .tabs a[aria-current] { background: var(--ink); color: var(--bg); }
@@ -90,6 +90,27 @@ label.c { display: inline-flex; align-items: center; gap: .45rem; cursor: pointe
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
 .tile { display: flex; gap: .8rem; align-items: flex-start; padding: .9rem 1rem; background: var(--card); border: 2px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--sh); text-decoration: none; transition: transform .15s, box-shadow .15s; }
 .tile:hover { transform: translate(-1px, -2px); box-shadow: 5px 5px 0 var(--sh); }
+/* Bölüm sayfalarının üst çubuğu ve sıkışık kartlar */
+.hubbar { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: .6rem 2px .4rem; margin: 0 -2px; }
+.hubbar input { width: 100%; }
+.hubbar .chips { display: flex; gap: .4rem; overflow-x: auto; padding: .6rem 2px .3rem; scrollbar-width: none; }
+.hubbar .chips::-webkit-scrollbar { display: none; }
+.hubbar .chip { flex: none; min-height: 36px; }
+.hubbar .chip small { opacity: .6; font-weight: 600; }
+.hublist .sec { margin-top: 1.2rem; }
+.grid.compact { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px; }
+.grid.compact .tile { padding: .55rem .65rem; gap: .6rem; align-items: center; border-radius: 12px; box-shadow: 2px 2px 0 var(--sh); }
+.grid.compact .tile .ico { width: 34px; height: 34px; border-radius: 10px; }
+.grid.compact .tile .ico svg { width: 18px; height: 18px; }
+.grid.compact .tile b { font-size: .92rem; }
+.grid.compact .tile div > span { font-size: .76rem; }
+@media (max-width: 520px) {
+  .grid.compact { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .grid.compact .tile { padding: .5rem .55rem; gap: .5rem; }
+  .grid.compact .tile .ico { width: 30px; height: 30px; }
+  .grid.compact .tile div > span { display: none; }
+  .grid.compact .tile b { font-size: .84rem; }
+}
 .tile .ico { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: var(--c, var(--soft)); color: var(--on-color); border: 2px solid var(--line); }
 .tile .ico svg { width: 22px; height: 22px; }
 .tile b { display: block; font-size: 1rem; line-height: 1.25; }

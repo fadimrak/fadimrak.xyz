@@ -9,8 +9,8 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js"></script>
+<link rel="stylesheet" href="/assets/site.css?v=6">
+<script src="/assets/site.js?v=6"></script>
 <style>
   :root { --accent: var(--orange); }
   .clock { font-family: var(--head); font-weight: 900; font-size: clamp(3.5rem, 18vw, 7rem); line-height: 1; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin: .5rem 0; }
@@ -74,9 +74,10 @@
 </section>
 
 <section data-tab="ses">
+  <div class="panel" style="margin-bottom:1rem"><b>hazır karışımlar</b><div class="row l" id="mixes" style="margin-top:.5rem"></div></div>
   <div class="snd" id="snd"></div>
   <div class="panel" style="margin-top:1rem"><div class="row l"><button id="sStop">hepsini durdur</button><label class="c">kapanış:<select id="sTimer"><option value="0">açık kalsın</option><option value="15">15 dk sonra</option><option value="30">30 dk sonra</option><option value="60">1 saat sonra</option></select></label></div>
-  <p class="muted small" style="margin-bottom:0">Sesler kayıt değil, tarayıcıda anlık üretilir; internet harcamaz. Birden çok sesi aynı anda açıp karıştırabilirsin.</p></div>
+  <p class="muted small" style="margin-bottom:0">Doğa sesleri gerçek kayıtlardır ve yalnızca çaldığında iner (her biri 1 MB kadar). Gürültüler tarayıcıda üretilir, internet harcamaz. Birden çok sesi aynı anda açıp seviyelerini ayarlayabilirsin; seçimlerin hatırlanır.</p></div>
 </section>
 
 <section data-tab="odak" class="panel">
@@ -177,62 +178,83 @@ setInterval(() => {
   }
 }, 100);
 
-// ---- sesler (Web Audio ile üretilir)
-const SOUNDS = { beyaz: 'beyaz gürültü', pembe: 'pembe gürültü', kahve: 'kahverengi gürültü', yagmur: 'yağmur', ruzgar: 'rüzgâr' };
-const nodes = {};
+// ---- sesler: doğa sesleri gerçek kayıt (ses/*.mp3, yalnızca çalınca iner), gürültüler tarayıcıda üretilir
+const SOUNDS = {
+  yagmur: ['yağmur', 'cama vuran yağmur', 'kayıt'], firtina: ['fırtına', 'yağmur ve uzaktan gök gürültüsü', 'kayıt'], dalga: ['dalga', 'kıyıya vuran dalgalar', 'kayıt'],
+  dere: ['dere', 'akan su', 'kayıt'], orman: ['orman', 'kuşlar ve böcekler', 'kayıt'], ruzgar: ['rüzgâr', 'çam ormanında rüzgâr', 'kayıt'],
+  beyaz: ['beyaz gürültü', 'parlak, düz hışırtı', 'üretilir'], pembe: ['pembe gürültü', 'daha yumuşak, şelale gibi', 'üretilir'], kahve: ['kahverengi gürültü', 'derin, boğuk uğultu', 'üretilir'],
+};
+const MIXES = [['yağmurlu kütüphane', { yagmur: .6, kahve: .25 }], ['sahil', { dalga: .7, ruzgar: .2 }], ['orman deresi', { orman: .5, dere: .55 }], ['fırtınalı gece', { firtina: .7, ruzgar: .25 }], ['derin odak', { kahve: .5, pembe: .15 }]];
+const nodes = {}, buffers = {};
+let master;
+const out = () => { const a = ac(); if (!master) { master = a.createGain(); master.connect(a.destination); } return master; };
 function noiseBuffer(kind) {
-  const a = ac(), n = a.sampleRate * 4, buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
-  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
-  for (let i = 0; i < n; i++) {
-    const w = Math.random() * 2 - 1;
-    if (kind === 'beyaz') d[i] = w * .5;
-    else if (kind === 'kahve' || kind === 'ruzgar') { last = (last + .02 * w) / 1.02; d[i] = last * 3.5; }
-    else { // pembe (Paul Kellet)
-      b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852; b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898;
-      d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362) * .11; b6 = w * .115926;
+  const a = ac(), n = a.sampleRate * 6, buf = a.createBuffer(2, n, a.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
+    for (let i = 0; i < n; i++) {
+      const w = Math.random() * 2 - 1;
+      if (kind === 'beyaz') d[i] = w * .25;
+      else if (kind === 'kahve') { last = (last + .02 * w) / 1.02; d[i] = last * 3.2; }
+      else { b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852; b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898; d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362) * .09; b6 = w * .115926; }
     }
+    // başı ve sonu yumuşakça birleştir ki döngüde tık sesi olmasın
+    const x = 2048; for (let i = 0; i < x; i++) { const k = i / x; d[i] = d[i] * k + d[n - x + i] * (1 - k); }
   }
   return buf;
 }
-function start(kind, vol) {
-  const a = ac(); a.resume();
-  const src = a.createBufferSource(); src.buffer = noiseBuffer(kind === 'yagmur' ? 'pembe' : kind); src.loop = true;
-  const g = a.createGain(); g.gain.value = vol;
-  let chain = src, extra = [];
-  if (kind === 'yagmur') {
-    const hp = a.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
-    const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000;
-    src.connect(hp).connect(lp); chain = lp;
-    // ara ara düşen iri damlalar
-    const drops = setInterval(() => {
-      const t = a.currentTime, o = a.createBufferSource(); o.buffer = src.buffer;
-      const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 3000; f.Q.value = 6;
-      const dg = a.createGain(); dg.gain.setValueAtTime(.0001, t); dg.gain.exponentialRampToValueAtTime(.5 * Math.random() + .1, t + .005); dg.gain.exponentialRampToValueAtTime(.0001, t + .06);
-      o.connect(f).connect(dg).connect(g); o.start(t, Math.random() * 3); o.stop(t + .08);
-    }, 70);
-    extra.push(() => clearInterval(drops));
-  }
-  if (kind === 'ruzgar') {
-    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 400; bp.Q.value = .8;
-    const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = .08; lg.gain.value = 250; lfo.connect(lg).connect(bp.frequency); lfo.start();
-    src.connect(bp); chain = bp; extra.push(() => lfo.stop());
-  }
-  chain.connect(g).connect(a.destination); src.start();
-  nodes[kind] = { src, g, stop: () => { src.stop(); extra.forEach(f => f()); } };
+async function bufferFor(k) {
+  if (buffers[k]) return buffers[k];
+  if (SOUNDS[k][2] === 'üretilir') return buffers[k] = { buf: noiseBuffer(k) };
+  const data = await (await fetch(`ses/${k}.mp3`)).arrayBuffer(), buf = await ac().decodeAudioData(data);
+  // MP3 kodlayıcısının başa ve sona eklediği sessizliği atla: döngü kesintisiz olsun
+  const d = buf.getChannelData(0); let s = 0, e = d.length - 1;
+  while (s < d.length && Math.abs(d[s]) < 1e-4) s++; while (e > s && Math.abs(d[e]) < 1e-4) e--;
+  return buffers[k] = { buf, start: s / buf.sampleRate, end: (e + 1) / buf.sampleRate };
 }
-const vols = store.get('ses-vol', {});
-site.$('#snd').innerHTML = Object.entries(SOUNDS).map(([k, n]) => `<div class="panel" data-snd="${k}"><b>${n}</b><button class="sm" data-play="${k}">çal</button><label class="small muted">ses<input type="range" min="0" max="1" step="0.01" value="${vols[k] ?? .5}" data-vol="${k}" aria-label="${n} ses düzeyi"></label></div>`).join('');
-function stopSnd(k) { nodes[k]?.stop(); delete nodes[k]; const p = site.$(`[data-snd="${k}"]`); p.classList.remove('on'); site.$('[data-play]', p).textContent = 'çal'; }
-site.$('#snd').onclick = e => {
-  const b = e.target.closest('[data-play]'); if (!b) return;
-  const kd = b.dataset.play;
-  if (nodes[kd]) return stopSnd(kd);
-  start(kd, +site.$(`[data-vol="${kd}"]`).value); b.textContent = 'durdur'; b.closest('.panel').classList.add('on');
+const vols = store.get('ses-vol2', {});
+const volOf = k => vols[k] ?? (SOUNDS[k][2] === 'kayıt' ? .7 : .35);
+function paintSnd() {
+  site.$('#snd').innerHTML = Object.entries(SOUNDS).map(([k, [n, d, t]]) => `<div class="panel ${nodes[k] ? 'on' : ''}" data-snd="${k}"><div><b>${n}</b><br><span class="muted small">${d}</span></div><button class="sm ${nodes[k] ? 'primary' : ''}" data-play="${k}" aria-pressed="${!!nodes[k]}">${nodes[k] ? 'durdur' : 'çal'}</button><label class="small muted">ses düzeyi<input type="range" min="0" max="1" step="0.01" value="${volOf(k)}" data-vol="${k}" aria-label="${n} ses düzeyi"></label></div>`).join('');
+}
+async function startSnd(k, vol) {
+  if (nodes[k]) return;
+  const a = ac(); a.resume();
+  nodes[k] = 'yükleniyor'; const btn = site.$(`[data-play="${k}"]`); if (btn) btn.textContent = 'yükleniyor…';
+  try {
+    const b = await bufferFor(k); if (nodes[k] !== 'yükleniyor') return;
+    const src = a.createBufferSource(), g = a.createGain(); src.buffer = b.buf; src.loop = true;
+    if (b.end) { src.loopStart = b.start; src.loopEnd = b.end; }
+    let chain = src;
+    if (k === 'beyaz') { const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 9000; src.connect(f); chain = f; }
+    if (k === 'kahve') { const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500; src.connect(f); chain = f; }
+    chain.connect(g).connect(out());
+    const t = a.currentTime; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0001, vol), t + 1.2);
+    src.start(t, b.start || 0);
+    nodes[k] = { src, g };
+  } catch { delete nodes[k]; toast('ses yüklenemedi, bağlantını kontrol et'); }
+  paintSnd();
+}
+function stopSnd(k) {
+  const n = nodes[k]; delete nodes[k];
+  if (n && n.src) { const t = ac().currentTime; n.g.gain.cancelScheduledValues(t); n.g.gain.setValueAtTime(Math.max(.0001, n.g.gain.value), t); n.g.gain.exponentialRampToValueAtTime(.0001, t + .6); n.src.stop(t + .65); }
+  paintSnd();
+}
+site.$('#snd').onclick = e => { const b = e.target.closest('[data-play]'); if (!b) return; const k = b.dataset.play; nodes[k] ? stopSnd(k) : startSnd(k, volOf(k)); };
+site.$('#snd').oninput = e => { const k = e.target.dataset.vol; if (!k) return; vols[k] = +e.target.value; store.set('ses-vol2', vols); const n = nodes[k]; if (n && n.g) n.g.gain.setTargetAtTime(Math.max(.0001, vols[k]), ac().currentTime, .05); };
+site.$('#mixes').innerHTML = MIXES.map(([n], i) => `<button class="chip" data-mix="${i}">${n}</button>`).join('');
+site.$('#mixes').onclick = e => {
+  const b = e.target.closest('[data-mix]'); if (!b) return;
+  const [, m] = MIXES[+b.dataset.mix];
+  Object.keys(nodes).filter(k => !(k in m)).forEach(stopSnd);
+  for (const [k, v] of Object.entries(m)) { vols[k] = v; if (nodes[k]?.g) nodes[k].g.gain.setTargetAtTime(v, ac().currentTime, .2); else startSnd(k, v); }
+  store.set('ses-vol2', vols); paintSnd();
 };
-site.$('#snd').oninput = e => { const kd = e.target.dataset.vol; if (!kd) return; vols[kd] = +e.target.value; store.set('ses-vol', vols); if (nodes[kd]) nodes[kd].g.gain.value = vols[kd]; };
 site.$('#sStop').onclick = () => Object.keys(nodes).forEach(stopSnd);
 let sleepT;
 site.$('#sTimer').onchange = e => { clearTimeout(sleepT); const m = +e.target.value; if (m) { sleepT = setTimeout(() => Object.keys(nodes).forEach(stopSnd), m * 6e4); toast(`${m} dk sonra kapanacak`); } };
+paintSnd();
 
 // ---- odak modu
 let lock;

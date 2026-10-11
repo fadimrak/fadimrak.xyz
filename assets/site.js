@@ -92,6 +92,31 @@ const site = {
   },
   recent(prefix = '/') { return store.get('son-sayfalar', []).filter(x => x[1].startsWith(prefix)); },
 
+  // Bölüm sayfaları (araçlar, YKS): üstte sabit arama ve kategori düğmeleri, sıkışık kartlar.
+  // groups: [{ title, color, items: [{ name, desc, url, icon }] }], key: seçili kategorinin saklanacağı ad
+  hub(box, groups, key) {
+    let cat = store.get(key, 'hepsi');
+    if (cat !== 'hepsi' && !groups.some(g => g.title === cat)) cat = 'hepsi';
+    box.innerHTML = `<div class="hubbar"><input type="search" placeholder="ara (${groups.reduce((a, g) => a + g.items.length, 0)} seçenek)" aria-label="bu sayfada ara"><div class="chips" role="group" aria-label="kategoriler"></div></div><div class="hublist"></div>`;
+    const input = site.$('input', box), chips = site.$('.chips', box), list = site.$('.hublist', box);
+    const tile = (it, g) => `<a class="tile" href="${it.url}"><span class="ico" style="--c:${g.color}">${it.icon}</span><div><b>${site.esc(it.name)}</b><span>${site.esc(it.desc)}</span></div></a>`;
+    const render = () => {
+      const q = site.norm(input.value.trim());
+      chips.innerHTML = ['hepsi', ...groups.map(g => g.title)].map(t => `<button class="chip ${!q && t === cat ? 'on' : ''}" data-cat="${site.esc(t)}" aria-pressed="${!q && t === cat}">${site.esc(t)}${t === 'hepsi' ? '' : ` <small>${groups.find(g => g.title === t).items.length}</small>`}</button>`).join('');
+      const shown = groups.map(g => [g, g.items.filter(it => q ? site.norm(g.title + ' ' + it.name + ' ' + it.desc).includes(q) : cat === 'hepsi' || g.title === cat)]).filter(([, its]) => its.length);
+      list.innerHTML = shown.map(([g, its]) => `<h2 class="sec">${site.esc(g.title)}</h2><div class="grid compact">${its.map(it => tile(it, g)).join('')}</div>`).join('') || '<p class="hint" style="margin-top:2rem">Bu aramaya uyan bir şey yok.</p>';
+      const on = site.$('.chip.on', chips); if (on) chips.scrollLeft = on.offsetLeft - chips.clientWidth / 2 + on.offsetWidth / 2;
+    };
+    chips.onclick = e => {
+      const b = e.target.closest('[data-cat]'); if (!b) return;
+      cat = b.dataset.cat; store.set(key, cat); input.value = ''; render();
+      if (box.getBoundingClientRect().top < 0) box.scrollIntoView({ block: 'start' });
+    };
+    input.oninput = render;
+    input.onkeydown = e => { const a = site.$('.hublist a', box); if (e.key === 'Enter' && a) location.href = a.href; };
+    render();
+  },
+
   // Sekmeli sayfalar: <nav class="tabs"><a href="#x"> ve <section data-tab="x">
   tabs() {
     const secs = site.$$('[data-tab]');

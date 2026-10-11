@@ -11,17 +11,17 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js"></script>
+<link rel="stylesheet" href="/assets/site.css?v=6">
+<script src="/assets/site.js?v=6"></script>
 <style>
   :root { --accent: var(--purple); }
   .count { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; text-align: center; margin: .5rem 0 .25rem; }
   .count div { background: var(--purple); color: #fff; border: 2px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: .9rem .25rem .7rem; }
   .count b { display: block; font-family: var(--head); font-weight: 900; font-size: clamp(1.8rem, 8vw, 3rem); line-height: 1; font-variant-numeric: tabular-nums; }
   .count span { font-size: .8rem; font-weight: 700; opacity: .9; }
-  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: .6rem; margin-top: 1rem; }
-  .facts .panel { padding: .8rem 1rem; }
-  .facts b { font-family: var(--head); font-size: 1.4rem; }
+  .facts { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: .8rem; }
+  .facts span { padding: .35rem .75rem; border: 2px solid var(--line); border-radius: 99px; background: var(--card); font-size: .82rem; color: var(--muted); }
+  .facts b { font-family: var(--head); color: var(--ink); font-size: .98rem; }
   .when { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: .9rem; font-size: .85rem; color: var(--muted); }
   .when input { min-height: 36px; padding: .3rem .6rem; font-size: .85rem; }
 </style>
@@ -43,7 +43,7 @@
     <label for="date">sınav tarihi</label><input id="date" type="datetime-local">
     <button class="sm" id="reset">varsayılan</button>
   </div>
-  <p class="hint small">2027 tarihi ÖSYM takvimi açıklanınca kesinleşir; şimdilik geçen yılların düzenine göre 19 Haziran 2027 alındı. Kendi tarihini girebilirsin.</p>
+  <p class="hint small">Tahmini tarih: ÖSYM 2027 takvimini açıklayınca kesinleşir.</p>
   <div class="facts" id="facts"></div>
   <div class="recent-row" id="recent" hidden style="margin-top:1rem"></div>
   <div id="tiles"></div>
@@ -117,8 +117,7 @@ const GROUPS = [
     ['tüm araçlar', 'PDF, resim, hesap ve daha fazlası', '/araclar/', 'link'],
   ]],
 ];
-site.$('#tiles').innerHTML = GROUPS.map(([t, c, items]) => `<h2 class="sec">${t}</h2><div class="grid">${items.map(([n, d, u, i]) =>
-  `<a class="tile" href="${u}"><span class="ico" style="--c:${c}">${ic[i]}</span><div><b>${n}</b><span>${d}</span></div></a>`).join('')}</div>`).join('');
+site.hub(site.$('#tiles'), GROUPS.map(([title, color, items]) => ({ title, color, items: items.map(([name, desc, url, i]) => ({ name, desc, url, icon: ic[i] })) })), 'yks-kat');
 
 const dateEl = site.$('#date');
 let target = store.get('yks-date', DEF);
@@ -140,11 +139,11 @@ async function facts() {
     const rest = all.filter(k => !done[k]).length;
     left = days ? site.fmt(rest / days, 1) : rest;
     site.$('#facts').innerHTML = [
-      [Math.floor(days / 7) + ' hafta', (days % 7) + ' gün artı'],
-      [rest + ' konu', 'henüz işaretlenmemiş'],
-      [left, 'günde düşen konu'],
-      [site.streak() + ' gün', 'çalışma serisi'],
-    ].map(([b, s]) => `<div class="panel"><b>${b}</b><br><span class="muted small">${s}</span></div>`).join('');
+      [Math.floor(days / 7) + ' hafta', (days % 7) + ' gün'],
+      [rest, 'konu kaldı'],
+      [left, 'konu / gün'],
+      [site.streak() + ' gün', 'seri'],
+    ].map(([b, s]) => `<span><b>${b}</b> ${s}</span>`).join('');
   } catch {}
 }
 tick(); facts();

@@ -11,16 +11,15 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js"></script>
+<link rel="stylesheet" href="/assets/site.css?v=6">
+<script src="/assets/site.js?v=6"></script>
 </head>
 <body>
 <header class="wide"><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
 <main class="wide">
-  <div class="intro"><h1>araçlar</h1><p>Hepsi tarayıcında çalışır. Dosyaların hiçbir yere yüklenmez.</p></div>
+  <div class="intro" style="padding-bottom:.4rem"><h1>araçlar</h1><p>Hepsi tarayıcında çalışır. Dosyaların hiçbir yere yüklenmez.</p></div>
   <div class="recent-row" id="recent" hidden></div>
-  <input id="q" type="search" placeholder="araç ara (ör. pdf birleştir, birim, şifre)" aria-label="araç ara" style="width:100%">
-  <div id="list"></div>
+  <div id="hub"></div>
 </main>
 <script>
 const I = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -97,15 +96,7 @@ const GROUPS = [
     ['fotoğraftan konum sil', '/araclar/gizlilik/#exif', 'EXIF ve GPS bilgisi'], ['dosya şifrele', '/araclar/gizlilik/#sifrele', 'parolayla, AES-256'], ['şifre gücü', '/araclar/gizlilik/#parola', 'kırılma süresi tahmini'],
   ]],
 ];
-function render() {
-  const q = site.norm(site.$('#q').value.trim());
-  site.$('#list').innerHTML = GROUPS.map(([k, title, c, items]) => {
-    const hit = items.filter(([n, , d]) => !q || site.norm(title + ' ' + n + ' ' + d).includes(q));
-    return hit.length ? `<h2 class="sec">${title}</h2><div class="grid">${hit.map(([n, u, d]) => `<a class="tile" href="${u}"><span class="ico" style="--c:${c}">${ICON[k]}</span><div><b>${n}</b><span>${d}</span></div></a>`).join('')}</div>` : '';
-  }).join('') || '<p class="hint" style="margin-top:2rem">Bu aramaya uyan araç yok.</p>';
-}
-site.$('#q').oninput = render;
-render();
+site.hub(site.$('#hub'), GROUPS.map(([k, title, color, items]) => ({ title, color, items: items.map(([name, url, desc]) => ({ name, url, desc, icon: ICON[k] })) })), 'araclar-kat');
 // Son kullanılanlar
 {
   const r = site.recent('/araclar/').filter(x => x[1] !== '/araclar/').slice(0, 6), el = site.$('#recent');
