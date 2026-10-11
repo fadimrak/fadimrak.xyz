@@ -33,9 +33,10 @@
   html[data-theme=light].inv { filter: none; }
   .card { position: relative; z-index: 1; transition: transform .25s ease-out; will-change: transform; }
   #topo { transform: scale(1.08); transition: transform .4s ease-out; }
-  /* Kartın etrafında dönen yılan halkası (assets/yilan.mp4: üst yarı renk, alt yarı saydamlık) */
+  /* Kartın etrafında dönen yılan halkası. Videodaki hareket tek bir resmin dönmesinden ibaret olduğu için
+     resim CSS ile döndürülür: tarayıcının kompozit katmanında çalışır, takılmaz. Yılan kartın önünde durur. */
   .stage { position: relative; display: grid; place-items: center; }
-  #ouro { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; opacity: 0; animation: fade 1.6s .4s ease forwards; }
+  #ouro { --s: 600px; position: absolute; left: 50%; top: 50%; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); z-index: 2; pointer-events: none; user-select: none; opacity: 0; will-change: transform; animation: fade 1.6s .4s ease forwards, spin 10s linear infinite; }
   .count { margin: 0; display: flex; align-items: center; gap: .35rem; color: #555; font-size: .7rem; animation-delay: .9s; }
   .count svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
   .toast { position: fixed; bottom: 2rem; left: 50%; transform: translate(-50%, 10px); padding: .5rem 1rem; background: #111; border: 1px solid #222; border-radius: 8px; color: #aaa; font-size: .8rem; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
@@ -46,6 +47,7 @@
   html.inv { filter: invert(1); }
   @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes fade { to { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
   body { overflow: hidden; }
   @media (max-width: 480px) { .card { padding: 1.5rem 1.4rem; gap: .6rem; } h1 { font-size: 1.75rem; } .links { gap: .9rem; } }
 </style>
@@ -53,7 +55,7 @@
 <body>
 <canvas id="topo"></canvas>
 <div class="stage">
-<canvas id="ouro" aria-hidden="true"></canvas>
+<img id="ouro" src="/assets/yilan.webp" alt="" aria-hidden="true" draggable="false" decoding="async">
 <main class="card">
 <h1>fadimrak</h1>
 <div class="links">
@@ -112,42 +114,15 @@ addEventListener('keydown', e => {
   }
 });
 
-// Yılan halkası: videonun üst yarısı renk, alt yarısı saydamlık; WebGL ile birleştirilip kartın arkasına çizilir
-(() => {
-  const cv = document.getElementById('ouro'), gl = cv.getContext('webgl', { premultipliedAlpha: true, antialias: false });
-  if (!gl) return cv.remove();
-  const vid = Object.assign(document.createElement('video'), { src: '/assets/yilan.mp4', muted: true, loop: true, playsInline: true, preload: 'auto' });
-  // Bazı tarayıcılar sayfada olmayan videonun karelerini çözmüyor: görünmez olarak ekle
-  vid.setAttribute('muted', ''); vid.setAttribute('playsinline', ''); vid.setAttribute('aria-hidden', 'true');
-  vid.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0';
-  document.body.append(vid);
-  const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; };
-  const prog = gl.createProgram();
-  gl.attachShader(prog, sh(gl.VERTEX_SHADER, 'attribute vec2 a; varying vec2 u; void main() { u = vec2(a.x * .5 + .5, .5 - a.y * .5); gl_Position = vec4(a, 0., 1.); }'));
-  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, 'precision mediump float; varying vec2 u; uniform sampler2D t; void main() { vec3 c = texture2D(t, vec2(u.x, u.y * .5)).rgb; float al = texture2D(t, vec2(u.x, .5 + u.y * .5)).r; gl_FragColor = vec4(c * al, al); }'));
-  gl.bindAttribLocation(prog, 0, 'a'); gl.linkProgram(prog); gl.useProgram(prog);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-  for (const [k, v] of [['TEXTURE_WRAP_S', 'CLAMP_TO_EDGE'], ['TEXTURE_WRAP_T', 'CLAMP_TO_EDGE'], ['TEXTURE_MIN_FILTER', 'LINEAR'], ['TEXTURE_MAG_FILTER', 'LINEAR']]) gl.texParameteri(gl.TEXTURE_2D, gl[k], gl[v]);
-  const draw = () => { if (vid.readyState < 2) return; gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, vid); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); };
-  const tick = () => { draw(); vid.requestVideoFrameCallback ? vid.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
-  // Halkanın iç boşluğu videonun ~%70'i: kart sığacak kadar büyüt, ama ekrandan taşırma
+// Yılan halkası: ekranın kısa kenarının çoğunu kaplasın; büyüdükçe başı kartın yazılarının üstünden daha az geçer
+{
+  const ouro = document.getElementById('ouro');
   const size = () => {
-    const s = Math.round(Math.min(Math.hypot(card.offsetWidth, card.offsetHeight) / .68, Math.min(innerWidth, innerHeight) * .98));
-    cv.style.width = cv.style.height = s + 'px';
-    cv.width = cv.height = Math.min(960, Math.round(s * Math.min(2, devicePixelRatio || 1)));
-    gl.viewport(0, 0, cv.width, cv.height); draw();
+    const short = Math.min(innerWidth, innerHeight);
+    ouro.style.setProperty('--s', Math.round(Math.min(Math.max(Math.hypot(card.offsetWidth, card.offsetHeight) / .7, short * .92), short * .98, 1100)) + 'px');
   };
   addEventListener('resize', size); size();
-  vid.addEventListener('loadeddata', draw);
-  // Otomatik oynatma engellenirse ilk dokunuşta başlat
-  vid.play().catch(() => addEventListener('pointerdown', () => vid.play(), { once: true }));
-  // Tarayıcı arka plandaki sekmede videoyu durdurur; sekmeye dönünce devam etsin
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && vid.paused) vid.play().catch(() => {}); });
-  tick();
-})();
+}
 
 // ortak ziyaretçi sayacı (oturum başına bir kez artar)
 (async () => {
