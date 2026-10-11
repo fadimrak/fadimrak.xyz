@@ -18,6 +18,7 @@
 <header class="wide"><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
 <main class="wide">
   <div class="intro"><h1>araçlar</h1><p>Hepsi tarayıcında çalışır. Dosyaların hiçbir yere yüklenmez.</p></div>
+  <div class="recent-row" id="recent" hidden></div>
   <input id="q" type="search" placeholder="araç ara (ör. pdf birleştir, birim, şifre)" aria-label="araç ara" style="width:100%">
   <div id="list"></div>
 </main>
@@ -77,6 +78,11 @@ function render() {
 }
 site.$('#q').oninput = render;
 render();
+// Son kullanılanlar
+{
+  const r = site.recent('/araclar/').filter(x => x[1] !== '/araclar/').slice(0, 6), el = site.$('#recent');
+  if (r.length) { el.hidden = false; el.innerHTML = 'son kullandıkların: ' + r.map(([t, u]) => `<a class="chip" href="${u}">${site.esc(t)}</a>`).join(''); }
+}
 </script>
 </body>
 </html>

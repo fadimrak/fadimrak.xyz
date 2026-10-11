@@ -82,6 +82,16 @@ const site = {
     if (m && !html.dataset.native) m.content = getComputedStyle(document.body).backgroundColor;
   },
 
+  // Son açılan sayfalar: arama penceresinde ve bölüm sayfalarında kısayol olarak gösterilir
+  visit() {
+    const u = location.pathname + location.hash;
+    if (u === '/' || /404/.test(u)) return;
+    const e = site.index.find(x => x[1] === u) || site.index.find(x => x[1] === location.pathname);
+    const t = e ? e[0] : document.title.split(' · ')[0];
+    store.set('son-sayfalar', [[t, u], ...store.get('son-sayfalar', []).filter(x => x[1] !== u)].slice(0, 8));
+  },
+  recent(prefix = '/') { return store.get('son-sayfalar', []).filter(x => x[1].startsWith(prefix)); },
+
   // Sekmeli sayfalar: <nav class="tabs"><a href="#x"> ve <section data-tab="x">
   tabs() {
     const secs = site.$$('[data-tab]');
@@ -94,6 +104,7 @@ const site = {
       links.forEach(a => a.getAttribute('href') === '#' + cur.dataset.tab ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
       site.$('.tabs a[aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       cur.dispatchEvent(new Event('show'));
+      site.visit();
     };
     addEventListener('hashchange', show);
     show();
@@ -200,6 +211,7 @@ const site = {
     ['klavye hız testi', '/araclar/genel/#klavye', 'araç', 'yazma hızı'],
     ['kamera, mikrofon, ekran testi', '/araclar/genel/#cihaz', 'araç', 'webcam ölü piksel'],
     ['dosya boyutu çevirici', '/araclar/genel/#boyut', 'araç', 'mb gb kb'],
+    ['projeler', '/projeler/', 'site', 'github proje'],
     ['telif hakları', '/telif/', 'site', 'lisans kaynak gizlilik'],
   ],
   _topics: null,
@@ -222,7 +234,8 @@ const site = {
       const render = async () => {
         const q = site.norm(input.value.trim());
         const words = q.split(/\s+/).filter(Boolean);
-        const all = words.length ? site.index.concat(await site.topics()) : site.index.slice(0, 12);
+        const recent = site.recent().map(([t, u]) => [t, u, 'son açılan', '']);
+        const all = words.length ? site.index.concat(await site.topics()) : recent.concat(site.index.filter(e => !recent.some(r => r[1] === e[1])).slice(0, 12));
         items = all.map(e => {
           const title = site.norm(e[0]), hay = title + ' ' + site.norm(e[2] + ' ' + e[3]);
           if (!words.every(w => hay.includes(w))) return null;
@@ -275,8 +288,9 @@ const SITE_ICONS = {
 
 document.addEventListener('DOMContentLoaded', () => {
   site.$$('.acts').forEach(el => el.innerHTML ||= `<button class="ib" data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)">${SITE_ICONS.search}</button><button class="ib" data-act="theme" aria-label="açık / koyu tema" title="tema">${SITE_ICONS.theme}</button>`);
-  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot">fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
+  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/yks/">YKS</a><a href="/araclar/">araçlar</a><a href="/games/">oyunlar</a><a href="/projeler/">projeler</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
   site.tabs();
+  if (!site.$('[data-tab]')) site.visit();
 });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');

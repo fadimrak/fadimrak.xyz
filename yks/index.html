@@ -45,6 +45,7 @@
   </div>
   <p class="hint small">2027 tarihi ÖSYM takvimi açıklanınca kesinleşir; şimdilik geçen yılların düzenine göre 19 Haziran 2027 alındı. Kendi tarihini girebilirsin.</p>
   <div class="facts" id="facts"></div>
+  <div class="recent-row" id="recent" hidden style="margin-top:1rem"></div>
   <div id="tiles"></div>
 </main>
 <script>
@@ -148,6 +149,11 @@ async function facts() {
 }
 tick(); facts();
 setInterval(tick, 1000);
+// Son kullanılanlar
+{
+  const r = site.recent('/yks/').filter(x => x[1] !== '/yks/').slice(0, 6), el = site.$('#recent');
+  if (r.length) { el.hidden = false; el.innerHTML = 'son kullandıkların: ' + r.map(([t, u]) => `<a class="chip" href="${u}">${site.esc(t)}</a>`).join(''); }
+}
 </script>
 </body>
 </html>
