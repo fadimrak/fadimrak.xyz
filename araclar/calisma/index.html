@@ -57,7 +57,7 @@
     <label class="f">uzun mola (dk)<input type="number" id="pL" min="1" max="90"></label>
     <label class="f">uzun mola her<input type="number" id="pN" min="2" max="10"></label>
   </div>
-  <p class="muted small">Biten her çalışma bloğu <a href="/yks/takip/#sure">çalışma süresine</a> eklenir. Sekme kapalıyken de süre doğru tutulur. <button class="sm" id="pNotif">bildirim izni ver</button></p>
+  <p class="muted small">Sekme kapalıyken de süre doğru tutulur. <button class="sm" id="pNotif">bildirim izni ver</button></p>
 </section>
 
 <section data-tab="kronometre" class="panel">
@@ -68,7 +68,7 @@
 
 <section data-tab="sayac" class="panel">
   <div class="hms"><input type="number" id="cH" min="0" max="23" value="0" aria-label="saat"> : <input type="number" id="cM" min="0" max="59" value="10" aria-label="dakika"> : <input type="number" id="cS" min="0" max="59" value="0" aria-label="saniye"></div>
-  <div class="row" style="margin-top:.7rem"><button class="sm" data-pre="5">5 dk</button><button class="sm" data-pre="10">10 dk</button><button class="sm" data-pre="40">40 dk</button><button class="sm" data-pre="165">TYT 165 dk</button><button class="sm" data-pre="180">AYT 180 dk</button></div>
+  <div class="row" style="margin-top:.7rem"><button class="sm" data-pre="5">5 dk</button><button class="sm" data-pre="10">10 dk</button><button class="sm" data-pre="40">40 dk</button></div>
   <div class="clock" id="cClock">10:00</div>
   <div class="row"><button class="primary" id="cStart">başlat</button><button class="ghost" id="cReset">sıfırla</button></div>
 </section>
@@ -83,7 +83,7 @@
 <section data-tab="odak" class="panel">
   <h2>odak modu</h2>
   <p>Ekranı tamamen kaplayan, yalnızca süreyi gösteren sade bir sayaç. Pomodoro sayacını kullanır; ekranın kararmasını da engeller.</p>
-  <label class="f">şu an ne üzerinde çalışıyorsun? (isteğe bağlı)<input id="oTask" placeholder="ör. AYT trigonometri, 40 soru"></label>
+  <label class="f">şu an ne üzerinde çalışıyorsun? (isteğe bağlı)<input id="oTask" placeholder="ör. kitap okuma, proje hazırlığı"></label>
   <div class="row l" style="margin-top:.8rem"><button class="primary" id="oGo">odak modunu aç</button></div>
   <p class="muted small">Çıkmak için <kbd>Esc</kbd> ya da ekrandaki çıkış düğmesi.</p>
 </section>
@@ -117,8 +117,6 @@ const saveP = () => store.set('pomo', ps);
 function next(skipped) {
   if (ps.phase === 'w' && !skipped) {
     ps.done++;
-    const log = store.get('sure-log', {}), d = new Date().toLocaleDateString('sv');
-    log[d] = (log[d] || 0) + P.w; store.set('sure-log', log);
   }
   ps.phase = ps.phase === 'w' ? (ps.done && ps.done % P.n === 0 && !skipped ? 'l' : 's') : 'w';
   ps.left = len(ps.phase); ps.end = Date.now() + ps.left;

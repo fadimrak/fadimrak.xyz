@@ -223,7 +223,7 @@ setInterval(() => { if (zLive && location.hash === '#saat') saat(); }, 15000);
 
 // ---- tarih farkı
 const today = new Date().toLocaleDateString('sv');
-site.$('#t1').value = today; site.$('#t2').value = store.get('yks-date', '2027-06-19').slice(0, 10); site.$('#t3').value = today;
+site.$('#t1').value = today; site.$('#t2').value = today; site.$('#t3').value = today;
 function tarih() {
   let a = new Date(site.$('#t1').value), b = new Date(site.$('#t2').value);
   if (isNaN(a) || isNaN(b)) return;

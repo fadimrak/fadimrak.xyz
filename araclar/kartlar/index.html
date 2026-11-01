@@ -47,7 +47,7 @@ const app = site.$('#app'), E = site.esc;
 
 function render() {
   if (view.name === 'list') {
-    app.innerHTML = `<div class="panel"><div class="row l"><input id="nd" placeholder="yeni deste adı (ör. AYT Edebiyat yazar-eser)" style="flex:1 1 220px" aria-label="yeni deste adı"><button class="primary" id="add">deste ekle</button></div></div>
+    app.innerHTML = `<div class="panel"><div class="row l"><input id="nd" placeholder="yeni deste adı (ör. İngilizce kelimeler)" style="flex:1 1 220px" aria-label="yeni deste adı"><button class="primary" id="add">deste ekle</button></div></div>
       <div class="decks">${S.decks.map(d => `<div class="panel deck"><b>${E(d.ad)}</b><small>${d.cards.length} kart · bugün ${due(d).length} tekrar</small><div class="row l"><button class="sm primary" data-study="${d.id}" ${d.cards.length ? '' : 'disabled'}>çalış</button><button class="sm" data-open="${d.id}">düzenle</button></div></div>`).join('')}</div>
       ${S.decks.length ? '' : '<p class="hint" style="margin-top:2rem">Henüz deste yok. Bir ad yazıp deste ekle, sonra kartlarını gir.</p>'}`;
   } else if (view.name === 'edit') {

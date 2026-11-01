@@ -63,16 +63,6 @@ const site = {
     el.ondrop = e => { e.preventDefault(); el.classList.remove('over'); if (e.dataTransfer.files.length) onFiles([...e.dataTransfer.files]); };
   },
 
-  // Çalışma serisi: bugünden (bugün boşsa dünden) geriye, süre ya da soru kaydı olan ardışık gün sayısı
-  streak() {
-    const sure = store.get('sure-log', {}), soru = store.get('soru-log', {});
-    const has = d => (sure[d] || 0) > 0 || Object.values(soru[d] || {}).some(n => n > 0);
-    const day = new Date(); let n = 0;
-    if (!has(day.toLocaleDateString('sv'))) day.setDate(day.getDate() - 1);
-    while (has(day.toLocaleDateString('sv'))) { n++; day.setDate(day.getDate() - 1); }
-    return n;
-  },
-
   theme() {
     const html = document.documentElement;
     const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -90,9 +80,9 @@ const site = {
     const t = e ? e[0] : document.title.split(' · ')[0];
     store.set('son-sayfalar', [[t, u], ...store.get('son-sayfalar', []).filter(x => x[1] !== u)].slice(0, 8));
   },
-  recent(prefix = '/') { return store.get('son-sayfalar', []).filter(x => x[1].startsWith(prefix)); },
+  recent(prefix = '/') { return store.get('son-sayfalar', []).filter(x => x[1].startsWith(prefix) && this.index.some(e => e[1].split('#')[0] === x[1].split('#')[0])); },
 
-  // Bölüm sayfaları (araçlar, YKS): üstte sabit arama ve kategori düğmeleri, sıkışık kartlar.
+  // Bölüm sayfaları (araçlar): üstte sabit arama ve kategori düğmeleri, sıkışık kartlar.
   // groups: [{ title, color, items: [{ name, desc, url, icon }] }], key: seçili kategorinin saklanacağı ad
   hub(box, groups, key) {
     let cat = store.get(key, 'hepsi');
@@ -146,36 +136,6 @@ const site = {
     ['hangisi daha?', '/games/kalabalik/', 'oyun', 'nüfus ülke il kalabalık'],
     ['ben robot değilim', '/games/robot/', 'oyun', 'captcha'],
     ['hayatın haftaları', '/games/hafta/', 'oyun', 'ömür hafta takvim'],
-    ['YKS', '/yks/', 'yks', 'tyt ayt sınav geri sayım'],
-    ['YKS geri sayım', '/yks/', 'yks', 'kaç gün kaldı sayaç'],
-    ['konu listesi ve takip', '/yks/konular/', 'yks', 'tyt ayt konular konu takip özet pdf video'],
-    ['konu özetleri', '/yks/konular/', 'yks', 'özet'],
-    ['soru dağılımı', '/yks/dagilim/', 'yks', 'yıllara göre konu dağılım tablosu çıkmış'],
-    ['matematik formülleri', '/yks/formuller/#matematik', 'yks', 'formül sayfası'],
-    ['fizik formülleri', '/yks/formuller/#fizik', 'yks', 'formül sayfası'],
-    ['kimya formülleri', '/yks/formuller/#kimya', 'yks', 'formül sayfası'],
-    ['periyodik tablo', '/yks/periyodik/', 'yks', 'element kimya'],
-    ['biyoloji kavram haritaları', '/yks/biyoloji/', 'yks', 'hücre kalıtım sistemler'],
-    ['Türkçe dil bilgisi', '/yks/turkce/', 'yks', 'sözcük türleri cümle ögeleri yazım noktalama'],
-    ['paragraf çözme teknikleri', '/yks/turkce/#paragraf', 'yks', 'ana fikir'],
-    ['tarih kronolojisi', '/yks/tarih/', 'yks', 'zaman çizelgesi osmanlı inkılap'],
-    ['coğrafya haritaları', '/yks/cografya/', 'yks', 'türkiye harita bölgeler maden tarım'],
-    ['felsefe sözlüğü', '/yks/felsefe/', 'yks', 'kavramlar'],
-    ['ücretsiz kaynaklar', '/yks/kaynaklar/', 'yks', 'meb ösym çıkmış sorular video playlist pdf'],
-    ['şifreli PDF arşivi', '/yks/kasa/', 'yks', 'kasa staticrypt'],
-    ['TYT net hesaplama', '/yks/hesap/#tyt', 'yks', 'net hesaplayıcı'],
-    ['AYT net hesaplama', '/yks/hesap/#ayt', 'yks', 'net hesaplayıcı'],
-    ['YKS puan hesaplama', '/yks/hesap/#puan', 'yks', 'obp diploma sayısal eşit ağırlık sözel dil'],
-    ['hedefe kaç net lazım', '/yks/hesap/#hedef', 'yks', 'hedef puan'],
-    ['kaç gün kaldı, günde kaç konu', '/yks/hesap/#gun', 'yks', 'hafta konu planı'],
-    ['deneme kaydı ve net grafiği', '/yks/takip/#deneme', 'takip', 'deneme sınavı grafik'],
-    ['çalışma süresi', '/yks/takip/#sure', 'takip', 'günlük süre kayıt'],
-    ['soru sayısı takibi', '/yks/takip/#soru', 'takip', 'çözülen soru'],
-    ['çalışma serisi', '/yks/takip/#seri', 'takip', 'streak gün serisi'],
-    ['tekrar hatırlatıcı', '/yks/takip/#tekrar', 'takip', '1-7-30 aralıklı tekrar'],
-    ['yanlış defteri', '/yks/takip/#yanlis', 'takip', 'fotoğraf etiket yanlış soru'],
-    ['haftalık program', '/yks/takip/#program', 'takip', 'ders programı plan'],
-    ['verileri dışa / içe aktar', '/yks/takip/#yedek', 'takip', 'yedek json cihaz değiştir'],
     ['araçlar', '/araclar/', 'araç', 'tüm araçlar'],
     ['pomodoro', '/araclar/calisma/#pomodoro', 'araç', 'zamanlayıcı odak'],
     ['kronometre', '/araclar/calisma/#kronometre', 'araç', 'süre ölçer'],
@@ -185,7 +145,6 @@ const site = {
     ['bilgi kartları', '/araclar/kartlar/', 'araç', 'flashcard kart ezber'],
     ['not defteri', '/araclar/notlar/#notlar', 'araç', 'not'],
     ['yapılacaklar listesi', '/araclar/notlar/#yapilacaklar', 'araç', 'todo görev'],
-    ['optik form', '/araclar/optik/', 'araç', 'cevap kağıdı deneme kontrol'],
     ['PDF birleştir', '/araclar/pdf/#birlestir', 'pdf', 'merge'],
     ['PDF böl', '/araclar/pdf/#bol', 'pdf', 'split ayır'],
     ['PDF sayfa sil', '/araclar/pdf/#sil', 'pdf', ''],
@@ -275,16 +234,6 @@ const site = {
     ['projeler', '/projeler/', 'site', 'github proje'],
     ['telif hakları', '/telif/', 'site', 'lisans kaynak gizlilik'],
   ],
-  _topics: null,
-  async topics() {
-    if (this._topics) return this._topics;
-    try {
-      const d = await (await fetch('/yks/konular.json')).json();
-      this._topics = d.dersler.flatMap(s => s.konular.map(k => [k.ad, '/yks/konular/#' + s.id, s.sinav.toUpperCase() + ' ' + s.ad, '']));
-    } catch { this._topics = []; }
-    return this._topics;
-  },
-
   search() {
     let dlg = site.$('dialog.sx');
     if (!dlg) {
@@ -292,11 +241,11 @@ const site = {
       dlg = site.$('dialog.sx');
       const input = site.$('input', dlg), ul = site.$('ul', dlg);
       let sel = 0, items = [];
-      const render = async () => {
+      const render = () => {
         const q = site.norm(input.value.trim());
         const words = q.split(/\s+/).filter(Boolean);
         const recent = site.recent().map(([t, u]) => [t, u, 'son açılan', '']);
-        const all = words.length ? site.index.concat(await site.topics()) : recent.concat(site.index.filter(e => !recent.some(r => r[1] === e[1])).slice(0, 12));
+        const all = words.length ? site.index : recent.concat(site.index.filter(e => !recent.some(r => r[1] === e[1])).slice(0, 12));
         items = all.map(e => {
           const title = site.norm(e[0]), hay = title + ' ' + site.norm(e[2] + ' ' + e[3]);
           if (!words.every(w => hay.includes(w))) return null;
@@ -349,7 +298,7 @@ const SITE_ICONS = {
 
 document.addEventListener('DOMContentLoaded', () => {
   site.$$('.acts').forEach(el => el.innerHTML ||= `<button class="ib" data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)">${SITE_ICONS.search}</button><button class="ib" data-act="theme" aria-label="açık / koyu tema" title="tema">${SITE_ICONS.theme}</button>`);
-  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/yks/">YKS</a><a href="/araclar/">araçlar</a><a href="/games/">oyunlar</a><a href="/projeler/">projeler</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
+  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/araclar/">araçlar</a><a href="/games/">oyunlar</a><a href="/projeler/">projeler</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
   site.tabs();
   if (!site.$('[data-tab]')) site.visit();
 });
