@@ -13,50 +13,97 @@
 <link rel="stylesheet" href="/assets/site.css?v=6">
 <script src="/assets/site.js?v=6"></script>
 <style>
-  .projects { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 1rem; }
-  .project { flex-direction: column; gap: .8rem; padding: 1.4rem; border-top: 5px solid var(--c); }
-  .project .category { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-  .project h2 { margin: 0; font-size: 1.5rem; overflow-wrap: anywhere; }
-  .project p { margin: 0; color: var(--muted); line-height: 1.6; }
-  .project .repo { margin-top: auto; padding-top: .6rem; color: var(--ink); font-weight: 700; }
-  .github { text-align: center; margin-top: 2rem; }
+  body { background: radial-gradient(ellipse at 10% 0%, color-mix(in srgb, var(--teal) 9%, transparent), transparent 50%), var(--bg); }
+  .intro { text-align: left; padding: 3rem 0 2.5rem; }
+  .intro .eyebrow { display: inline-flex; align-items: center; gap: .6rem; margin-bottom: 1rem; color: var(--muted); font-size: .75rem; letter-spacing: .16em; text-transform: uppercase; }
+  .eyebrow::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 5px color-mix(in srgb, var(--teal) 12%, transparent); }
+  .intro h1 { font-size: clamp(3.6rem, 10vw, 6rem); letter-spacing: -.065em; }
+  .intro h1::after { content: '.'; color: var(--teal); }
+  .intro p { margin: 1rem 0 0; max-width: 48ch; font-size: 1.1rem; }
+  .projects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.3rem; }
+  .project { --accent: var(--c); position: relative; isolation: isolate; overflow: hidden; flex-direction: column; gap: .8rem; padding: 1.6rem; border: 1px solid color-mix(in srgb, var(--line) 25%, transparent); border-radius: 24px; box-shadow: 0 6px 24px #00000006; transition: transform .3s ease, border-color .3s, box-shadow .3s; animation: arrive .65s both; }
+  .project:nth-child(2) { animation-delay: .08s; }
+  .project:nth-child(3) { animation-delay: .16s; }
+  .project:nth-child(4) { animation-delay: .24s; }
+  .project:nth-child(5) { animation-delay: .32s; }
+  .project:nth-child(6) { animation-delay: .4s; }
+  .project::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--c) 16%, transparent), transparent 65%); opacity: .5; transition: opacity .35s; }
+  .project:focus-visible { border-color: var(--c); outline: 3px solid var(--c); outline-offset: 4px; }
+  .project:focus-visible::before { opacity: 1; }
+  .project .art { position: relative; display: grid; place-items: center; width: 100%; height: 150px; margin-bottom: .8rem; overflow: hidden; border-radius: 15px; background: color-mix(in srgb, var(--c) 8%, var(--card)); }
+  .art::before, .art::after { content: ''; position: absolute; width: 110px; height: 110px; border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); border-radius: 28%; transform: rotate(-20deg); transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+  .art::after { width: 180px; height: 180px; transform: rotate(20deg); border-style: dashed; opacity: .6; }
+  .art b { font-family: ui-monospace, Consolas, monospace; font-size: 2rem; font-weight: 500; color: var(--ink); z-index: 1; transition: transform .4s; }
+  .project .category { font-size: .7rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+  .project h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.035em; overflow-wrap: anywhere; }
+  .project p { margin: 0 0 .6rem; color: var(--muted); line-height: 1.7; }
+  .project .repo { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: auto; padding-top: 1rem; border-top: 1px solid color-mix(in srgb, var(--line) 15%, transparent); color: var(--ink); font-size: .85rem; font-weight: 600; }
+  .repo::after { content: '↗'; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--soft); font-size: 1.2rem; transition: transform .3s, background .3s; }
+  .project:focus-visible .repo::after { transform: rotate(45deg); }
+  .github { text-align: center; margin-top: 3rem; padding: 1.5rem 0; }
+  .gh { border-radius: 99px; }
   .gh svg { width: 20px; height: 20px; fill: currentColor; }
+  @keyframes arrive { from { opacity: 0; translate: 0 20px; } to { opacity: 1; translate: 0 0; } }
+  @media (hover: hover) {
+    .project:hover { transform: translateY(-6px); border-color: var(--c); box-shadow: 0 16px 36px #00000012; }
+    .project:hover::before { opacity: 1; }
+    .project:hover .art::before { transform: rotate(25deg); }
+    .project:hover .art::after { transform: rotate(-30deg); }
+    .project:hover .art b { transform: scale(1.1); }
+    .project:hover .repo::after { transform: rotate(45deg); background: color-mix(in srgb, var(--c) 20%, var(--card)); }
+  }
+  @media (max-width: 600px) {
+    .intro { padding: 2rem 0; }
+    .projects { grid-template-columns: 1fr; }
+    .project { padding: 1.25rem; }
+    .project .art { height: 125px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .project, .project::before, .project .art::before, .project .art::after, .project .art b, .project .repo::after { animation: none; transition: none; transform: none; }
+    .project:hover, .project:hover .art::before, .project:hover .art::after, .project:hover .art b, .project:hover .repo::after, .project:focus-visible .repo::after { transform: none; }
+  }
 </style>
 </head>
 <body>
 <header class="wide"><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
 <main class="wide">
-  <div class="intro"><h1>projeler</h1><p>Bir fikirden çalışan bir şeye. Web siteleri, günlük araçlar ve oyunlar için geliştirdiklerim.</p></div>
+  <div class="intro"><span class="eyebrow">fikir → kod → proje</span><h1>projeler</h1><p>Bir fikirden çalışan bir şeye. Web siteleri, günlük araçlar ve oyunlar için geliştirdiklerim.</p></div>
   <div class="grid projects">
     <a class="tile project" style="--c:var(--teal)" href="https://github.com/fadimrak/fadimrak.xyz" target="_blank" rel="noopener">
+      <div class="art" aria-hidden="true"><b>&lt;/&gt;</b></div>
       <span class="category">web · kişisel site</span><h2>fadimrak.xyz</h2>
       <p>Şu an gezdiğin sitenin kaynak kodu. Tarayıcıda çalışan araçlar ve projelerim, tek bir yerde.</p>
-      <span class="repo">GitHub'da incele ↗</span>
+      <span class="repo">GitHub'da incele</span>
     </a>
     <a class="tile project" style="--c:var(--blue)" href="https://github.com/fadimrak/fadimraksteamtool" target="_blank" rel="noopener">
+      <div class="art" aria-hidden="true"><b>ST</b></div>
       <span class="category">masaüstü · Steam</span><h2>Fadimrak Steam Tool</h2>
       <p>Steam kütüphanesi, başarımlar ve hesap yönetimini bir araya getiren, Türkçe ve İngilizce arayüzlü masaüstü aracı.</p>
-      <span class="repo">GitHub'da incele ↗</span>
+      <span class="repo">GitHub'da incele</span>
     </a>
     <a class="tile project" style="--c:var(--yellow)" href="https://github.com/fadimrak/lolkabul" target="_blank" rel="noopener">
+      <div class="art" aria-hidden="true"><b>✓</b></div>
       <span class="category">otomasyon · League of Legends</span><h2>lolkabul</h2>
       <p>League of Legends için otomatik maç kabul etme ve şampiyon yasaklama aracı.</p>
-      <span class="repo">GitHub'da incele ↗</span>
+      <span class="repo">GitHub'da incele</span>
     </a>
     <a class="tile project" style="--c:var(--purple)" href="https://github.com/fadimrak/animeria" target="_blank" rel="noopener">
+      <div class="art" aria-hidden="true"><b>▶</b></div>
       <span class="category">web · anime</span><h2>Animeria</h2>
       <p>Anime keşfi, izleme ve liste takibi için sade, monokrom bir platform. AniList entegrasyonuyla izlediklerini bir arada tut.</p>
-      <span class="repo">GitHub'da incele ↗</span>
+      <span class="repo">GitHub'da incele</span>
     </a>
     <a class="tile project" style="--c:var(--pink)" href="https://github.com/fadimrak/falling-pickaxe-tiktok" target="_blank" rel="noopener">
+      <div class="art" aria-hidden="true"><b>↓</b></div>
       <span class="category">oyun · TikTok</span><h2>Falling Pickaxe</h2>
       <p>Falling Pickaxe'ın TikTok için düzenlenmiş sürümü.</p>
-      <span class="repo">GitHub'da incele ↗</span>
+      <span class="repo">GitHub'da incele</span>
     </a>
     <a class="tile project" style="--c:var(--green)" href="https://github.com/fadimrak/autoenchantbot" target="_blank" rel="noopener">
+      <div class="art" aria-hidden="true"><b>✧</b></div>
       <span class="category">mod · Minecraft</span><h2>Auto Enchant Bot</h2>
       <p>Minecraft için geliştirdiğim Fabric mod projesi. Kaynak kodunu ve proje dosyalarını GitHub'da bulabilirsin.</p>
-      <span class="repo">GitHub'da incele ↗</span>
+      <span class="repo">GitHub'da incele</span>
     </a>
   </div>
   <div class="github">
