@@ -224,7 +224,6 @@ const site = {
     ['fotoğraftan konum sil', '/araclar/gizlilik/#exif', 'gizlilik', 'exif gps meta veri'],
     ['dosya şifrele', '/araclar/gizlilik/#sifrele', 'gizlilik', 'parola aes'],
     ['şifre gücü testi', '/araclar/gizlilik/#parola', 'gizlilik', 'parola güvenli mi'],
-    ['projeler', '/projeler/', 'site', 'github proje'],
     ['telif hakları', '/telif/', 'site', 'lisans kaynak gizlilik'],
   ],
   search() {
@@ -291,7 +290,7 @@ const SITE_ICONS = {
 
 document.addEventListener('DOMContentLoaded', () => {
   site.$$('.acts').forEach(el => el.innerHTML ||= `<button class="ib" data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)">${SITE_ICONS.search}</button><button class="ib" data-act="theme" aria-label="açık / koyu tema" title="tema">${SITE_ICONS.theme}</button>`);
-  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/araclar/">araçlar</a><a href="/projeler/">projeler</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
+  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/araclar/">araçlar</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
   site.tabs();
   if (!site.$('[data-tab]')) site.visit();
 });
