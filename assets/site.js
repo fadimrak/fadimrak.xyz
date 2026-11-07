@@ -128,14 +128,6 @@ const site = {
   // Arama dizini: [başlık, adres, bölüm, ek kelimeler]
   index: [
     ['ana sayfa', '/', 'site', 'fadimrak'],
-    ['oyunlar', '/games/', 'oyun', 'oyun portalı'],
-    ['kelime', '/games/kelime/', 'oyun', 'wordle günlük bulmaca'],
-    ['bağlantı', '/games/baglanti/', 'oyun', 'connections grup bulmaca'],
-    ['şehir', '/games/sehir/', 'oyun', 'il harita worldle'],
-    ['yıl', '/games/yil/', 'oyun', 'tarihte bugün'],
-    ['hangisi daha?', '/games/kalabalik/', 'oyun', 'nüfus ülke il kalabalık'],
-    ['ben robot değilim', '/games/robot/', 'oyun', 'captcha'],
-    ['hayatın haftaları', '/games/hafta/', 'oyun', 'ömür hafta takvim'],
     ['araçlar', '/araclar/', 'araç', 'tüm araçlar'],
     ['pomodoro', '/araclar/calisma/#pomodoro', 'araç', 'zamanlayıcı odak'],
     ['kronometre', '/araclar/calisma/#kronometre', 'araç', 'süre ölçer'],
@@ -299,7 +291,7 @@ const SITE_ICONS = {
 
 document.addEventListener('DOMContentLoaded', () => {
   site.$$('.acts').forEach(el => el.innerHTML ||= `<button class="ib" data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)">${SITE_ICONS.search}</button><button class="ib" data-act="theme" aria-label="açık / koyu tema" title="tema">${SITE_ICONS.theme}</button>`);
-  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/araclar/">araçlar</a><a href="/games/">oyunlar</a><a href="/projeler/">projeler</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
+  if (!site.$('footer')) document.body.insertAdjacentHTML('beforeend', '<footer class="site-foot"><nav aria-label="bölümler"><a href="/">ana sayfa</a><a href="/araclar/">araçlar</a><a href="/projeler/">projeler</a></nav>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></footer>');
   site.tabs();
   if (!site.$('[data-tab]')) site.visit();
 });

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>projeler · fadimrak</title>
-<meta name="description" content="fadimrak'ın projeleri">
+<meta name="description" content="Web siteleri, masaüstü araçları ve oyun otomasyonları: fadimrak'ın GitHub projelerini keşfet.">
 <meta property="og:title" content="projeler · fadimrak">
 <meta name="theme-color" content="#f6f0e4">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -13,17 +13,53 @@
 <link rel="stylesheet" href="/assets/site.css?v=6">
 <script src="/assets/site.js?v=6"></script>
 <style>
-  .empty { text-align: center; padding: 2.5rem 1.25rem; }
-  .empty p { margin: 0 0 1.4rem; font-size: 1.15rem; }
+  .projects { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 1rem; }
+  .project { flex-direction: column; gap: .8rem; padding: 1.4rem; border-top: 5px solid var(--c); }
+  .project .category { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .project h2 { margin: 0; font-size: 1.5rem; overflow-wrap: anywhere; }
+  .project p { margin: 0; color: var(--muted); line-height: 1.6; }
+  .project .repo { margin-top: auto; padding-top: .6rem; color: var(--ink); font-weight: 700; }
+  .github { text-align: center; margin-top: 2rem; }
   .gh svg { width: 20px; height: 20px; fill: currentColor; }
 </style>
 </head>
 <body>
-<header><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
-<main>
-  <div class="intro"><h1>projeler</h1></div>
-  <div class="panel empty">
-    <p>yakında ekleyeceğim.</p>
+<header class="wide"><a class="back" href="/">← fadimrak</a><div class="acts"></div></header>
+<main class="wide">
+  <div class="intro"><h1>projeler</h1><p>Bir fikirden çalışan bir şeye. Web siteleri, günlük araçlar ve oyunlar için geliştirdiklerim.</p></div>
+  <div class="grid projects">
+    <a class="tile project" style="--c:var(--teal)" href="https://github.com/fadimrak/fadimrak.xyz" target="_blank" rel="noopener">
+      <span class="category">web · kişisel site</span><h2>fadimrak.xyz</h2>
+      <p>Şu an gezdiğin sitenin kaynak kodu. Tarayıcıda çalışan araçlar ve projelerim, tek bir yerde.</p>
+      <span class="repo">GitHub'da incele ↗</span>
+    </a>
+    <a class="tile project" style="--c:var(--blue)" href="https://github.com/fadimrak/fadimraksteamtool" target="_blank" rel="noopener">
+      <span class="category">masaüstü · Steam</span><h2>Fadimrak Steam Tool</h2>
+      <p>Steam kütüphanesi, başarımlar ve hesap yönetimini bir araya getiren, Türkçe ve İngilizce arayüzlü masaüstü aracı.</p>
+      <span class="repo">GitHub'da incele ↗</span>
+    </a>
+    <a class="tile project" style="--c:var(--yellow)" href="https://github.com/fadimrak/lolkabul" target="_blank" rel="noopener">
+      <span class="category">otomasyon · League of Legends</span><h2>lolkabul</h2>
+      <p>League of Legends için otomatik maç kabul etme ve şampiyon yasaklama aracı.</p>
+      <span class="repo">GitHub'da incele ↗</span>
+    </a>
+    <a class="tile project" style="--c:var(--purple)" href="https://github.com/fadimrak/animeria" target="_blank" rel="noopener">
+      <span class="category">web · anime</span><h2>Animeria</h2>
+      <p>Anime keşfi, izleme ve liste takibi için sade, monokrom bir platform. AniList entegrasyonuyla izlediklerini bir arada tut.</p>
+      <span class="repo">GitHub'da incele ↗</span>
+    </a>
+    <a class="tile project" style="--c:var(--pink)" href="https://github.com/fadimrak/falling-pickaxe-tiktok" target="_blank" rel="noopener">
+      <span class="category">oyun · TikTok</span><h2>Falling Pickaxe</h2>
+      <p>Falling Pickaxe'ın TikTok için düzenlenmiş sürümü.</p>
+      <span class="repo">GitHub'da incele ↗</span>
+    </a>
+    <a class="tile project" style="--c:var(--green)" href="https://github.com/fadimrak/autoenchantbot" target="_blank" rel="noopener">
+      <span class="category">mod · Minecraft</span><h2>Auto Enchant Bot</h2>
+      <p>Minecraft için geliştirdiğim Fabric mod projesi. Kaynak kodunu ve proje dosyalarını GitHub'da bulabilirsin.</p>
+      <span class="repo">GitHub'da incele ↗</span>
+    </a>
+  </div>
+  <div class="github">
     <a class="btn gh" href="https://github.com/fadimrak" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>github.com/fadimrak</a>
   </div>
 </main>
