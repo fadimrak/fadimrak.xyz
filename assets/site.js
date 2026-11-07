@@ -192,6 +192,7 @@ const site = {
     ['saat dilimi çevirici', '/araclar/genel/#saat', 'araç', 'zaman dilimi'],
     ['tarih farkı', '/araclar/genel/#tarih', 'araç', 'iki tarih arası gün'],
     ['renk seçici', '/araclar/genel/#renk', 'araç', 'hex rgb hsl'],
+    ['renk PNG indir', '/araclar/genel/#renk', 'resim', 'düz renk görsel oluştur indir'],
     ['klavye hız testi', '/araclar/genel/#klavye', 'araç', 'yazma hızı'],
     ['kamera, mikrofon, ekran testi', '/araclar/genel/#cihaz', 'araç', 'webcam ölü piksel'],
     ['dosya boyutu çevirici', '/araclar/genel/#boyut', 'araç', 'mb gb kb'],

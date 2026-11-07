@@ -90,6 +90,10 @@
 <section data-tab="renk" class="panel">
   <div class="opts"><label class="f">renk<input type="color" id="cc" value="#4d7cfe" style="width:100%;height:48px"></label><label class="f">HEX ya da RGB yaz<input id="ci" placeholder="#4d7cfe ya da rgb(77,124,254)"></label><button id="cpick" hidden>ekrandan seç</button></div>
   <div class="sw" id="csw"></div>
+  <form id="cpng">
+    <div class="opts"><label class="f">genişlik (px)<input id="cpngw" type="number" min="1" max="4096" step="1" value="1080" required></label><label class="f">yükseklik (px)<input id="cpngh" type="number" min="1" max="4096" step="1" value="1080" required></label><button class="primary" type="submit">PNG indir</button></div>
+    <p class="small muted">Seçtiğin renkte düz bir PNG indir. Her kenar 1–4096 piksel olabilir; dosya cihazında oluşturulur.</p>
+  </form>
   <div class="cv" id="cv"></div>
   <p class="small muted" style="margin-bottom:.2rem">açık ve koyu tonlar (tıkla, seç)</p><div class="pal" id="cpal"></div>
   <div class="out" id="ccon"></div>
@@ -253,6 +257,20 @@ function renk(h) {
   site.$('#ccon').innerHTML = `beyaz yazıyla kontrast <b>${w.toFixed(2)}:1</b> (${w >= 4.5 ? 'okunur' : 'zayıf'}) · siyah yazıyla <b>${b.toFixed(2)}:1</b> (${b >= 4.5 ? 'okunur' : 'zayıf'})<br>tamamlayıcı renk <button class="sm" data-c="${comp}" style="background:${comp};color:${lum(hex2rgb(comp)) > .4 ? '#000' : '#fff'}">${comp}</button>`;
 }
 site.$('#cc').oninput = e => renk(e.target.value);
+site.$('#cpng').onsubmit = e => {
+  e.preventDefault();
+  if (!e.currentTarget.reportValidity()) return;
+  const w = +site.$('#cpngw').value, h = +site.$('#cpngh').value, color = site.$('#cc').value;
+  if (![w, h].every(n => Number.isInteger(n) && n >= 1 && n <= 4096)) return toast('Boyutlar 1–4096 arasında tam sayı olmalı.');
+  try {
+    const c = Object.assign(document.createElement('canvas'), { width: w, height: h }), x = c.getContext('2d');
+    x.fillStyle = color; x.fillRect(0, 0, w, h);
+    c.toBlob(blob => {
+      if (!blob) return toast('PNG oluşturulamadı. Daha küçük boyut dene.');
+      site.dl(blob, `renk-${color.slice(1)}-${w}x${h}.png`);
+    }, 'image/png');
+  } catch { toast('PNG oluşturulamadı. Daha küçük boyut dene.'); }
+};
 site.$('#ci').oninput = e => { const v = e.target.value.trim(), m = v.match(/^#?([0-9a-f]{6}|[0-9a-f]{3})$/i), r = v.match(/(\d+)\D+(\d+)\D+(\d+)/); if (m) { let h = m[1]; if (h.length === 3) h = [...h].map(c => c + c).join(''); renk('#' + h.toLowerCase()); } else if (r) renk(rgb2hex(r.slice(1, 4).map(Number))); };
 document.addEventListener('click', e => { const c = e.target.closest('[data-c]'); if (c) renk(c.dataset.c); const p = e.target.closest('[data-cp]'); if (p) navigator.clipboard.writeText(p.dataset.cp).then(() => toast('kopyalandı')); });
 if ('EyeDropper' in window) { site.$('#cpick').hidden = false; site.$('#cpick').onclick = async () => { try { const r = await new EyeDropper().open(); renk(r.sRGBHex.length === 7 ? r.sRGBHex : rgb2hex((r.sRGBHex.match(/\d+/g) || []).map(Number))); } catch {} }; }
