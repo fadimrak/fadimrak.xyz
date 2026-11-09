@@ -1,0 +1,30 @@
+Son Harf! oyun sözlüğü (sozluk.txt)
+====================================
+
+Bu dosya Roblox oyunu "Son Harf!" tarafından kelime doğrulamak için kullanılır.
+Oyun sunucusu her açılışta bu dosyayı bir kez indirir. Dosya değiştirilip
+push edildiğinde yeni açılan sunucular güncel listeyi kullanır.
+
+Biçim
+-----
+- UTF-8, satır başına bir kelime.
+- Türkçe küçük harf (ı, i, ç, ğ, ö, ş, ü), şapkasız (â -> a), tek kelime, en az 2 harf.
+- "#" ile başlayan satırlar açıklamadır.
+- "#adet N" satırındaki N, kelime sayısıyla aynı olmalı ve dosya "#son" satırıyla bitmeli.
+  Oyun bu iki kontrolü tutturamazsa (yarım indirme, yanlış düzenleme) dosyayı
+  kullanmaz ve oyun içine gömülü yedek sözlüğe döner.
+- Kelime ekleyip silince "#adet" sayısını güncelle.
+
+Kaynak ve lisans
+----------------
+Kelimelerin büyük kısmı Zemberek-NLP projesinin sözlüğünden alınmıştır:
+  https://github.com/ahmetaa/zemberek-nlp
+  Dosya: morphology/src/main/resources/tr/master-dictionary.dict
+  Sürüm: commit 6b90eac24bfbb9eaefc1ca625c403a0fc8bbc1e5 (2019-04-04)
+  Copyright 2018 Ahmet A. Akın, Mehmet D. Akın
+  Apache License, Version 2.0 altında lisanslanmıştır (bkz. LICENSE-zemberek.txt).
+
+Yapılan değişiklikler: noktalama girdileri, 2 harften kısa girdiler ve Türk alfabesi
+dışı karakter içeren girdiler çıkarıldı; etiketler kaldırıldı; Türkçe küçük harfe
+çevrildi, şapkalar kaldırıldı, tekrarlar birleştirildi, alfabetik sıralandı.
+Son Harf için birkaç ek kelime eklendi (selfie, emoji, internet, taşşak).
