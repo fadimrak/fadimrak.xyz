@@ -20,20 +20,24 @@
   input { flex: 1; min-width: 0; letter-spacing: .2em; }
   input:focus-visible, form button:focus-visible { outline: 1px solid #777; outline-offset: 2px; }
   form button { cursor: pointer; color: #bbb; } form button:hover { border-color: #666; }
-  #hata { min-height: 1.4em; margin: .6rem 0 0; color: #a55; font-size: .8rem; }
+  #kapi { min-height: 100vh; min-height: 100dvh; display: grid; place-content: center; padding: 0 1.25rem; box-sizing: border-box; animation: in 1.2s ease both; }
+  #kapi form { width: min(320px, calc(100vw - 2.5rem)); }
+  #hata { text-align: center; min-height: 1.4em; margin: .6rem 0 0; color: #a55; font-size: .8rem; }
   @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
-<main>
-<a class="back" href="/">← geri</a>
-<h1>söylesem bir şey değişir miydi</h1>
+<div id="kapi">
 <form id="kilit">
 <input id="parola" type="password" inputmode="numeric" autocomplete="off" aria-label="şifre" placeholder="şifre" autofocus>
 <button>aç</button>
 </form>
 <p id="hata" role="alert"></p>
-<div id="yazilar" hidden></div>
+</div>
+<main hidden>
+<a class="back" href="/">← geri</a>
+<h1>söylesem bir şey değişir miydi</h1>
+<div id="yazilar"></div>
 </main>
 <script>
 // Yazılar dusunceler/yazilar.json içinde AES-GCM ile şifreli; anahtar paroladan PBKDF2 ile türetilir.
@@ -47,7 +51,7 @@ $('kilit').addEventListener('submit', async e => {
     const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('parola').value), 'PBKDF2', false, ['deriveKey']);
     const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(d.s), iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
     $('yazilar').innerHTML = new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(d.i) }, key, b(d.c)));
-    $('kilit').remove(); $('hata').remove(); $('yazilar').hidden = false;
+    $('kapi').remove(); document.querySelector('main').hidden = false;
   } catch {
     $('hata').textContent = 'şifre yanlış';
     $('parola').select();
