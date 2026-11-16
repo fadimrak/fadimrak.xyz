@@ -38,8 +38,9 @@
 <a class="back" href="/">← geri</a>
 <div id="yazilar"></div>
 </main>
+<script src="argon2.min.js"></script>
 <script>
-// Yazılar dusunceler/yazilar.json içinde AES-GCM ile şifreli; anahtar paroladan PBKDF2 ile türetilir.
+// Yazılar dusunceler/yazilar.json içinde AES-256-GCM ile şifreli; anahtar paroladan Argon2id ile türetilir (hash-wasm, MIT).
 // Parola sayfada yok: yanlış parolada şifre çözme başarısız olur. Yeniden şifrelemek için: node scripts/dusunceler.mjs <parola>
 const $ = id => document.getElementById(id), b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 $('kilit').addEventListener('submit', async e => {
@@ -47,8 +48,8 @@ $('kilit').addEventListener('submit', async e => {
   $('hata').textContent = 'açılıyor…';
   try {
     const d = await (await fetch('yazilar.json', { cache: 'no-store' })).json();
-    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('parola').value), 'PBKDF2', false, ['deriveKey']);
-    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(d.s), iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const raw = await hashwasm.argon2id({ password: $('parola').value, salt: b(d.s), memorySize: d.m, iterations: d.t, parallelism: d.p, hashLength: 32, outputType: 'binary' });
+    const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
     $('yazilar').innerHTML = new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(d.i) }, key, b(d.c)));
     $('kapi').remove(); document.title = ($('yazilar').querySelector('h1')?.textContent || 'fadimrak') + ' · fadimrak'; document.querySelector('main').hidden = false;
   } catch {
