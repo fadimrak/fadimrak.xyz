@@ -131,6 +131,17 @@ addEventListener('keydown', e => {
     ouro.style.setProperty('--s', Math.round(Math.min(Math.max(Math.hypot(card.offsetWidth, card.offsetHeight) / .7, short * .92), short * .98, 1100)) + 'px');
   };
   addEventListener('resize', size); size();
+
+  // Yılanın gövdesine tıklayınca gizli sayfa açılır. Halka pointer-events almadığı için (kart butonları çalışsın)
+  // tıklamanın merkeze uzaklığına bakılır: gövde resmin yarıçapının kabaca %62–%95'i arasında.
+  const onSnake = e => {
+    if (e.target.closest('a, button')) return false;
+    const r = ouro.getBoundingClientRect(), half = r.width / 2;
+    const d = Math.hypot(e.clientX - r.left - half, e.clientY - r.top - half) / half;
+    return d > .62 && d < .95;
+  };
+  addEventListener('click', e => { if (onSnake(e)) location.href = '/dusunceler/'; });
+  addEventListener('mousemove', e => document.body.style.cursor = onSnake(e) ? 'pointer' : '');
 }
 
 // ortak ziyaretçi sayacı (oturum başına bir kez artar)
