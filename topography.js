@@ -108,6 +108,8 @@ class TopographyEngine {
       uniform vec3 u_backdrop;
       uniform vec4 u_box; // kaçılacak alan: merkez (xy) ve yarı boyut (zw), uv biriminde
       uniform float u_feather;
+      uniform vec3 u_mouse; // xy: imleç (uv), z: etki gücü
+      uniform vec3 u_click; // xy: tıklanan yer (uv), z: tıklamadan beri geçen süre (<0 ise yok)
 
       // 2D & 3D Simplex noise implementation
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -200,11 +202,23 @@ class TopographyEngine {
         float t = u_time * u_speed * 0.2;
         float morphT = u_time * u_morph_speed * 0.15;
 
+        // İmleç çizgileri iter, tıklama halka şeklinde bir şok dalgası yayar
+        vec2 p = uv;
+        vec2 dm = uv - u_mouse.xy;
+        p -= dm / (length(dm) + 1e-4) * u_mouse.z * 0.1 * exp(-dot(dm, dm) * 12.0);
+        float ring = 0.0;
+        if (u_click.z >= 0.0) {
+          vec2 dc = uv - u_click.xy;
+          float rc = length(dc);
+          ring = exp(-pow((rc - u_click.z * 1.1) * 7.0, 2.0)) * exp(-u_click.z * 1.6);
+          p -= dc / (rc + 1e-4) * ring * 0.09;
+        }
+
         // Base elevation from FBM noise
-        float elevation = fbm(uv * 1.35, morphT * u_morph_amount);
+        float elevation = fbm(p * 1.35, morphT * u_morph_amount);
 
         // Secondary subtle continuous drift
-        elevation += sin(uv.x * 2.0 + t) * cos(uv.y * 2.0 + t * 0.8) * 0.15;
+        elevation += sin(p.x * 2.0 + t) * cos(p.y * 2.0 + t * 0.8) * 0.15;
 
         // Kutunun çevresinde arazi düzleşir: eş yükselti çizgileri içeri giremez, kenarından dolaşır
         if (u_box.z > 0.0) {
@@ -243,6 +257,7 @@ class TopographyEngine {
         vec3 color = u_backdrop;
         color = mix(color, contourColor, clamp(glowTotal * u_glow * 0.5, 0.0, 1.0));
         color = mix(color, contourColor, lineCore);
+        color = mix(color, vec3(1.0), ring * 0.35);
 
         // Organic film grain
         float grain = (fract(sin(dot(gl_FragCoord.xy + fract(u_time) * 100.0, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * u_grain_intensity;
@@ -294,9 +309,15 @@ class TopographyEngine {
       grainIntensity: gl.getUniformLocation(program, 'u_grain_intensity'),
       backdrop: gl.getUniformLocation(program, 'u_backdrop'),
       box: gl.getUniformLocation(program, 'u_box'),
-      feather: gl.getUniformLocation(program, 'u_feather')
+      feather: gl.getUniformLocation(program, 'u_feather'),
+      mouse: gl.getUniformLocation(program, 'u_mouse'),
+      click: gl.getUniformLocation(program, 'u_click')
     };
 
+    // imleç: hedefe yumuşakça yaklaşır; sayfadan çıkınca etki söner
+    this.mouse = [0, 0, 0]; this.mouseTarget = [0, 0, 0]; this.click = [0, 0, -1, 0];
+    addEventListener('pointermove', e => { const [x, y] = this.toUv(e.clientX, e.clientY); this.mouseTarget = [x, y, 1]; }, { passive: true });
+    document.addEventListener('pointerleave', () => this.mouseTarget[2] = 0);
     window.addEventListener('resize', () => this.resize(), { passive: true });
     this.resize();
     this.render();
@@ -382,10 +403,24 @@ class TopographyEngine {
     gl.uniform3fv(this.uniforms.backdrop, this.hexToRgb(this.options.backdrop));
     gl.uniform1f(this.uniforms.feather, this.options.feather);
     gl.uniform4fv(this.uniforms.box, this.avoidBox());
+    this.mouse = this.mouse.map((v, i) => v + (this.mouseTarget[i] - v) * 0.08);
+    gl.uniform3fv(this.uniforms.mouse, this.mouse);
+    gl.uniform3f(this.uniforms.click, this.click[0], this.click[1], this.click[2] < 0 ? -1 : elapsedTime - this.click[3]);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
     this.animId = requestAnimationFrame(() => this.render());
+  }
+
+  // Ekran pikselini shader'ın uv uzayına çevirir
+  toUv(x, y) {
+    const m = Math.min(innerWidth, innerHeight) / this.options.scale;
+    return [(x - innerWidth / 2) / m, (innerHeight / 2 - y) / m];
+  }
+
+  // (x, y) noktasından şok dalgası başlatır
+  pulse(x, y) {
+    this.click = [...this.toUv(x, y), 0, (performance.now() - this.startTime) * 0.001];
   }
 
   // Kaçılacak elemanın kutusunu shader'ın uv uzayına çevirir; boyut değişince yumuşakça geçer
