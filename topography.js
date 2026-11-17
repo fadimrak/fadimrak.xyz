@@ -1,7 +1,6 @@
 /**
  * Topografik harita arka planı (WebGL).
  * Eş yükselti çizgileri ekranda her zaman aynı piksel kalınlığında çizilir; her 5. çizgi kalın "ana eğri"dir.
- * `avoid` verilen elemanın çevresi düz bir ada olur: çizgiler oraya girmez, kenarından dolaşır.
  */
 class TopographyEngine {
   constructor(canvasId, options = {}) {
@@ -13,12 +12,8 @@ class TopographyEngine {
       line: '#ffffff',
       bands: 14,           // birim yükseklik başına çizgi sayısı
       scale: 1.1,
-      speed: 0.04,         // arazinin yavaşça değişme hızı
-      avoid: null,
-      avoidPad: 36,        // px
-      feather: 0.2         // düzlükten araziye geçiş genişliği (uv)
+      speed: 0.04          // arazinin yavaşça değişme hızı
     }, options);
-    this.box = null;
 
     const gl = this.gl = this.canvas.getContext('webgl', { alpha: false, antialias: true });
     if (!gl || !gl.getExtension('OES_standard_derivatives')) return; // desteklenmezse düz zemin kalır
@@ -43,9 +38,8 @@ class TopographyEngine {
       precision highp float;
       varying vec2 v_uv;
       uniform vec2 u_resolution;
-      uniform float u_time, u_bands, u_scale, u_feather;
+      uniform float u_time, u_bands, u_scale;
       uniform vec3 u_backdrop, u_low, u_high, u_line;
-      uniform vec4 u_box; // kaçılacak alan: merkez (xy) ve yarı boyut (zw), uv biriminde
 
       // 3D simplex gürültü (Ashima Arts, MIT)
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -109,21 +103,13 @@ class TopographyEngine {
         vec2 uv = (v_uv - 0.5) * u_resolution / min(u_resolution.x, u_resolution.y) * u_scale;
         float e = terrain(uv);
 
-        // Kutunun çevresinde arazi bozulmaz, sadece çizgiler yumuşakça soluklaşır
-        float fade = 1.0;
-        if (u_box.z > 0.0) {
-          vec2 q = abs(uv - u_box.xy) - u_box.zw;
-          float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-          fade = mix(0.15, 1.0, smoothstep(-u_feather * 0.5, u_feather, d));
-        }
-
         float x = e * u_bands;
         float minor = 1.0 - smoothstep(0.35, 1.1, px(x));          // ~1 px ince eğri
         float major = 1.0 - smoothstep(0.9, 1.8, px(x / 5.0) * 5.0); // ~2 px ana eğri, her 5 çizgide bir
 
         vec3 color = mix(u_low, u_high, smoothstep(-0.6, 0.6, e));    // yüksekliğe göre hafif ton
         color = mix(u_backdrop, color, 0.6);
-        color = mix(color, u_line, max(minor * 0.35, major * 0.8) * fade);
+        color = mix(color, u_line, max(minor * 0.35, major * 0.8));
         gl_FragColor = vec4(color, 1.0);
       }
     `;
@@ -150,8 +136,7 @@ class TopographyEngine {
     for (const k of ['backdrop', 'low', 'high', 'line']) gl.uniform3fv(this.u('u_' + k), this.hexToRgb(o[k]));
     gl.uniform1f(this.u('u_bands'), o.bands);
     gl.uniform1f(this.u('u_scale'), o.scale);
-    gl.uniform1f(this.u('u_feather'), o.feather);
-    this.uTime = this.u('u_time'); this.uRes = this.u('u_resolution'); this.uBox = this.u('u_box');
+    this.uTime = this.u('u_time'); this.uRes = this.u('u_resolution');
 
     addEventListener('resize', () => this.resize(), { passive: true });
     this.resize();
@@ -165,19 +150,10 @@ class TopographyEngine {
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  // Kaçılacak elemanın kutusunu shader'ın uv uzayına çevirir
-  avoidBox() {
-    const el = this.options.avoid;
-    if (!el) return [0, 0, 0, 0];
-    const r = el.getBoundingClientRect(), W = innerWidth, H = innerHeight, m = Math.min(W, H) / this.options.scale, pad = this.options.avoidPad;
-    return [(r.left + r.width / 2 - W / 2) / m, (H / 2 - r.top - r.height / 2) / m, (r.width / 2 + pad) / m, (r.height / 2 + pad) / m];
-  }
-
   render() {
     const gl = this.gl;
     gl.uniform1f(this.uTime, (performance.now() - this.startTime) * 0.001 * this.options.speed);
     gl.uniform2f(this.uRes, this.canvas.width, this.canvas.height);
-    gl.uniform4fv(this.uBox, this.avoidBox());
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(() => this.render());
   }

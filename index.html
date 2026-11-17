@@ -10,10 +10,20 @@
   html, body { height: 100%; margin: 0; }
   body { display: grid; place-items: center; background: #a3c9ee; overflow: hidden; }
   canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
-  button { all: unset; cursor: pointer; padding: .4em; line-height: 0; transition: transform .15s; }
-  button:active { transform: scale(.96); }
-  button:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 12px; }
-  svg { width: min(78vw, 560px); height: auto; fill: #fff; filter: drop-shadow(0 4px 14px #2f5a8a44); }
+  /* liquid glass: arkadaki topoğrafya bulanık görünür */
+  button {
+    all: unset; cursor: pointer; line-height: 0; transition: transform .2s;
+    padding: clamp(1.4rem, 5vw, 2.6rem) clamp(1.8rem, 7vw, 3.6rem);
+    border-radius: clamp(28px, 6vw, 48px); corner-shape: squircle;
+    background: linear-gradient(135deg, #ffffff38, #ffffff12);
+    -webkit-backdrop-filter: blur(4px) saturate(140%); backdrop-filter: blur(4px) saturate(140%);
+    border: 1px solid #ffffff70;
+    box-shadow: inset 0 1px 1px #ffffffb0, inset 0 -1px 2px #2f5a8a22, 0 12px 40px #2f5a8a2e;
+  }
+  button:hover { transform: scale(1.015); }
+  button:active { transform: scale(.97); }
+  button:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+  svg { width: min(68vw, 480px); height: auto; fill: #fff; filter: drop-shadow(0 4px 14px #2f5a8a44); }
   #toast { position: fixed; bottom: 2rem; left: 50%; translate: -50% 0; padding: .7rem 1.2rem; border-radius: 999px; background: #ffffffd9; color: #2f5a8a; font: 650 .95rem system-ui, sans-serif; white-space: nowrap; transition: opacity .25s, translate .25s; }
   #toast:not(.on) { opacity: 0; translate: -50% 1rem; }
 </style>
@@ -26,7 +36,7 @@
 <script src="topography.js"></script>
 <script>
 const b = document.querySelector('button'), toast = document.getElementById('toast');
-new TopographyEngine('topo', { avoid: b });
+new TopographyEngine('topo');
 
 let t;
 const done = () => {
