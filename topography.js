@@ -33,8 +33,13 @@ class TopographyEngine {
       grainIntensity: 0.05,
       mouseInteraction: false,
       mouseRadius: 0.0,
-      mouseStrength: 0.0
+      mouseStrength: 0.0,
+      backdrop: '#0a0a0a',
+      avoid: null,     // bu elemanın çevresine çizgi girmez
+      avoidPad: 40,    // px
+      feather: 0.25    // düzlükten araziye geçiş genişliği (uv)
     }, options);
+    this.box = null;
 
     this.gl = this.canvas.getContext('webgl', { 
       alpha: true, 
@@ -100,6 +105,9 @@ class TopographyEngine {
       uniform float u_brightness;
       uniform float u_opacity;
       uniform float u_grain_intensity;
+      uniform vec3 u_backdrop;
+      uniform vec4 u_box; // kaçılacak alan: merkez (xy) ve yarı boyut (zw), uv biriminde
+      uniform float u_feather;
 
       // 2D & 3D Simplex noise implementation
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -198,6 +206,16 @@ class TopographyEngine {
         // Secondary subtle continuous drift
         elevation += sin(uv.x * 2.0 + t) * cos(uv.y * 2.0 + t * 0.8) * 0.15;
 
+        // Kutunun çevresinde arazi düzleşir: eş yükselti çizgileri içeri giremez, kenarından dolaşır
+        if (u_box.z > 0.0) {
+          vec2 c = u_box.xy;
+          float ce = fbm(c * 1.35, morphT * u_morph_amount) + sin(c.x * 2.0 + t) * cos(c.y * 2.0 + t * 0.8) * 0.15;
+          float plateau = (floor(ce * u_bands) + 0.0) / u_bands; // çizgiler fract=0.5'te, düzlük çizgisiz bir değerde
+          vec2 q = abs(uv - c) - u_box.zw;
+          float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+          elevation = mix(plateau, elevation, smoothstep(0.0, u_feather, d));
+        }
+
         // Contour calculation
         float bandCoord = elevation * u_bands;
         float fractCoord = fract(bandCoord);
@@ -221,21 +239,10 @@ class TopographyEngine {
           contourColor = mix(u_mid_color, u_high_color, (normalizedElevation - 0.5) * 2.0);
         }
 
-        // Deep rich backdrop with subtle ambient light gradient
-        vec3 deepBackdrop = mix(
-          vec3(0.04),
-          u_low_color * 0.35,
-          normalizedElevation * 0.8
-        );
-
-        // Combine layers
-        vec3 color = deepBackdrop;
-        color += contourColor * glowTotal * (u_glow * 0.95);
-        color += mix(contourColor, vec3(1.0), 0.25) * lineCore * 1.4;
-
-        // Vignette effect for immersive depth
-        float vignette = 1.0 - smoothstep(0.5, 1.4, length(v_uv - 0.5) * 1.3);
-        color *= vignette * 0.85 + 0.15;
+        // Çizgiler zemine karıştırılır (açık zeminde de çalışır)
+        vec3 color = u_backdrop;
+        color = mix(color, contourColor, clamp(glowTotal * u_glow * 0.5, 0.0, 1.0));
+        color = mix(color, contourColor, lineCore);
 
         // Organic film grain
         float grain = (fract(sin(dot(gl_FragCoord.xy + fract(u_time) * 100.0, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * u_grain_intensity;
@@ -284,7 +291,10 @@ class TopographyEngine {
       contrast: gl.getUniformLocation(program, 'u_contrast'),
       brightness: gl.getUniformLocation(program, 'u_brightness'),
       opacity: gl.getUniformLocation(program, 'u_opacity'),
-      grainIntensity: gl.getUniformLocation(program, 'u_grain_intensity')
+      grainIntensity: gl.getUniformLocation(program, 'u_grain_intensity'),
+      backdrop: gl.getUniformLocation(program, 'u_backdrop'),
+      box: gl.getUniformLocation(program, 'u_box'),
+      feather: gl.getUniformLocation(program, 'u_feather')
     };
 
     window.addEventListener('resize', () => this.resize(), { passive: true });
@@ -369,9 +379,24 @@ class TopographyEngine {
     gl.uniform1f(this.uniforms.opacity, this.options.opacity);
     gl.uniform1f(this.uniforms.grainIntensity, this.options.grain ? this.options.grainIntensity : 0.0);
 
+    gl.uniform3fv(this.uniforms.backdrop, this.hexToRgb(this.options.backdrop));
+    gl.uniform1f(this.uniforms.feather, this.options.feather);
+    gl.uniform4fv(this.uniforms.box, this.avoidBox());
+
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
     this.animId = requestAnimationFrame(() => this.render());
+  }
+
+  // Kaçılacak elemanın kutusunu shader'ın uv uzayına çevirir; boyut değişince yumuşakça geçer
+  avoidBox() {
+    const el = this.options.avoid;
+    if (!el) return [0, 0, 0, 0];
+    const r = el.getBoundingClientRect(), W = innerWidth, H = innerHeight, m = Math.min(W, H) / this.options.scale;
+    const pad = this.options.avoidPad;
+    const target = [(r.left + r.width / 2 - W / 2) / m, (H / 2 - r.top - r.height / 2) / m, (r.width / 2 + pad) / m, (r.height / 2 + pad) / m];
+    this.box = this.box ? this.box.map((v, i) => v + (target[i] - v) * 0.1) : target;
+    return this.box;
   }
 
   destroy() {

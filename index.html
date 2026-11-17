@@ -8,14 +8,18 @@
 <style>
   @font-face { font-family: 'Gramatika Black'; src: local('Gramatika Black'), local('Gramatika-Black'); font-weight: 900; }
   html, body { height: 100%; margin: 0; }
-  body { display: grid; place-items: center; background: #eaf2ff; }
+  body { display: grid; place-items: center; background: #eaf2ff; overflow: hidden; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
   button { all: unset; cursor: pointer; font: 900 clamp(2.5rem, 10vw, 5rem) 'Gramatika Black', system-ui, sans-serif; color: #10204a; user-select: none; }
   button:focus-visible { outline: 2px solid #10204a; outline-offset: 8px; border-radius: 6px; }
 </style>
 </head>
 <body>
+<canvas id="topo"></canvas>
 <button aria-label="discord kullanıcı adını kopyala">fadimrak</button>
+<script src="topography.js"></script>
 <script>
+new TopographyEngine('topo', { backdrop: '#eaf2ff', lowColor: '#c4d6f5', midColor: '#9ab4e6', highColor: '#6d8fd4', scale: 0.8, bands: 6, morphAmount: 1.5, speed: 0.2, glow: 0.15, grainIntensity: 0.015, avoid: document.querySelector('button') });
 const b = document.querySelector('button');
 b.onclick = () => navigator.clipboard.writeText('fadimrak').then(() => {
   b.textContent = 'kopyalandı';
