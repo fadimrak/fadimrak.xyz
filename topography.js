@@ -109,12 +109,12 @@ class TopographyEngine {
         vec2 uv = (v_uv - 0.5) * u_resolution / min(u_resolution.x, u_resolution.y) * u_scale;
         float e = terrain(uv);
 
-        // Kutunun çevresi düzleşir; düzlük iki çizginin tam ortasındaki yükseklikte, çizgisiz
+        // Kutunun çevresinde arazi bozulmaz, sadece çizgiler yumuşakça soluklaşır
+        float fade = 1.0;
         if (u_box.z > 0.0) {
-          float plateau = (floor(terrain(u_box.xy) * u_bands) + 0.5) / u_bands;
           vec2 q = abs(uv - u_box.xy) - u_box.zw;
           float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-          e = mix(plateau, e, smoothstep(0.0, u_feather, d));
+          fade = mix(0.15, 1.0, smoothstep(-u_feather * 0.5, u_feather, d));
         }
 
         float x = e * u_bands;
@@ -123,7 +123,7 @@ class TopographyEngine {
 
         vec3 color = mix(u_low, u_high, smoothstep(-0.6, 0.6, e));    // yüksekliğe göre hafif ton
         color = mix(u_backdrop, color, 0.6);
-        color = mix(color, u_line, max(minor * 0.35, major * 0.8));
+        color = mix(color, u_line, max(minor * 0.35, major * 0.8) * fade);
         gl_FragColor = vec4(color, 1.0);
       }
     `;
