@@ -1,159 +1,26 @@
 <!doctype html>
-<html lang="tr" data-native="dark">
+<html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>fadimrak</title>
-<meta name="description" content="fadimrak: Kişisel site ve tarayıcıda çalışan araçlar">
-<meta name="theme-color" content="#0a0a0a">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<script src="/assets/site.js?v=6"></script>
-<meta property="og:title" content="fadimrak">
-<meta property="og:description" content="Kişisel site ve tarayıcıda çalışan araçlar">
-<meta property="og:url" content="https://fadimrak.xyz/">
-<meta property="og:type" content="website">
 <style>
+  @font-face { font-family: 'Gramatika Black'; src: local('Gramatika Black'), local('Gramatika-Black'); font-weight: 900; }
   html, body { height: 100%; margin: 0; }
-  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; background: #0a0a0a; color: #e6e6e6; font-family: ui-monospace, Menlo, Consolas, monospace; }
-  .card { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding: 2.5rem 3rem; background: rgba(10,10,10,.75); border: 1px solid #222; border-radius: 14px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 10px 40px rgba(0,0,0,.6); }
-  .card > * { opacity: 0; animation: in 1.2s ease forwards; }
-  #topo { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: .35; }
-  h1 { margin: 0; font-size: 2.5rem; font-weight: 400; letter-spacing: .15em; }
-  a { color: #777; display: flex; transition: color .3s; }
-  a:hover { color: #e6e6e6; }
-  a svg { width: 22px; height: 22px; fill: currentColor; }
-  .tools-button svg, .mini svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .tools-button { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(80px, calc(env(safe-area-inset-bottom) + 20px)); z-index: 4; align-items: center; justify-content: center; gap: .6rem; min-height: 48px; padding: 0 1rem; border: 1px solid #333; border-radius: 999px; background: #111; color: #bbb; text-decoration: none; font-size: .8rem; box-shadow: 0 6px 24px #0006; }
-  .tools-button.games { right: auto; left: max(20px, env(safe-area-inset-left)); }
-  .tools-button.games svg { fill: currentColor; stroke: none; }
-  .tools-button:hover { background: #1b1b1b; border-color: #666; }
-  @media (min-width: 700px) { .tools-button { bottom: max(20px, env(safe-area-inset-bottom)); } }
-  .mini { display: flex; gap: .9rem; margin-top: .1rem; animation-delay: .75s; }
-  .mini button { all: unset; cursor: pointer; color: #555; display: flex; transition: color .3s; }
-  .mini button:hover, .mini button:focus-visible { color: #e6e6e6; }
-  .mini svg { width: 15px; height: 15px; }
-  .mini .dc { color: #555; } .mini .dc:hover { color: #e6e6e6; }
-  .mini .dc svg { fill: currentColor; stroke: none; }
-  a:focus-visible, .mini button:focus-visible { outline: 1px solid #777; outline-offset: 4px; border-radius: 4px; }
-  html[data-theme=light] { filter: invert(1); }
-  html[data-theme=light].inv { filter: none; }
-  .card { position: relative; z-index: 1; transition: transform .25s ease-out; will-change: transform; }
-  #topo { transform: scale(1.08); transition: transform .4s ease-out; }
-  /* Kartın etrafında dönen yılan halkası. Videodaki hareket tek bir resmin dönmesinden ibaret olduğu için
-     resim CSS ile döndürülür: tarayıcının kompozit katmanında çalışır, takılmaz. Yılan kartın önünde durur. */
-  .stage { position: relative; display: grid; place-items: center; }
-  #ouro { --s: 600px; position: absolute; left: 50%; top: 50%; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); z-index: 2; pointer-events: none; user-select: none; opacity: 0; animation: fade 1.6s .4s ease forwards;
-    overflow: hidden; border-radius: 50%; } /* dönen kare resmin köşeleri ekrandan taşıp telefonda sayfayı uzaklaştırmasın */
-  #ouro img { display: block; width: 100%; height: 100%; will-change: transform; animation: spin 10s linear infinite; }
-  .count { margin: 0; display: flex; align-items: center; gap: .35rem; color: #555; font-size: .7rem; animation-delay: .9s; }
-  .count svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
-  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translate(-50%, 10px); padding: .5rem 1rem; background: #111; border: 1px solid #222; border-radius: 8px; color: #aaa; font-size: .8rem; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
-  .toast.show { opacity: 1; transform: translate(-50%, 0); }
-  .foot { position: fixed; bottom: 14px; left: 0; right: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: .45rem; text-align: center; color: #555; font-size: .7rem; opacity: 0; animation: in 1.2s 1.1s ease forwards; }
-  .foot a { color: #666; text-decoration: underline; text-underline-offset: 2px; display: inline; }
-  .foot .oss { display: inline-flex; align-items: center; gap: .45rem; color: #888; text-decoration: none; font-size: .72rem; }
-  .foot .oss:hover { color: #e6e6e6; }
-  .foot .oss svg { width: 15px; height: 15px; fill: currentColor; }
-  html { transition: filter .6s; }
-  html.inv { filter: invert(1); }
-  @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  @keyframes fade { to { opacity: 1; } }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  body { overflow: hidden; }
-  @media (max-width: 480px) { .card { padding: 1.5rem 1.2rem; gap: .6rem; } h1 { font-size: 1.75rem; } }
+  body { display: grid; place-items: center; background: #eaf2ff; }
+  button { all: unset; cursor: pointer; font: 900 clamp(2.5rem, 10vw, 5rem) 'Gramatika Black', system-ui, sans-serif; color: #10204a; user-select: none; }
+  button:focus-visible { outline: 2px solid #10204a; outline-offset: 8px; border-radius: 6px; }
 </style>
 </head>
 <body>
-<canvas id="topo"></canvas>
-<div class="stage">
-<div id="ouro" aria-hidden="true"><img src="/assets/yilan.webp" alt="" draggable="false" decoding="async"></div>
-<main class="card">
-<h1>fadimrak</h1>
-
-<div class="mini"><button data-act="search" aria-label="sitede ara" title="ara (Ctrl+K)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button data-act="theme" aria-label="açık / koyu tema" title="tema"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button><a href="https://discord.com/users/1263876356534702247" target="_blank" rel="noopener" class="dc" aria-label="discord: fadimrak (kullanıcı adını kopyalar)" title="discord: fadimrak"><svg viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a></div>
-<span class="count" title="ziyaret"><svg viewBox="0 0 24 24" aria-label="ziyaret"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="count">–</span></span>
-
-</main>
-</div>
-<footer class="foot"><a class="oss" href="https://github.com/fadimrak/fadimrak.xyz" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>bu site tamamen açık kaynaklıdır</a><span>fadimrak tarafından yapılmıştır · <a href="/telif/">telif hakları</a></span></footer>
-<a class="tools-button games" href="/games/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h10a5 5 0 0 1 5 5v2a5 5 0 0 1-9 3h-2a5 5 0 0 1-9-3v-2a5 5 0 0 1 5-5zm0 3v2H5v2h2v2h2v-2h2v-2H9V9H7zm8.5 1a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5zm2.5 2.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z"/></svg><span>oyunlar</span></a>
-<a class="tools-button" href="/araclar/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><span>araçlar</span></a>
-<div class="toast" id="toast"></div>
-<script src="topography.js"></script>
-<script>new TopographyEngine('topo', { lowColor: '#0a0a0a', midColor: '#555555', highColor: '#bbbbbb', scale: 0.8, bands: 6, morphAmount: 1.5, speed: 0.2, glow: 0.15, grainIntensity: 0.02 });</script>
+<button aria-label="discord kullanıcı adını kopyala">fadimrak</button>
 <script>
-const card = document.querySelector('.card'), topo = document.getElementById('topo');
-
-// konsol mesajı
-console.log('%c' + String.raw`
-  __           _ _                     _
- / _| __ _  __| (_)_ __ ___  _ __ __ _| | __
-| |_ / _' |/ _' | | '_ ' _ \| '__/ _' | |/ /
-|  _| (_| | (_| | | | | | | | | | (_| |   <
-|_|  \__,_|\__,_|_|_| |_| |_|_|  \__,_|_|\_\
-`, 'color:#e6e6e6;font-family:monospace');
-console.log('%cmerak ettin demek.', 'color:#777');
-
-// kart eğilmesi (fare) + arka plan kayması (telefon)
-addEventListener('mousemove', e => {
-  const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
-  card.style.transform = `perspective(800px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg)`;
+const b = document.querySelector('button');
+b.onclick = () => navigator.clipboard.writeText('fadimrak').then(() => {
+  b.textContent = 'kopyalandı';
+  setTimeout(() => b.textContent = 'fadimrak', 1000);
 });
-document.addEventListener('mouseleave', () => card.style.transform = '');
-addEventListener('deviceorientation', e => {
-  if (e.gamma == null) return;
-  const x = Math.max(-1, Math.min(1, e.gamma / 30)), y = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
-  topo.style.transform = `scale(1.08) translate(${x * -2}%, ${y * -2}%)`;
-});
-
-// discord kullanıcı adını kopyala
-document.querySelector('a[href*=discord]').addEventListener('click', e => {
-  e.preventDefault();
-  navigator.clipboard.writeText('fadimrak').then(() => toast('fadimrak kopyalandı'), () => toast('discord: fadimrak'));
-});
-
-// konami kodu
-const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-let k = 0;
-addEventListener('keydown', e => {
-  k = e.key.toLowerCase() === konami[k].toLowerCase() ? k + 1 : (e.key === konami[0] ? 1 : 0);
-  if (k === konami.length) {
-    k = 0;
-    toast(document.documentElement.classList.toggle('inv') ? 'ışıklar açıldı' : 'ışıklar kapandı');
-  }
-});
-
-// Yılan halkası: ekranın kısa kenarının çoğunu kaplasın; büyüdükçe başı kartın yazılarının üstünden daha az geçer
-{
-  const ouro = document.getElementById('ouro');
-  const size = () => {
-    const short = Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight);
-    ouro.style.setProperty('--s', Math.round(Math.min(Math.max(Math.hypot(card.offsetWidth, card.offsetHeight) / .7, short * .92), short * .98, 1100)) + 'px');
-  };
-  addEventListener('resize', size); size();
-
-  // Yılanın gövdesine tıklayınca gizli sayfa açılır. Halka pointer-events almadığı için (kart butonları çalışsın)
-  // tıklamanın merkeze uzaklığına bakılır: gövde resmin yarıçapının kabaca %62–%95'i arasında.
-  const onSnake = e => {
-    if (e.target.closest('a, button')) return false;
-    const r = ouro.getBoundingClientRect(), half = r.width / 2;
-    const d = Math.hypot(e.clientX - r.left - half, e.clientY - r.top - half) / half;
-    return d > .62 && d < .95;
-  };
-  addEventListener('click', e => { if (onSnake(e)) location.href = '/dusunceler/'; });
-  addEventListener('mousemove', e => document.body.style.cursor = onSnake(e) ? 'pointer' : '');
-}
-
-// ortak ziyaretçi sayacı (oturum başına bir kez artar)
-(async () => {
-  let seen = false;
-  try { seen = sessionStorage.getItem('v') === '1'; sessionStorage.setItem('v', '1'); } catch {}
-  try {
-    const r = await fetch(`https://abacus.jasoncameron.dev/${seen ? 'get' : 'hit'}/fadimrak-xyz/visits`);
-    const { value } = await r.json();
-    if (value) document.getElementById('count').textContent = value.toLocaleString('tr-TR');
-  } catch {}
-})();
 </script>
 </body>
 </html>
