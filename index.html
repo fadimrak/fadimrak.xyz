@@ -8,22 +8,27 @@
 <style>
   @font-face { font-family: 'Gramatika Black'; src: local('Gramatika Black'), local('Gramatika-Black'); font-weight: 900; }
   html, body { height: 100%; margin: 0; }
-  body { display: grid; place-items: center; background: #eaf2ff; overflow: hidden; }
+  body { display: grid; place-items: center; background: #a3c9ee; overflow: hidden; }
   canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
-  button { all: unset; cursor: pointer; font: 900 clamp(2.5rem, 10vw, 5rem) 'Gramatika Black', system-ui, sans-serif; color: #10204a; user-select: none; }
-  button:focus-visible { outline: 2px solid #10204a; outline-offset: 8px; border-radius: 6px; }
+  button { all: unset; cursor: pointer; font: 900 clamp(2.5rem, 10vw, 5rem) 'Gramatika Black', system-ui, sans-serif; color: #fff; text-shadow: 0 2px 18px #4f7fb455; user-select: none; }
+  button:focus-visible { outline: 2px solid #fff; outline-offset: 8px; border-radius: 6px; }
+  #toast { position: fixed; bottom: 2rem; left: 50%; transform: translate(-50%, 10px); padding: .6rem 1.1rem; border-radius: 999px; background: #ffffffd9; color: #2f5a8a; font: 600 .9rem system-ui, sans-serif; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
 <canvas id="topo"></canvas>
 <button aria-label="discord kullanıcı adını kopyala">fadimrak</button>
+<div id="toast" role="status">discord ismi kopyalandı</div>
 <script src="topography.js"></script>
 <script>
-new TopographyEngine('topo', { backdrop: '#eaf2ff', lowColor: '#c4d6f5', midColor: '#9ab4e6', highColor: '#6d8fd4', scale: 0.8, bands: 6, morphAmount: 1.5, speed: 0.2, glow: 0.15, grainIntensity: 0.015, avoid: document.querySelector('button') });
-const b = document.querySelector('button');
+const b = document.querySelector('button'), toast = document.getElementById('toast');
+new TopographyEngine('topo', { backdrop: '#a3c9ee', lowColor: '#bcd8f3', midColor: '#d6e8f9', highColor: '#f2f8ff', scale: 0.8, bands: 6, morphAmount: 1.5, speed: 0.2, glow: 0.15, grainIntensity: 0.015, avoid: b });
+let t;
 b.onclick = () => navigator.clipboard.writeText('fadimrak').then(() => {
-  b.textContent = 'kopyalandı';
-  setTimeout(() => b.textContent = 'fadimrak', 1000);
+  toast.classList.add('show');
+  clearTimeout(t);
+  t = setTimeout(() => toast.classList.remove('show'), 1800);
 });
 </script>
 </body>
