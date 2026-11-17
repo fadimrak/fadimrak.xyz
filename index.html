@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fadimrak</title>
+<meta name="theme-color" content="#a3c9ee">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: grid; place-items: center; background: #a3c9ee; overflow: hidden; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+  button { all: unset; cursor: pointer; padding: .4em; line-height: 0; transition: transform .15s; }
+  button:active { transform: scale(.96); }
+  button:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 12px; }
+  svg { width: min(78vw, 560px); height: auto; fill: #fff; filter: drop-shadow(0 4px 14px #2f5a8a44); }
+  #toast { position: fixed; bottom: 2rem; left: 50%; translate: -50% 0; padding: .7rem 1.2rem; border-radius: 999px; background: #ffffffd9; color: #2f5a8a; font: 650 .95rem system-ui, sans-serif; white-space: nowrap; transition: opacity .25s, translate .25s; }
+  #toast:not(.on) { opacity: 0; translate: -50% 1rem; }
+</style>
+</head>
+<body>
+<canvas id="topo"></canvas>
+<!-- Gramatika Black yazısı yol olarak gömülü, ziyaretçide font gerekmez -->
+<button aria-label="fadimrak, discord ismini kopyala"><svg viewBox="0 -756 4314 776" aria-hidden="true"><path d="M94 0V-359H12V-495H94V-526Q94 -575 111.0 -612.0Q128 -649 157.5 -669.5Q187 -690 222.0 -700.0Q257 -710 296 -710Q359 -710 421 -693L401 -569Q365 -581 328 -581Q254 -581 254 -514V-495H409V-359H254V0ZM937 -128Q945 -128 960 -133V2Q939 10 901 10Q805 10 771 -44Q719 10 622 10Q546 10 498.5 -30.0Q451 -70 451 -140Q451 -205 494.0 -245.0Q537 -285 610 -292L753 -305V-315Q753 -344 733.0 -361.5Q713 -379 682 -379Q626 -379 615 -325L472 -345Q485 -429 546.5 -467.0Q608 -505 694 -505Q796 -505 854.5 -456.5Q913 -408 913 -319V-155Q913 -128 937 -128ZM753 -194V-205L659 -194Q635 -191 621.0 -178.5Q607 -166 607 -149Q607 -129 624.5 -118.0Q642 -107 669 -108Q705 -110 729.0 -132.0Q753 -154 753 -194ZM1388 -700H1548V0H1388V-44Q1334 10 1244 10Q1141 10 1071.0 -63.0Q1001 -136 1001 -247Q1001 -360 1072.0 -432.5Q1143 -505 1246 -505Q1333 -505 1388 -452ZM1388 -247Q1388 -301 1356.5 -333.5Q1325 -366 1278.0 -366.0Q1231 -366 1199.0 -333.5Q1167 -301 1167 -247Q1167 -194 1199.0 -161.5Q1231 -129 1278.0 -129.0Q1325 -129 1356.5 -161.5Q1388 -194 1388 -247ZM1631 -647Q1631 -688 1660.0 -717.0Q1689 -746 1731.0 -746.0Q1773 -746 1802.5 -717.0Q1832 -688 1832 -647Q1832 -607 1802.5 -578.5Q1773 -550 1731.0 -550.0Q1689 -550 1660.0 -578.5Q1631 -607 1631 -647ZM1651 0V-495H1811V0ZM2534 -505Q2618 -505 2671.5 -456.0Q2725 -407 2725 -319V0H2565V-270Q2565 -315 2543.0 -337.5Q2521 -360 2483.0 -360.0Q2445 -360 2422.5 -336.0Q2400 -312 2400 -266V0H2240V-270Q2240 -315 2218.0 -337.5Q2196 -360 2158.0 -360.0Q2120 -360 2097.5 -336.0Q2075 -312 2075 -266V0H1915V-495H2075V-454Q2124 -505 2209 -505Q2325 -505 2375 -421Q2423 -505 2534 -505ZM3108 -505Q3152 -505 3179 -495L3156 -343Q3120 -356 3077 -356Q3035 -356 3006.0 -329.5Q2977 -303 2977 -249V0H2817V-495H2977V-453Q3027 -505 3108 -505ZM3700 -128Q3708 -128 3723 -133V2Q3702 10 3664 10Q3568 10 3534 -44Q3482 10 3385 10Q3309 10 3261.5 -30.0Q3214 -70 3214 -140Q3214 -205 3257.0 -245.0Q3300 -285 3373 -292L3516 -305V-315Q3516 -344 3496.0 -361.5Q3476 -379 3445 -379Q3389 -379 3378 -325L3235 -345Q3248 -429 3309.5 -467.0Q3371 -505 3457 -505Q3559 -505 3617.5 -456.5Q3676 -408 3676 -319V-155Q3676 -128 3700 -128ZM3516 -194V-205L3422 -194Q3398 -191 3384.0 -178.5Q3370 -166 3370 -149Q3370 -129 3387.5 -118.0Q3405 -107 3432 -108Q3468 -110 3492.0 -132.0Q3516 -154 3516 -194ZM3789 0V-700H3949V-324L4106 -495H4284L4119 -312L4302 0H4123L4009 -186L3949 -120V0Z"/></svg></button>
+<div id="toast" role="status">discord ismi kopyalandı</div>
+<script src="topography.js"></script>
+<script>
+const b = document.querySelector('button'), toast = document.getElementById('toast');
+new TopographyEngine('topo', { avoid: b });
+
+let t;
+const done = () => {
+  toast.classList.add('on');
+  clearTimeout(t);
+  t = setTimeout(() => toast.classList.remove('on'), 2000);
+};
+// pano API'si yoksa veya izin verilmezse eski yöntem
+const legacy = () => {
+  const ta = Object.assign(document.createElement('textarea'), { value: 'fadimrak' });
+  document.body.append(ta); ta.select();
+  const ok = document.execCommand('copy'); ta.remove();
+  if (ok) done();
+};
+b.onclick = () => navigator.clipboard ? navigator.clipboard.writeText('fadimrak').then(done, legacy) : legacy();
+</script>
+</body>
+</html>
